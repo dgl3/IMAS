@@ -29,6 +29,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility class for agents.
@@ -52,7 +54,7 @@ public class UtilsAgents {
      *
      * @param parent Agent
      * @param sd ServiceDescription search criterion
-     * @return AID of the agent if it is foun, it is a *blocking* method
+     * @return AID of the agent if it is found, it is a *blocking* method
      */
     public static AID searchAgent(Agent parent, ServiceDescription sd) {
         /**

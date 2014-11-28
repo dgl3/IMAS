@@ -21,11 +21,20 @@ import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
+import cat.urv.imas.map.Cell;
 import jade.core.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+import jade.wrapper.ControllerException;
+import jade.wrapper.StaleProxyException;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -132,6 +141,37 @@ public class CentralAgent extends ImasAgent {
             log("GUI loaded");
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        
+        // 4. Create other agents
+        jade.wrapper.AgentContainer cc = getContainerController();
+        
+        UtilsAgents.createAgent(cc, "hospcoord", "cat.urv.imas.agent.HospitalCoordinatorAgent", null);
+        UtilsAgents.createAgent(cc, "firecoord", "cat.urv.imas.agent.FiremenCoordinatorAgent", null);
+        
+        Map<AgentType, List<Cell>> agentList = this.game.getAgentList();
+        
+        for (Map.Entry<AgentType, List<Cell>> entry : agentList.entrySet()) {
+            log(entry.getKey().toString() +" -> " + entry.getValue().size());
+            switch (entry.getKey().toString()) {
+                case "HOSPITAL":
+                    for (int i=0;i<entry.getValue().size();i++) {
+                        UtilsAgents.createAgent(cc, "hosp" + i, "cat.urv.imas.agent.HospitalAgent", null);
+                    }
+                    break;
+                /*case "PRIVATE_VEHICLE":  
+                        break;*/
+                case "FIREMAN":
+                    for (int i=0;i<entry.getValue().size();i++) {
+                        UtilsAgents.createAgent(cc, "fire" + i, "cat.urv.imas.agent.FiremanAgent", null);
+                    }
+                    break;
+                case "AMBULANCE":
+                    for (int i=0;i<entry.getValue().size();i++) {
+                        UtilsAgents.createAgent(cc, "ambu" + i, "cat.urv.imas.agent.AmbulanceAgent", null);
+                    }
+                break;
+            }
         }
 
         // search CoordinatorAgent

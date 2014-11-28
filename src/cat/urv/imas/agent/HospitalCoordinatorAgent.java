@@ -27,12 +27,10 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     
     public HospitalCoordinatorAgent() {
         super(AgentType.HOSPITAL_COORDINATOR);
-        log("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
     }
     
     @Override
     protected void setup() {
-        log("SETUP HOSPOTAL_COORDINATOR");
         /* ** Very Important Line (VIL) ***************************************/
         this.setEnabledO2ACommunication(true, 1);
         /* ********************************************************************/

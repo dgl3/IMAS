@@ -25,6 +25,12 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+import jade.wrapper.ControllerException;
+import jade.wrapper.StaleProxyException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The main Coordinator agent. 
@@ -47,6 +53,11 @@ public class CoordinatorAgent extends ImasAgent {
      */
     private AID hospitalCoordinator;
 
+    /**
+     * FiremenCoordinator agent id.
+     */
+    private AID firemenCoordinator;
+    
     /**
      * Builds the coordinator agent.
      */
@@ -92,9 +103,14 @@ public class CoordinatorAgent extends ImasAgent {
         searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
         this.hospitalCoordinator = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
-        log("TESTING: HOSPITAL COORDINATOR FOUND");
+        
+        // search FiremenCoordinator
+        searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
+        this.firemenCoordinator = UtilsAgents.searchAgent(this, searchCriterion);
+        // searchAgent is a blocking method, so we will obtain always a correct AID
+        
 
-        /* ********************************************************************/
+        /* TODO: Define all the behaviours **/
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.centralAgent);
@@ -109,9 +125,11 @@ public class CoordinatorAgent extends ImasAgent {
 
         //we add a behaviour that sends the message and waits for an answer
         this.addBehaviour(new RequesterBehaviour(this, initialRequest));
-
+        
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
+        
+        
     }
 
     /**
