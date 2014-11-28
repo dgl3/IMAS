@@ -27,7 +27,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     
     public HospitalCoordinatorAgent() {
         super(AgentType.HOSPITAL_COORDINATOR);
-        log("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
     }
     
     @Override

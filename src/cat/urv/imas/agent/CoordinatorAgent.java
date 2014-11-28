@@ -88,12 +88,6 @@ public class CoordinatorAgent extends ImasAgent {
         this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
         
-        // search HospitalCoordinator
-        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
-        this.hospitalCoordinator = UtilsAgents.searchAgent(this, searchCriterion);
-        // searchAgent is a blocking method, so we will obtain always a correct AID
-        log("TESTING: HOSPITAL COORDINATOR FOUND");
-
         /* ********************************************************************/
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
@@ -106,6 +100,15 @@ public class CoordinatorAgent extends ImasAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        
+        // search HospitalCoordinator
+        
+        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+        this.hospitalCoordinator = UtilsAgents.searchAgent(this, searchCriterion);
+        // searchAgent is a blocking method, so we will obtain always a correct AID
+        log("TESTING: HOSPITAL COORDINATOR FOUND");
+        
 
         //we add a behaviour that sends the message and waits for an answer
         this.addBehaviour(new RequesterBehaviour(this, initialRequest));
