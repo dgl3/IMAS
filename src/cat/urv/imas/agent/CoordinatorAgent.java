@@ -41,6 +41,11 @@ public class CoordinatorAgent extends ImasAgent {
      * Central agent id.
      */
     private AID centralAgent;
+    
+    /**
+     * HospitalCoordinator agent id.
+     */
+    private AID hospitalCoordinator;
 
     /**
      * Builds the coordinator agent.
@@ -82,6 +87,12 @@ public class CoordinatorAgent extends ImasAgent {
         searchCriterion.setType(AgentType.CENTRAL.toString());
         this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
+        
+        // search HospitalCoordinator
+        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+        this.hospitalCoordinator = UtilsAgents.searchAgent(this, searchCriterion);
+        // searchAgent is a blocking method, so we will obtain always a correct AID
+        log("TESTING: HOSPITAL COORDINATOR FOUND");
 
         /* ********************************************************************/
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
