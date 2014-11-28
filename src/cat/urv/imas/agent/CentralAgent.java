@@ -184,6 +184,8 @@ public class CentralAgent extends ImasAgent {
         // we wait for the initialization of the game
         MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
+        
+        
         this.addBehaviour(new RequestResponseBehaviour(this, mt));
 
         // Setup finished. When the last inform is received, the agent itself will add
