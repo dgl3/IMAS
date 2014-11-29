@@ -11,6 +11,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
 /**
  *
@@ -22,6 +23,11 @@ public class FiremanAgent extends ImasAgent{
      * Coordinator agent id.
      */
     private AID coordinatorAgent;
+    
+    /**
+     * Fireman-Coordinator agent id.
+     */
+    private AID firemanCoordinatorAgent;
     
     public FiremanAgent() {
         super(AgentType.FIREMAN);
@@ -49,7 +55,29 @@ public class FiremanAgent extends ImasAgent{
             System.err.println(getLocalName() + " registration with DF unsucceeded. Reason: " + e.getMessage());
             doDelete();
         }
+        
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.COORDINATOR.toString());
+        this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+        
+        searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
+        this.firemanCoordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+        
+        notifyFiremanCoordinatorAgentOfCreation();
+        
+    }
 
+    /**
+     * Notifies the FiremanCoordinatorAgent that this Fireman has just been created.
+     * The FiremanCoordinatorAgent can than add this Fireman to his list.
+     */
+    private void notifyFiremanCoordinatorAgentOfCreation() {
+        ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
+        creationNotificationMsg.addReceiver(firemanCoordinatorAgent);
+        send(creationNotificationMsg);
+        
+        System.out.println(getLocalName() + " sent subscription request.");
+        
     }
     
 }

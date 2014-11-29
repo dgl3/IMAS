@@ -146,8 +146,8 @@ public class CentralAgent extends ImasAgent {
         // 4. Create other agents
         jade.wrapper.AgentContainer cc = getContainerController();
         
-        UtilsAgents.createAgent(cc, "hospcoord", "cat.urv.imas.agent.HospitalCoordinatorAgent", null);
-        UtilsAgents.createAgent(cc, "firecoord", "cat.urv.imas.agent.FiremenCoordinatorAgent", null);
+        UtilsAgents.createAgent(cc, "hospCoord", "cat.urv.imas.agent.HospitalCoordinatorAgent", null);
+        UtilsAgents.createAgent(cc, "firemenCoord", "cat.urv.imas.agent.FiremenCoordinatorAgent", null);
         
         Map<AgentType, List<Cell>> agentList = this.game.getAgentList();
         
@@ -163,7 +163,7 @@ public class CentralAgent extends ImasAgent {
                         break;*/
                 case "FIREMAN":
                     for (int i=0;i<entry.getValue().size();i++) {
-                        UtilsAgents.createAgent(cc, "fire" + i, "cat.urv.imas.agent.FiremanAgent", null);
+                        UtilsAgents.createAgent(cc, "fireman" + i, "cat.urv.imas.agent.FiremanAgent", null);
                     }
                     break;
                 case "AMBULANCE":
