@@ -102,6 +102,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                             hospitalAgents.add(msg.getSender());
                             System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
                         }
+                        // If game information is set, send it to the subscriber
                         if (agent.getGame() != null) {
                             agent.sendGame(msg.getSender());
                         }
@@ -112,6 +113,8 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                             Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         agent.log("Game updated");
+                        
+                        // When game information is updated, send it to all children
                         
                         for (AID hospitalAgent : agent.hospitalAgents) {
                             agent.sendGame(hospitalAgent);
