@@ -9,10 +9,13 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -24,6 +27,9 @@ public class HospitalCoordinatorAgent extends ImasAgent {
      * Coordinator agent id.
      */
     private AID coordinatorAgent;
+    
+    private List<AID> ambulanceAgents;
+    private List<AID> hospitalAgents;
     
     public HospitalCoordinatorAgent() {
         super(AgentType.HOSPITAL_COORDINATOR);
@@ -63,19 +69,33 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.coordinatorAgent);
         initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        /*log("Request message to agent");
-        try {
-            initialRequest.setContent(MessageContent.GET_MAP);
-            log("Request message content:" + initialRequest.getContent());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
 
-        //TODO: create a behaviour that sends the message and waits for an answer
-        
+        ambulanceAgents = new LinkedList<>();
+        hospitalAgents = new LinkedList<>();
 
-        // setup finished. When we receive the last inform, the agent itself will add
-        // a behaviour to send/receive actions
+        addBehaviour( newSubscribeListenerBehaviour() );
+    }
+    
+    private CyclicBehaviour newSubscribeListenerBehaviour(){
+        return new CyclicBehaviour(this) {
+            @Override
+            public void action() {
+                ACLMessage msg = receive();
+                if (msg != null){
+                    if (msg.getPerformative() == ACLMessage.SUBSCRIBE){
+                        if (msg.getSender().getLocalName().startsWith("ambu")){
+                            ambulanceAgents.add(msg.getSender());
+                            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+                        }
+                        if (msg.getSender().getLocalName().startsWith("hosp")){
+                            hospitalAgents.add(msg.getSender());
+                            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+                        }
+                    }
+                }   
+                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+            };
+        };
     }
     
 }

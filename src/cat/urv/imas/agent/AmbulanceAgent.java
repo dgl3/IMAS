@@ -11,6 +11,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
 /**
  *
@@ -21,7 +22,7 @@ public class AmbulanceAgent extends ImasAgent{
     /**
      * Coordinator agent id.
      */
-    private AID coordinatorAgent;
+    private AID hospitalCoordinatorAgent;
     
     public AmbulanceAgent() {
         super(AgentType.AMBULANCE);
@@ -49,7 +50,21 @@ public class AmbulanceAgent extends ImasAgent{
             System.err.println(getLocalName() + " registration with DF unsucceeded. Reason: " + e.getMessage());
             doDelete();
         }
+        
+        ServiceDescription searchCriterion = new ServiceDescription();
 
+        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+        this.hospitalCoordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+        
+        notifyHospitalCoordinatorAgentOfCreation();
     }
     
+    private void notifyHospitalCoordinatorAgentOfCreation() {
+        ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
+        creationNotificationMsg.addReceiver(this.hospitalCoordinatorAgent);
+        send(creationNotificationMsg);
+
+        System.out.println(getLocalName() + " sent subscription request.");
+
+    }
 }
