@@ -63,7 +63,6 @@ public class RequesterBehaviour extends AchieveREInitiator {
             GameSettings game = (GameSettings) msg.getContentObject();
             agent.setGame(game);
             agent.log(game.getShortString());
-            agent.sendGame();
         } catch (Exception e) {
             agent.errorLog("Incorrect content: " + e.toString());
         }
