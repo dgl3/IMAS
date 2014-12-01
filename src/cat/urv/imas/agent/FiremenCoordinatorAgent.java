@@ -6,6 +6,7 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.onthology.GameSettings;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -13,8 +14,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,6 +26,11 @@ import java.util.List;
  */
 public class FiremenCoordinatorAgent extends ImasAgent {
 
+    /**
+     * Game settings in use.
+     */
+    private GameSettings game;
+    
     /**
      * Coordinator agent id.
      */
@@ -85,21 +94,44 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
+                FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent)this.getAgent();
                 ACLMessage msg = receive();
                 
                 if (msg != null) {
-                    Boolean isSenderFireman = msg.getSender().getLocalName().startsWith("fireman");
-                    Boolean perfomativeIsSubscribe = (msg.getPerformative() == ACLMessage.SUBSCRIBE);
                     
-                    if( isSenderFireman && perfomativeIsSubscribe )
+                    if( (msg.getPerformative() == ACLMessage.SUBSCRIBE) && msg.getSender().getLocalName().startsWith("fireman") )
                     {
                         firemenAgents.add(msg.getSender());
                         System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+                    } else if ( (msg.getPerformative() == ACLMessage.INFORM) && "coord".equals(msg.getSender().getLocalName()) ) {
+                        try {
+                            agent.setGame((GameSettings) msg.getContentObject());
+                        } catch (UnreadableException ex) {
+                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        agent.log("Game updated");
                     }
                 }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
     }
+    
+    /**
+     * Update the game settings.
+     *
+     * @param game current game settings.
+     */
+    public void setGame(GameSettings game) {
+        this.game = game;
+    }
 
+    /**
+     * Gets the current game settings.
+     *
+     * @return the current game settings.
+     */
+    public GameSettings getGame() {
+        return this.game;
+    }
 }

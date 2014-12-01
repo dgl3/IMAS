@@ -32,11 +32,11 @@ import cat.urv.imas.onthology.GameSettings;
  * NOTE: The game is processed by another behaviour that we add after the 
  * INFORM has been processed.
  */
-public class RequesterBehaviour extends AchieveREInitiator {
+public class InformBehaviour extends AchieveREInitiator {
 
-    public RequesterBehaviour(CoordinatorAgent agent, ACLMessage requestMsg) {
+    public InformBehaviour(CoordinatorAgent agent, ACLMessage requestMsg) {
         super(agent, requestMsg);
-        agent.log("Started behaviour to deal with AGREEs");
+        agent.log("Started inform behaviour");
     }
 
     /**
@@ -47,7 +47,7 @@ public class RequesterBehaviour extends AchieveREInitiator {
     @Override
     protected void handleAgree(ACLMessage msg) {
         CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
-        agent.log("AGREE received from " + ((AID) msg.getSender()).getLocalName());
+        agent.log("AGREE informed from " + ((AID) msg.getSender()).getLocalName());
     }
 
     /**
@@ -59,14 +59,6 @@ public class RequesterBehaviour extends AchieveREInitiator {
     protected void handleInform(ACLMessage msg) {
         CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
         agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-        try {
-            GameSettings game = (GameSettings) msg.getContentObject();
-            agent.setGame(game);
-            agent.log(game.getShortString());
-            agent.sendGame();
-        } catch (Exception e) {
-            agent.errorLog("Incorrect content: " + e.toString());
-        }
     }
 
     /**

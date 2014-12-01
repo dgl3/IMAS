@@ -187,7 +187,7 @@ public class CentralAgent extends ImasAgent {
         
         
         this.addBehaviour(new RequestResponseBehaviour(this, mt));
-
+        
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
     }
