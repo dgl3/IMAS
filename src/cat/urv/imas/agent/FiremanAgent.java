@@ -57,8 +57,8 @@ public class FiremanAgent extends ImasAgent{
         }
         
         ServiceDescription searchCriterion = new ServiceDescription();
-        searchCriterion.setType(AgentType.COORDINATOR.toString());
-        this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+        //searchCriterion.setType(AgentType.COORDINATOR.toString());
+        //this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
         
         searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
         this.firemanCoordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
@@ -73,7 +73,7 @@ public class FiremanAgent extends ImasAgent{
      */
     private void notifyFiremanCoordinatorAgentOfCreation() {
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
-        creationNotificationMsg.addReceiver(firemanCoordinatorAgent);
+        creationNotificationMsg.addReceiver(this.firemanCoordinatorAgent);
         send(creationNotificationMsg);
         
         System.out.println(getLocalName() + " sent subscription request.");

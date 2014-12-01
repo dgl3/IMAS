@@ -86,6 +86,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
             @Override
             public void action() {
                 ACLMessage msg = receive();
+                
                 if (msg != null) {
                     Boolean isSenderFireman = msg.getSender().getLocalName().startsWith("fireman");
                     Boolean perfomativeIsSubscribe = (msg.getPerformative() == ACLMessage.SUBSCRIBE);
