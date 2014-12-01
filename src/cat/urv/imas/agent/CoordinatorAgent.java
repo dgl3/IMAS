@@ -125,9 +125,9 @@ public class CoordinatorAgent extends ImasAgent {
 
         //we add a behaviour that sends the message and waits for an answer
         this.addBehaviour(new RequesterBehaviour(this, initialRequest));
+
         
-        //System.out.println(this.game.getAgentList());
-        // setup finished. When we receive the last inform, the agent itself will add
+// setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
         
         

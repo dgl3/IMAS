@@ -19,6 +19,7 @@ package cat.urv.imas.onthology;
 
 import cat.urv.imas.agent.AgentType;
 import cat.urv.imas.map.Cell;
+import static java.util.Collections.list;
 import java.util.List;
 import java.util.Map;
 import javax.xml.bind.annotation.XmlElement;
@@ -215,12 +216,63 @@ public class GameSettings implements java.io.Serializable {
     
     public String toString() {
         //TODO: show a human readable summary of the game settings.
-        return "Game settings";
+        List<Cell> listAmbulance = agentList.get(AgentType.AMBULANCE);
+        List<Cell> listFireman = agentList.get(AgentType.FIREMAN);
+        List<Cell> listPrivate = agentList.get(AgentType.PRIVATE_VEHICLE);
+        String retstr = "\n\n-------Game information-------\nPositions of mobile agents: \n";
+        int i = 0;
+        for(Cell cell: listAmbulance){
+            retstr += "\t Ambulance " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listFireman){
+            retstr += "\t Fireman " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listPrivate){
+            retstr += "\t Private_vehicle " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        retstr += "Occupancy of Hospitals: \n";
+        for(i=0; i<this.hospitalCapacities.length; i++){
+            retstr += "\t Hospital " + i + ": " + this.hospitalCapacities[i] + "\n";
+        }
+        retstr += "Fires: \n";
+        if (this.fireList != null){
+            i = 0;
+            for(Cell cell: this.fireList.keySet()){
+                retstr += "\t Fire " + i + ": " + this.fireList.get(cell) + "\n";
+                i++;
+            }
+        }else{
+            retstr += "\t No fires... \n";
+        }
+        return retstr;
     }
     
     public String getShortString() {
-        //TODO: list of agents, hospitals and gas stations (if any)
-        return "Game settings: agent related string";
+        List<Cell> listAmbulance = agentList.get(AgentType.AMBULANCE);
+        List<Cell> listFireman = agentList.get(AgentType.FIREMAN);
+        List<Cell> listPrivate = agentList.get(AgentType.PRIVATE_VEHICLE);
+        String retstr = "\n\n-------Game information-------\nPositions of mobile agents: \n";
+        int i = 0;
+        for(Cell cell: listAmbulance){
+            retstr += "\t Ambulance " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listFireman){
+            retstr += "\t Fireman " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listPrivate){
+            retstr += "\t Private_vehicle " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        return retstr;
     }
     
 }
