@@ -23,7 +23,7 @@ public class HospitalAgent extends ImasAgent{
     /**
      * Coordinator agent id.
      */
-    private AID coordinatorAgent;
+    private AID hospitalCoordinatorAgent;
     
     public HospitalAgent() {
         super(AgentType.HOSPITAL);
@@ -51,6 +51,20 @@ public class HospitalAgent extends ImasAgent{
             System.err.println(getLocalName() + " registration with DF unsucceeded. Reason: " + e.getMessage());
             doDelete();
         }
+        ServiceDescription searchCriterion = new ServiceDescription();
+
+        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+        this.hospitalCoordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+        
+        notifyHospitalCoordinatorAgentOfCreation();
+    }
+    
+    private void notifyHospitalCoordinatorAgentOfCreation() {
+        ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
+        creationNotificationMsg.addReceiver(this.hospitalCoordinatorAgent);
+        send(creationNotificationMsg);
+
+        System.out.println(getLocalName() + " sent subscription request.");
 
     }
     
