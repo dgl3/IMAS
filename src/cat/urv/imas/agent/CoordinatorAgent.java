@@ -158,7 +158,7 @@ public class CoordinatorAgent extends ImasAgent {
         /* TODO: Define all the behaviours **/
         ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
         gameinformRequest.clearAllReceiver();
-        //gameinformRequest.addReceiver(this.hospitalCoordinator);
+        gameinformRequest.addReceiver(this.hospitalCoordinator);
         gameinformRequest.addReceiver(this.firemenCoordinator);
         gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
         log("Inform message to agent");

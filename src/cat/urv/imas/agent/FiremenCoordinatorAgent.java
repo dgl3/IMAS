@@ -82,7 +82,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         // searchAgent is a blocking method, so we will obtain always a correct AID
 
         firemenAgents = new LinkedList<>();
-        addBehaviour( newFiremanListenerBehaviour() );
+        addBehaviour( newListenerBehaviour() );
     }
     
     /**
@@ -90,7 +90,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * If yes, this fireman is added to the coordinators fireman list.
      * @return 
      */
-    private CyclicBehaviour newFiremanListenerBehaviour(){
+    private CyclicBehaviour newListenerBehaviour(){
         return new CyclicBehaviour(this) {
             @Override
             public void action() {

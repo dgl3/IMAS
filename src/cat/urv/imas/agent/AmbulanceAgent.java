@@ -6,6 +6,7 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.onthology.GameSettings;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -20,6 +21,16 @@ import jade.lang.acl.ACLMessage;
 public class AmbulanceAgent extends ImasAgent{
     
     /**
+     * Hospital position
+     */
+    private int[] currentPosition;
+    
+    /**
+     * Game settings in use.
+     */
+    private GameSettings game;
+    
+    /**
      * Coordinator agent id.
      */
     private AID hospitalCoordinatorAgent;
@@ -30,6 +41,7 @@ public class AmbulanceAgent extends ImasAgent{
     
     @Override
     protected void setup() {
+        this.currentPosition = new int[2];
         /* ** Very Important Line (VIL) ***************************************/
         this.setEnabledO2ACommunication(true, 1);
         /* ********************************************************************/
