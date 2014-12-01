@@ -6,6 +6,9 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
+import jade.domain.FIPANames.InteractionProtocol;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -13,8 +16,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,6 +28,11 @@ import java.util.List;
  */
 public class FiremenCoordinatorAgent extends ImasAgent {
 
+    /**
+     * Game settings in use.
+     */
+    private GameSettings game;
+    
     /**
      * Coordinator agent id.
      */
@@ -85,21 +96,72 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
+                FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent)this.getAgent();
                 ACLMessage msg = receive();
-                
-                if (msg != null) {
-                    Boolean isSenderFireman = msg.getSender().getLocalName().startsWith("fireman");
-                    Boolean perfomativeIsSubscribe = (msg.getPerformative() == ACLMessage.SUBSCRIBE);
-                    
-                    if( isSenderFireman && perfomativeIsSubscribe )
-                    {
-                        firemenAgents.add(msg.getSender());
-                        System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+                if (msg != null){
+                    if (msg.getPerformative() == ACLMessage.SUBSCRIBE){
+                        if (msg.getSender().getLocalName().startsWith("fireman")){
+                            firemenAgents.add(msg.getSender());
+                            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+                        }
+                        // If game information is set, send it to the subscriber
+                        if (agent.getGame() != null) {
+                            agent.sendGame(msg.getSender());
+                        }
+                    } else if (msg.getPerformative() == ACLMessage.INFORM) {
+                        try {
+                            agent.setGame((GameSettings) msg.getContentObject());
+                        } catch (UnreadableException ex) {
+                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        agent.log("Game updated");
+                        
+                        // When game information is updated, send it to all children
+                        
+                        for (AID firemanAgent : agent.firemenAgents) {
+                            agent.sendGame(firemanAgent);
+                        }
                     }
-                }
+                }   
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
     }
 
+    
+    /**
+     * Update the game settings.
+     *
+     * @param game current game settings.
+     */
+    public void setGame(GameSettings game) {
+        this.game = game;
+    }
+
+    /**
+     * Gets the current game settings.
+     *
+     * @return the current game settings.
+     */
+    public GameSettings getGame() {
+        return this.game;
+    }
+    
+    public void sendGame(AID agent) {
+        /* TODO: Define all the behaviours **/
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(agent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            gameinformRequest.setContentObject(this.game);
+            log("Inform message content: game");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
+    }
 }

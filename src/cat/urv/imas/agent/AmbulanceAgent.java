@@ -90,7 +90,7 @@ public class AmbulanceAgent extends ImasAgent{
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                HospitalAgent agent = (HospitalAgent)this.getAgent();
+                AmbulanceAgent agent = (AmbulanceAgent)this.getAgent();
                 ACLMessage msg = receive();
                 if (msg != null){
                     if (msg.getPerformative() == ACLMessage.INFORM) {
@@ -131,7 +131,7 @@ public class AmbulanceAgent extends ImasAgent{
      */
     public void updatePosition() {
         int ambulanceNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
-        this.currentPosition = this.game.getAgentList().get(AgentType.HOSPITAL).get(ambulanceNumber);
+        this.currentPosition = this.game.getAgentList().get(AgentType.AMBULANCE).get(ambulanceNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
     }
 }

@@ -15,28 +15,32 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cat.urv.imas.behaviour.coordinator;
+package cat.urv.imas.behaviour.FiremenCoordinator;
 
+import cat.urv.imas.behaviour.hospitalCoordinator.*;
+import cat.urv.imas.behaviour.coordinator.*;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.proto.AchieveREInitiator;
 import cat.urv.imas.agent.CoordinatorAgent;
+import cat.urv.imas.agent.FiremenCoordinatorAgent;
+import cat.urv.imas.agent.HospitalCoordinatorAgent;
 import cat.urv.imas.onthology.GameSettings;
 
 /**
- * Behaviour for the Coordinator agent to deal with AGREE messages.
- * The Coordinator Agent sends a REQUEST for the
+ * Behaviour for the HospitalCoordinatorAgent agent to deal with INFORM messages.
+ * The HospitalCoordinatorAgent Agent sends a REQUEST for the
  * information of the game settings. The Central Agent sends an AGREE and 
- * then it informs of this information which is stored by the Coordinator Agent. 
+ * then it informs of this information which is stored by the HospitalCoordinatorAgent Agent. 
  * 
  * NOTE: The game is processed by another behaviour that we add after the 
  * INFORM has been processed.
  */
-public class RequesterBehaviour extends AchieveREInitiator {
+public class InformBehaviour extends AchieveREInitiator {
 
-    public RequesterBehaviour(CoordinatorAgent agent, ACLMessage requestMsg) {
+    public InformBehaviour(FiremenCoordinatorAgent agent, ACLMessage requestMsg) {
         super(agent, requestMsg);
-        agent.log("Started behaviour to deal with AGREEs");
+        agent.log("Started inform behaviour");
     }
 
     /**
@@ -46,8 +50,8 @@ public class RequesterBehaviour extends AchieveREInitiator {
      */
     @Override
     protected void handleAgree(ACLMessage msg) {
-        CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
-        agent.log("AGREE received from " + ((AID) msg.getSender()).getLocalName());
+        FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent) this.getAgent();
+        agent.log("AGREE informed from " + ((AID) msg.getSender()).getLocalName());
     }
 
     /**
@@ -57,16 +61,8 @@ public class RequesterBehaviour extends AchieveREInitiator {
      */
     @Override
     protected void handleInform(ACLMessage msg) {
-        CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
+        FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent) this.getAgent();
         agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-        try {
-            GameSettings game = (GameSettings) msg.getContentObject();
-            agent.setGame(game);
-            agent.log(game.getShortString());
-            agent.sendGame();
-        } catch (Exception e) {
-            agent.errorLog("Incorrect content: " + e.toString());
-        }
     }
 
     /**
@@ -76,7 +72,7 @@ public class RequesterBehaviour extends AchieveREInitiator {
      */
     @Override
     protected void handleNotUnderstood(ACLMessage msg) {
-        CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
+        FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent) this.getAgent();
         agent.log("This message NOT UNDERSTOOD.");
     }
 
@@ -87,7 +83,7 @@ public class RequesterBehaviour extends AchieveREInitiator {
      */
     @Override
     protected void handleFailure(ACLMessage msg) {
-        CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
+        FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent) this.getAgent();
         agent.log("The action has failed.");
 
     } //End of handleFailure
@@ -99,7 +95,7 @@ public class RequesterBehaviour extends AchieveREInitiator {
      */
     @Override
     protected void handleRefuse(ACLMessage msg) {
-        CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
+        FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent) this.getAgent();
         agent.log("Action refused.");
     }
 
