@@ -17,6 +17,7 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.behaviour.coordinator.InformBehaviour;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.onthology.MessageContent;
@@ -124,8 +125,9 @@ public class CoordinatorAgent extends ImasAgent {
         }
 
         //we add a behaviour that sends the message and waits for an answer
-        this.addBehaviour(new RequesterBehaviour(this, initialRequest));
-
+        RequesterBehaviour initialRequestBehaviour = new RequesterBehaviour(this, initialRequest);
+        this.addBehaviour(initialRequestBehaviour);
+        
         
 // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
@@ -149,6 +151,25 @@ public class CoordinatorAgent extends ImasAgent {
      */
     public GameSettings getGame() {
         return this.game;
+    }
+    
+    public void sendGame() {
+        /* TODO: Define all the behaviours **/
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        //gameinformRequest.addReceiver(this.hospitalCoordinator);
+        gameinformRequest.addReceiver(this.firemenCoordinator);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            gameinformRequest.setContentObject(this.game);
+            log("Inform message content: game");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
     }
 
 }
