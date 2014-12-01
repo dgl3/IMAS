@@ -21,6 +21,7 @@ import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
+import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.map.Cell;
 import jade.core.*;
 import jade.domain.*;
@@ -156,19 +157,19 @@ public class CentralAgent extends ImasAgent {
             switch (entry.getKey().toString()) {
                 case "HOSPITAL":
                     for (int i=0;i<entry.getValue().size();i++) {
-                        UtilsAgents.createAgent(cc, "hosp" + i, "cat.urv.imas.agent.HospitalAgent", null);
+                        UtilsAgents.createAgent(cc, AgentNames.hospital + i, "cat.urv.imas.agent.HospitalAgent", null);
                     }
                     break;
                 /*case "PRIVATE_VEHICLE":  
                         break;*/
                 case "FIREMAN":
                     for (int i=0;i<entry.getValue().size();i++) {
-                        UtilsAgents.createAgent(cc, "fireman" + i, "cat.urv.imas.agent.FiremanAgent", null);
+                        UtilsAgents.createAgent(cc, AgentNames.fireman + i, "cat.urv.imas.agent.FiremanAgent", null);
                     }
                     break;
                 case "AMBULANCE":
                     for (int i=0;i<entry.getValue().size();i++) {
-                        UtilsAgents.createAgent(cc, "ambu" + i, "cat.urv.imas.agent.AmbulanceAgent", null);
+                        UtilsAgents.createAgent(cc, AgentNames.ambulance + i, "cat.urv.imas.agent.AmbulanceAgent", null);
                     }
                 break;
             }
