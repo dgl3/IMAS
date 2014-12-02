@@ -26,7 +26,17 @@ import java.util.logging.Logger;
 public class AmbulanceAgent extends ImasAgent{
     
     /**
-     * Hospital position
+     * Ambulance loading speed
+     */
+    private int loadingSpeed;
+    
+    /**
+     * Ambulance capacity
+     */
+    private int ambulanceCapacity;
+    
+    /**
+     * Ambulance position
      */
     private Cell currentPosition;
     
@@ -101,6 +111,8 @@ public class AmbulanceAgent extends ImasAgent{
                         }
                         agent.log("Game updated");
                         agent.updatePosition();
+                        agent.updateLoadingSpeed();
+                        agent.updateAmbulanceCapacity();
                     }
                 }   
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
@@ -133,5 +145,21 @@ public class AmbulanceAgent extends ImasAgent{
         int ambulanceNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.AMBULANCE).get(ambulanceNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
+    }
+    
+    /**
+     * Updates the loading speed of the ambulance from the game settings
+     */
+    public void updateLoadingSpeed() {
+        this.loadingSpeed = this.game.getAmbulanceLoadingSpeed();
+        log("Loading speed updated: " + this.loadingSpeed);
+    }
+    
+    /**
+     * Updates the ambulance capacity from the game settings
+     */
+    public void updateAmbulanceCapacity() {
+        this.ambulanceCapacity = this.game.getPeoplePerAmbulance();
+        log("Capacity updated: " + this.ambulanceCapacity);
     }
 }

@@ -37,6 +37,16 @@ public class HospitalAgent extends ImasAgent{
     private GameSettings game;
     
     /**
+     * Hospital maximum capacity
+     */
+    private int hospitalMaxCapacity;
+    
+    /**
+     * Hospital recovery time
+     */
+    private int recoveryTime;
+    
+    /**
      * Coordinator agent id.
      */
     private AID hospitalCoordinatorAgent;
@@ -101,6 +111,8 @@ public class HospitalAgent extends ImasAgent{
                         }
                         agent.log("Game updated");
                         agent.updatePosition();
+                        agent.updateRecoveryTime();
+                        agent.updateMaxCapacity();
                     }
                 }   
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
@@ -133,5 +145,22 @@ public class HospitalAgent extends ImasAgent{
         int hospitalNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.HOSPITAL).get(hospitalNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
+    }
+    
+    /**
+     * Updates the maximum capacity of the hospital from the game settings
+     */
+    public void updateMaxCapacity() {
+        int hospitalNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
+        this.hospitalMaxCapacity = this.game.getHospitalCapacities()[hospitalNumber];
+        log("Maximum capacity set at: " + this.hospitalMaxCapacity);
+    }
+    
+    /**
+     * Updates the recovery time from the game settings
+     */
+    public void updateRecoveryTime() {
+        this.recoveryTime = this.game.getStepsToHealth();
+        log("Recovery time updated: " + this.recoveryTime);
     }
 }
