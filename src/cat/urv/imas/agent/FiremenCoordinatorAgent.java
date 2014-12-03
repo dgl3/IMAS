@@ -100,10 +100,10 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                 if (msg != null) {
                     switch (msg.getPerformative()){
                         case ACLMessage.SUBSCRIBE:
-                            handleInform(msg);
+                            handleSubscribe(msg);
                             break;
                         case ACLMessage.INFORM:
-                            handleSubscribe(msg);
+                            handleInform(msg);
                             break;
                         default:
                             log("Unsupported message received.");
