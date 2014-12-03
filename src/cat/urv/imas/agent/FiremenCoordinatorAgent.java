@@ -32,7 +32,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * Game settings in use.
      */
     private GameSettings game;
-    
+
     /**
      * Coordinator agent id.
      */
@@ -82,59 +82,69 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         //searchCriterion.setType(AgentType.FIREMAN.toString());
         //this.fireman = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
-
         firemenAgents = new LinkedList<>();
-        addBehaviour( newListenerBehaviour() );
+        addBehaviour(newListenerBehaviour());
     }
-    
+
     /**
-     * Checks every cycle if a new fireman occured (Fireman sends a message).
-     * If yes, this fireman is added to the coordinators fireman list.
-     * @return 
+     * Checks every cycle if a new fireman occured (Fireman sends a message). If
+     * yes, this fireman is added to the coordinators fireman list.
+     *
+     * @return
      */
-    private CyclicBehaviour newListenerBehaviour(){
+    private CyclicBehaviour newListenerBehaviour() {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                FiremenCoordinatorAgent agent = (FiremenCoordinatorAgent)this.getAgent();
                 ACLMessage msg = receive();
-                if (msg != null){
-                    if (msg.getPerformative() == ACLMessage.SUBSCRIBE){
-                        if (msg.getSender().getLocalName().startsWith("fireman")){
-                            firemenAgents.add(msg.getSender());
-                            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
-                        }
-                        // If game information is set, send it to the subscriber
-                        if (agent.getGame() != null) {
-                            agent.sendGame(msg.getSender());
-                        }
-                    } else if (msg.getPerformative() == ACLMessage.INFORM) {
-                        try {
-                            agent.setGame((GameSettings) msg.getContentObject());
-                        } catch (UnreadableException ex) {
-                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        agent.log("Game updated");
-                        
-                        // When game information is updated, send it to all children
-                        
-                        for (AID firemanAgent : agent.firemenAgents) {
-                            agent.sendGame(firemanAgent);
-                        }
+                if (msg != null) {
+                    switch (msg.getPerformative()){
+                        case ACLMessage.SUBSCRIBE:
+                            handleInform(msg);
+                            break;
+                        case ACLMessage.INFORM:
+                            handleSubscribe(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
                     }
-                }   
+                }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
     }
-
     
+    private void handleInform(ACLMessage msg) {
+        try {
+            setGame((GameSettings) msg.getContentObject());
+        } catch (UnreadableException ex) {
+            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        log("Game updated");
+
+        // When game information is updated, send it to all children
+        for (AID firemanAgent : firemenAgents) {
+            sendGame(firemanAgent);
+        }
+    }
+
+    private void handleSubscribe(ACLMessage msg) {
+        if (msg.getSender().getLocalName().startsWith("fireman")) {
+            firemenAgents.add(msg.getSender());
+            log("added " + msg.getSender().getLocalName());
+        }
+        // If game information is set, send it to the subscriber
+        if (getGame() != null) {
+            sendGame(msg.getSender());
+        }
+    }
+
     /**
      * Update the game settings.
      *
      * @param game current game settings.
      */
-    public void setGame(GameSettings game) {
+    private void setGame(GameSettings game) {
         this.game = game;
     }
 
@@ -143,11 +153,11 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      *
      * @return the current game settings.
      */
-    public GameSettings getGame() {
+    private GameSettings getGame() {
         return this.game;
     }
-    
-    public void sendGame(AID agent) {
+
+    private void sendGame(AID agent) {
         /* TODO: Define all the behaviours **/
         ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
         gameinformRequest.clearAllReceiver();
@@ -160,7 +170,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
     }
