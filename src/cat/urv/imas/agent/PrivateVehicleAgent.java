@@ -53,8 +53,8 @@ public class PrivateVehicleAgent extends ImasAgent{
      * Updates the new current position from the game settings
      */
     public void updatePosition() {
-        int ambulanceNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
-        this.currentPosition = this.game.getAgentList().get(AgentType.AMBULANCE).get(ambulanceNumber);
+        int privateVehicleNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
+        this.currentPosition = this.game.getAgentList().get(AgentType.PRIVATE_VEHICLE).get(privateVehicleNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
     }
     
