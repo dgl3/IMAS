@@ -22,6 +22,7 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
@@ -30,6 +31,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,6 +114,7 @@ public class CoordinatorAgent extends ImasAgent {
         
 
         /* TODO: Define all the behaviours **/
+        /*
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.centralAgent);
@@ -131,7 +134,70 @@ public class CoordinatorAgent extends ImasAgent {
         
 // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
+        */
+        this.addBehaviour(newListenerBehaviour());
+    }
+    
+    /**
+     * Main Listening behaviour for the Coordinator Agent
+     *
+     * @return
+     */
+    private CyclicBehaviour newListenerBehaviour() {
+        return new CyclicBehaviour(this) {
+            @Override
+            public void action() {
+                ACLMessage msg = receive();
+                if (msg != null) {
+                    switch (msg.getPerformative()){
+                        case ACLMessage.INFORM:
+                            handleInform(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
+                    }
+                }
+                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+            };
+        };
+    }
+    
+    /**
+     * Handle new incoming INFORM message
+     */
+    private void handleInform(ACLMessage msg) {
+        CoordinatorAgent agent = this;
+        Map<String,Object> contentObject;
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+            case MessageContent.SEND_GAME:
+                agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                try {
+                    //GameSettings gameSettings = (GameSettings) msg.getContentObject();
+                    GameSettings gameSettings = (GameSettings) contentObject.get(content);
+                    agent.setGame(gameSettings);
+                    agent.log(gameSettings.getShortString());
+                    this.newTurn();
+                } catch (Exception e) {
+                    agent.errorLog("Incorrect content: " + e.toString());
+                }
+                break;
+            default:
+                agent.log("Message Content not understood");
+                break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
+    }
+    
+    private void newTurn() {
+        // Coordinator agent actively sends game info at the start of each turn
+        this.sendGame();
         
     }
 

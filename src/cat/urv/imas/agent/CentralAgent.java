@@ -17,13 +17,16 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.behaviour.central.InformBehaviour;
 import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
@@ -32,6 +35,8 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -180,7 +185,8 @@ public class CentralAgent extends ImasAgent {
         searchCriterion.setType(AgentType.COORDINATOR.toString());
         this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
-
+        
+        /*
         // add behaviours
         // we wait for the initialization of the game
         MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
@@ -191,11 +197,107 @@ public class CentralAgent extends ImasAgent {
 
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
+        */
+        this.addBehaviour(newListenerBehaviour());
+        this.newTurn();
     }
     
     public void updateGUI() {
         System.out.println("CENTRAL AGENT:" + this.game.get(2, 2).toString());
         this.gui.updateGame();
     }
+    
+    /**
+     * Method to send the necessary messages to start a new turn and to wait 
+     * for the end turn message from the children agents
+     */
+    private void newTurn() {
+        // Central agent actively sends game info at the start of each turn
+        this.sendGame();
+        
+    }
+    
+    /**
+     * Method for the central agent to check for collisions on any of the agents
+     * capable of moving
+     */
+    private void checkMovementCollisions(List<AID> agents) {
+        // TODO: this will be a dummy method for now
+        this.endTurn(agents);
+    }
+    
+    /**
+     * Method for the central agent to finish the current turn. It updates
+     * the map with the turns movement and starts a new turn
+     */
+    private void endTurn(List<AID> agents) {
+        
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.newTurn();
+    }
 
+    private void sendGame() {
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(this.coordinatorAgent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            //gameinformRequest.setContent(MessageContent.SEND_GAME);
+            Map<String,GameSettings> content = new HashMap<>();
+            content.put(MessageContent.SEND_GAME, this.game);
+            gameinformRequest.setContentObject((Serializable) content);
+            log("Inform message content: " + MessageContent.SEND_GAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
+    }
+    
+    private CyclicBehaviour newListenerBehaviour(){
+        return new CyclicBehaviour(this) {
+            @Override
+            public void action() {
+                ACLMessage msg = receive();
+                if (msg != null){
+                    switch (msg.getPerformative()){
+                        case ACLMessage.INFORM:
+                            handleInform(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
+                    }
+                }   
+                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+            };
+        };
+    }
+    
+    /**
+     * Handle new incoming INFORM message
+     */
+    private void handleInform(ACLMessage msg) {
+        CentralAgent agent = this;
+        String content = (String) msg.getContent();
+        switch(content) {
+            case MessageContent.END_TURN:
+                agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                try {
+                    List<AID> agents = (List<AID>) msg.getContentObject();
+                    this.checkMovementCollisions(agents);
+                } catch (Exception e) {
+                    agent.errorLog("Incorrect content: " + e.toString());
+                }
+                break;
+            default:
+                agent.log("Message Content not understood");
+                break;
+        }
+    }
 }

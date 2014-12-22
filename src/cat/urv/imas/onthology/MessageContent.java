@@ -28,4 +28,19 @@ public class MessageContent {
      */
     public static final String GET_MAP = "Get map";
     
+    /**
+     * Message sent to send the whole game information
+     */
+    public static final String SEND_GAME = "Send Game";
+    
+    /**
+     * Message sent to send the while game information + petition to take care of a new fire
+     */
+    public static final String NEW_FIRE_PETITION = "New Fire Petition";
+    
+    /**
+     * Message sent to inform about turns end + new position for all child agents
+     */
+    public static final String END_TURN = "End Of Turn";
+    
 }
