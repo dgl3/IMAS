@@ -23,6 +23,7 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.constants.AgentNames;
+import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
@@ -64,6 +65,8 @@ public class CentralAgent extends ImasAgent {
      * round.
      */
     private AID coordinatorAgent;
+    
+    private Graph graph;
 
     /**
      * Builds the Central agent.
@@ -140,6 +143,10 @@ public class CentralAgent extends ImasAgent {
         this.game = InitialGameSettings.load("game.settings");
         log("Initial configuration settings loaded");
 
+        //Creates the graph corresponding to the map cells
+        this.graph = new Graph(game);
+        
+        
         // 3. Load GUI
         try {
             this.gui = new GraphicInterface(game);

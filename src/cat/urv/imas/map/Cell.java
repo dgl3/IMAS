@@ -119,4 +119,22 @@ public abstract class Cell implements java.io.Serializable {
     public String getMapMessage() {
         return "";
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 79 * hash + this.row;
+        hash = 79 * hash + this.col;
+        return hash;
+    }
+    
+    @Override
+    public boolean equals(Object o){
+        if (!(o instanceof Cell))
+            return false;
+        else{
+            Cell cell = (Cell) o;
+            return this.hashCode() == cell.hashCode();
+        }      
+    }
 }
