@@ -3,6 +3,7 @@ package graph.test;
 import cat.urv.imas.graph.Edge;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Node;
+import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -45,8 +46,8 @@ public class GraphTest {
         //(1,2) a (6,2), path should be equal to [(1,2),(2,2),(3,2),(4,2),(5,2),(6,2)]
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(6,2);
-        List<Node> path = graph.bfs(initialPoint, finalPoint);
-        assertTrue(path.size() == 6);
+        Path path = graph.bfs(initialPoint, finalPoint);
+        assertTrue(path.getDistance() == 5);
     }
     
     @Test
@@ -54,8 +55,8 @@ public class GraphTest {
         /**(1,2) a (3,9), size path = 10  **/
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(3,9);
-        List<Node> path = graph.bfs(initialPoint, finalPoint);
-        assertTrue(path.size() == 10);
+        Path path = graph.bfs(initialPoint, finalPoint);
+        assertTrue(path.getDistance() == 9);
 
     }
 

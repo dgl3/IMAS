@@ -4,6 +4,7 @@ import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.CellType;
 import cat.urv.imas.onthology.GameSettings;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -138,7 +139,7 @@ public class Graph {
      * @param targetPoint Cell
      * @return List<Node> Optimum path
      */
-    public List<Node> bfs(Cell initialPoint, Cell targetPoint){
+    public Path bfs(Cell initialPoint, Cell targetPoint){
         resetGraph();
         
         List<Node> path = new ArrayList<>();
@@ -151,7 +152,8 @@ public class Graph {
         for(Edge edge:edgesMap.get(initialNode)){
             if(edge.getNode2().equals(targesNode)){
                 path.add(edge.getNode2());
-                return path;
+                Path optimumPath = new Path(path);
+                return optimumPath;
             }
             Node childNode = edge.getNode2();
             childNode.setPreviousNode(initialNode);
@@ -188,7 +190,9 @@ public class Graph {
                }               
             }
         }
-        return path;
+        Collections.reverse(path);
+        Path optimumPath = new Path(path);
+        return optimumPath;
     }
     /**
      * Checks and return the list of unvisited neighbours corresponding current
