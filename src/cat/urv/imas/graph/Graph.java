@@ -157,26 +157,37 @@ public class Graph {
             }
             Node childNode = edge.getNode2();
             childNode.setPreviousNode(initialNode);
+            childNode.setDistance(1);
             FIFOqueue.add(childNode);  
         }
         List<Node> visited = new ArrayList<>();
         Node found = null;
-        while(found == null){
+        
+        //Explore the graph until the final state is found or the distance 
+        //to nodes is greater than 18
+       Node neighbour = FIFOqueue.poll();
+
+        while(found == null && neighbour.getDistance() < 18){
            if(FIFOqueue.isEmpty()){
                return null;
            } 
-           Node neigbour = FIFOqueue.poll();
-           visited.add(neigbour);
-           List<Node> unvisitedChilds = getUnvisitedChildNodes(neigbour,visited);
+           visited.add(neighbour);
+           List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
-                child.setPreviousNode(neigbour);
+                child.setPreviousNode(neighbour);
+                child.setDistance(neighbour.getDistance()+1);
                 if(child.equals(targesNode)){
                     path.add(child);
                     found = child;
                 }
                 FIFOqueue.add(child);  
            }
+        neighbour = FIFOqueue.poll();
+
         }
+        
+        
+        //Get the optimum path
         if(found != null){
             Node currentNode = found;
             while(true){
@@ -189,10 +200,13 @@ public class Graph {
                    currentNode = currentNode.getPreviousNode();
                }               
             }
+            Collections.reverse(path);
+            Path optimumPath = new Path(path);
+            return optimumPath;
+        }else{
+            return null;
         }
-        Collections.reverse(path);
-        Path optimumPath = new Path(path);
-        return optimumPath;
+
     }
     /**
      * Checks and return the list of unvisited neighbours corresponding current
@@ -218,6 +232,7 @@ public class Graph {
     public void resetGraph(){
         for(Node node: nodes.values()){
             node.setPreviousNode(null);
+            node.setDistance(0);
         }
     }
     

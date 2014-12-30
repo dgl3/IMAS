@@ -21,15 +21,12 @@ public class Node {
      */
     private Cell cell;
     
+
+    private int distance = 0;
+    private Node previousNode;
     /**
      * Node class constructor. Initialization.
      * @param cell Position of the node in the map
-     */
-    
-    private Node previousNode;
-    /**
-     * Node constructor
-     * @param cell Map cell where is located
      */
     public Node(Cell cell){
         edges = new ArrayList<Edge>();
@@ -102,6 +99,22 @@ public class Node {
     }
     public void setPreviousNode(Node node){
         this.previousNode = node;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+
+    public void setDistance(int distance) {
+        this.distance = distance;
+    }
+
+    public void setEdges(List<Edge> edges) {
+        this.edges = edges;
+    }
+
+    public void setCell(Cell cell) {
+        this.cell = cell;
     }
     
     

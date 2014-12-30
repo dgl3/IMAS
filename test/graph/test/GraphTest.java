@@ -57,7 +57,15 @@ public class GraphTest {
         Cell finalPoint = new StreetCell(3,9);
         Path path = graph.bfs(initialPoint, finalPoint);
         assertTrue(path.getDistance() == 9);
-
+    }
+    
+    
+    @Test
+    public void testBFS3(){ //Should return null
+        Cell initialPoint = new StreetCell(1,2);
+        Cell finalPoint = new StreetCell(15,9);
+        Path path = graph.bfs(initialPoint, finalPoint);
+        assertEquals(path,null);
     }
 
 }
