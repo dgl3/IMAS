@@ -18,13 +18,16 @@
 package cat.urv.imas.agent;
 
 import cat.urv.imas.behaviour.central.InformBehaviour;
-import cat.urv.imas.onthology.InitialGameSettings;
-import cat.urv.imas.onthology.GameSettings;
-import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.graph.Graph;
+import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.CellType;
+import cat.urv.imas.map.StreetCell;
+import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.InfoAgent;
+import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
@@ -37,9 +40,11 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -244,7 +249,52 @@ public class CentralAgent extends ImasAgent {
         } catch (InterruptedException ex) {
             Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
-        this.newTurn();
+        
+        Scanner in = new Scanner(System.in);
+        this.log("Press Enter for New Turn");
+        String s = in.nextLine();
+        in.close();
+        this.log("NEW TURN");
+        Map<AgentType, List<Cell>> content = new HashMap<>();
+        
+        
+        List<Cell> positions = new ArrayList<Cell>();
+        positions.add(new StreetCell(1,1));
+        content.put(AgentType.AMBULANCE,positions);
+        
+        Cell[][] emptyMap = this.game.getMap();
+        
+        for (Cell[] cl : emptyMap) {
+            for (Cell c : cl) {
+                if (c instanceof StreetCell) {
+                    StreetCell sc = (StreetCell)c;
+                    try {
+                        if (sc.isThereAnAgent()) {
+                            sc.removeAgent();
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+        
+        for (Map.Entry<AgentType, List<Cell>> entry : content.entrySet()) {
+            for (Cell c : entry.getValue()) {
+                StreetCell sc = (StreetCell)emptyMap[c.getRow()][c.getCol()];
+                try {
+                    sc.addAgent(new InfoAgent(entry.getKey()));
+                } catch (Exception ex) {
+                    Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+        }
+        
+        
+        
+        this.gui.showGameMap(emptyMap);
+        //this.newTurn();
     }
 
     private void sendGame() {
@@ -296,8 +346,9 @@ public class CentralAgent extends ImasAgent {
             case MessageContent.END_TURN:
                 agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
                 try {
-                    List<AID> agents = (List<AID>) msg.getContentObject();
-                    this.checkMovementCollisions(agents);
+                    //List<AID> agents = (List<AID>) msg.getContentObject();
+                    //this.checkMovementCollisions(agents);
+                    this.endTurn(null);
                 } catch (Exception e) {
                     agent.errorLog("Incorrect content: " + e.toString());
                 }

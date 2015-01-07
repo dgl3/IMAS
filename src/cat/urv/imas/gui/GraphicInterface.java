@@ -145,6 +145,7 @@ public class GraphicInterface extends JFrame {
      */
     public void showGameMap(Cell[][] map) {
         this.jMapPanel = new MapVisualizer(map);
+        this.jGamePanel.removeAll();
         this.jGamePanel.add(jMapPanel);
         this.jGamePanel.repaint();
     }

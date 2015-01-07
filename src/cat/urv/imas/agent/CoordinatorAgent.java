@@ -199,6 +199,8 @@ public class CoordinatorAgent extends ImasAgent {
         // Coordinator agent actively sends game info at the start of each turn
         this.sendGame();
         
+        // This will need to be removed later
+        this.sendEndTurn();
     }
 
     /**
@@ -230,6 +232,22 @@ public class CoordinatorAgent extends ImasAgent {
         try {
             gameinformRequest.setContentObject(this.game);
             log("Inform message content: game");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
+    }
+    
+    public void sendEndTurn() {
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(this.centralAgent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("End turn message sent to central Agent");
+        try {
+            gameinformRequest.setContent(MessageContent.END_TURN);
         } catch (Exception e) {
             e.printStackTrace();
         }
