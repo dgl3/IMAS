@@ -7,6 +7,8 @@ package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
+import cat.urv.imas.behaviour.contractNet.ContractNetInitatorImpl;
+import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
@@ -18,6 +20,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import jade.proto.ContractNetInitiator;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +51,12 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      */
     // TODO: Change to map
     private List<AID> firemenAgents;
+    
+    /**
+     * Key: AID of an agent
+     * Value: true if the agent is available; false otherwise
+     */
+    private Map<AID, Boolean> availableAgents;
     
     /**
      * List of agents ready to end the turn
@@ -117,6 +126,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.PROPOSE:
+                            handlePropose(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -124,6 +136,96 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
+    }
+    
+    private void handlePropose(ACLMessage msg){
+        Map<String,Object> contentObject;
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.START_CONTRACTNET:
+                    // Check if it is possible to start a ContractNet.
+                    // If not, reject the proposal. 
+                    this.log("Propose received from " + ((AID) msg.getSender()).getLocalName());
+                    this.log("Propose type: "+MessageContent.START_CONTRACTNET);
+                    try {
+                        List<AID> available = enoughFiremen();
+                        if(available.size()>0){
+                            //Accepts the ContractNet
+                            initiateContractNet(available);
+                        }else{
+                            //Reject the ContractNet
+                            rejectContractNet();
+                        }
+                    } catch (Exception e) {
+                        this.errorLog("Incorrect content: " + e.toString());
+                    }
+                    break;
+            default:
+                this.log("Message Content not understood");
+                break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void initiateContractNet(List<AID> available){
+        ACLMessage CFPproposals = new ACLMessage(ACLMessage.CFP);
+        //Add receivers (available fireman agents)
+        CFPproposals.clearAllReceiver();
+        for(AID aid:available){
+            CFPproposals.addReceiver(aid);
+        }
+        
+        ContractNetInitiator initiator = new ContractNetInitatorImpl(this,CFPproposals);
+        
+    }
+        
+    public void rejectContractNet(){
+        ACLMessage contractnetReject = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
+        contractnetReject.clearAllReceiver();
+        contractnetReject.addReceiver(coordinatorAgent);
+        contractnetReject.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Reject proposal (Contract Net) to Coordinator Agent");
+        try {
+            Map<String,Object> content = new HashMap<>();
+            content.put(MessageContent.REJECT_CONTRACTNET, null);
+            contractnetReject.setContentObject((Serializable) content);
+            log("Added Reject message content (null)");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        InformBehaviour rejectInformBehaviour = new InformBehaviour(this, contractnetReject);
+        this.addBehaviour(rejectInformBehaviour);
+    }
+    
+    private List<AID> enoughFiremen(){
+        List<AID> available = new ArrayList<AID>();
+        for(AID agent: this.availableAgents.keySet()){
+             if(availableAgents.get(agent)){
+                 available.add(agent);
+             }
+        }
+        return available;
+        /**
+        Cell cellFire = game.getNewFire();
+        if(cellFire != null){
+           for(AID agent: this.availableAgents.keySet()){
+               if(availableAgents.get(agent)){
+                   return true;
+                   
+                   int number = Integer.valueOf(agent.getLocalName().substring(agent.getLocalName().length()-1));
+                   Cell currentCell = this.game.getAgentList().get(AgentType.FIREMAN).get(number);
+                   //Compute distance to the fire
+               }
+           }
+        }
+        return false;
+        * **/
     }
     
     private void handleInform(ACLMessage msg) {
