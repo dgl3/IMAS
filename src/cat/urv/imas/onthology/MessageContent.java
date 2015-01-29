@@ -54,6 +54,16 @@ public class MessageContent {
     public static final String AMBULANCE_AUCTION_BID_REQUEST = "Request To Reply A Bid From A Hospital";
 
     /**
+     * Message sent if bidder replies with a bid (proposal)
+     */
+    public static final String AMBULANCE_AUCTION_BID = "Bid To A Ambulance Auction";
+
+    /**
+     * Message sent if bid is accepted (proposal accepted)
+     */
+    public static final String AMBULANCE_AUCTION_BID_ACCEPTED = "Bid To A Ambulance Auction Accepted";
+
+    /**
      * Message sent to propose about starting a contract net
      */
     public static final String START_CONTRACTNET = "Start Contract Net";

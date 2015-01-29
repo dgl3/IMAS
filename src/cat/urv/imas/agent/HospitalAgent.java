@@ -5,9 +5,9 @@
  */
 package cat.urv.imas.agent;
 
-import static cat.urv.imas.agent.ImasAgent.OWNER;
-
-import cat.urv.imas.agent.communication.AmbulanceDetails;
+import cat.urv.imas.agent.communication.auction.Item;
+import cat.urv.imas.agent.communication.auction.Offer;
+import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -17,7 +17,6 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
-import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import java.util.Map;
@@ -113,6 +112,9 @@ public class HospitalAgent extends ImasAgent{
                         case ACLMessage.REQUEST:
                             handleRequests(msg);
                             break;
+                        case ACLMessage.ACCEPT_PROPOSAL:
+                            handleAcceptProposal(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -122,55 +124,76 @@ public class HospitalAgent extends ImasAgent{
         };
     }
 
-    private void handleRequests(ACLMessage msg) {
-        try {
+    private void handleAcceptProposal(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
 
-            Map<String,Object> contentObject = (Map<String, Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
+        switch( content.getKey() ) {
+            case MessageContent.AMBULANCE_AUCTION_BID_ACCEPTED:
+                // TODO: Update Status!
+                System.out.println("TODO: Update Status");
 
-
-            switch(content) {
-                case MessageContent.AMBULANCE_AUCTION_BID_REQUEST:
-                    System.out.println("Received Bid Request! Load: " + ((AmbulanceDetails)contentObject.get(content)).getLoad() );
-                    break;
-                default:
-                    log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+                break;
+            default:
+                log("Message Content not understood");
+                break;
         }
+    }
 
+    private void handleRequests(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+
+        switch( content.getKey() ) {
+            case MessageContent.AMBULANCE_AUCTION_BID_REQUEST:
+                handleBidRequest((Offer)content.getValue());
+                break;
+            default:
+                log("Message Content not understood");
+                break;
+        }
+    }
+
+    private void handleBidRequest(Offer offer) {
+        Item item = offer.getItem();
+        Float bid = item.getLoad()+0.1f;
+
+        offer.reply(this, bid);
     }
 
     private void handleInform(ACLMessage msg) {
-        HospitalAgent agent = this;
-        Map<String,Object> contentObject;
-        
+        KeyValue<String, Object> content = getMessageContent(msg);
+
+        switch( content.getKey() ) {
+            case MessageContent.SEND_GAME:
+                setGame((GameSettings) content.getValue());
+                log("Game updated");
+                updatePosition();
+                updateRecoveryTime();
+                updateMaxCapacity();
+
+                // TODO: this is just a test for the movement, all of this will be changed:
+
+                break;
+            default:
+                log("Message Content not understood");
+                break;
+        }
+
+    }
+
+    private KeyValue<String, Object> getMessageContent(ACLMessage msg){
+        KeyValue<String, Object> keyValue = null;
+
         try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
+            Map<String,Object> contentObject = (Map<String,Object>) msg.getContentObject();
             String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.SEND_GAME:
-                    agent.setGame((GameSettings) contentObject.get(content));
-                    agent.log("Game updated");
-                    agent.updatePosition();
-                    agent.updateRecoveryTime();
-                    agent.updateMaxCapacity();
-
-                    // TODO: this is just a test for the movement, all of this will be changed:
-
-                    break;
-                default:
-                    agent.log("Message Content not understood");
-                    break;
-            }
+            keyValue = new KeyValue<>(content, contentObject.get(content));
         } catch (UnreadableException ex) {
             Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        return keyValue;
     }
-    
+
     /**
      * Update the game settings.
      *

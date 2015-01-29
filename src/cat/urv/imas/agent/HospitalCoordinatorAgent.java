@@ -5,9 +5,10 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.agent.communication.AmbulanceDetails;
+import cat.urv.imas.agent.communication.auction.Bid;
+import cat.urv.imas.agent.communication.auction.Item;
+import cat.urv.imas.agent.communication.auction.AuctionManager;
 import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
-import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -16,16 +17,11 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
-import jade.domain.introspection.*;
 import jade.lang.acl.*;
 import jade.lang.acl.ACLMessage;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,7 +43,9 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     
     private List<AID> ambulanceAgents;
     private List<AID> hospitalAgents;
-    
+
+    private AuctionManager auctionManager;
+
     /**
      * List of agents ready to end the turn
      */
@@ -93,9 +91,12 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
 
         ambulanceAgents = new LinkedList<>();
+
         hospitalAgents = new LinkedList<>();
         
         finishedAmbulanceAgents = new ArrayList<>();
+
+        auctionManager = new AuctionManager(this);
 
         addBehaviour( newListenerBehaviour() );
     }
@@ -104,7 +105,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                log("INFORM MESSAGE RECEIVED");
                 ACLMessage msg;
                 while ((msg = receive()) != null) {
                     switch (msg.getPerformative()){
@@ -117,6 +117,9 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                         case ACLMessage.REQUEST:
                             handleRequests(msg);
                             break;
+                        case ACLMessage.PROPOSE:
+                            handleProposal(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -125,32 +128,37 @@ public class HospitalCoordinatorAgent extends ImasAgent {
             };
         };
     }
-    
+
+    private void handleProposal(ACLMessage msg) {
+        try {
+
+            Map<String,Object> contentObject = (Map<String, Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+
+            switch(content) {
+                case MessageContent.AMBULANCE_AUCTION_BID:
+                    Bid bid = (Bid) contentObject.get(content);
+                    auctionManager.takeBid(msg.getSender(), bid);
+                    break;
+                default:
+                    log("Message Content not understood");
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     /**
      * This method starts an auction to assign a hospital to a ambulance.
+     * @param seller
      */
-    private void handleStartHospitalAuction() {
+    private void handleStartHospitalAuction(AID seller) {
         // Dummy. To be replaced by real ambulance details.
-        AmbulanceDetails ambDetails = new AmbulanceDetails(new StreetCell(10, 10), 2);
+        Item item = new Item(new StreetCell(10, 10), 2);
+        HashSet<AID> participants = new HashSet<AID>(hospitalAgents);
 
-        ACLMessage bidRequest = new ACLMessage(ACLMessage.REQUEST);
-
-        for(AID hospital: hospitalAgents){
-            bidRequest.addReceiver(hospital);
-        }
-
-        // Add Message Content
-        try {
-            Map<String, AmbulanceDetails> content = new HashMap<>();
-            content.put(MessageContent.AMBULANCE_AUCTION_BID_REQUEST, ambDetails);
-            bidRequest.setContentObject((Serializable) content);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        send(bidRequest);
-
-        log("Starting Ambulance Auction");
+        auctionManager.setupNewAuction(seller, item, participants);
     }
     
     private void handleSubscribe(ACLMessage msg) {
@@ -216,8 +224,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         try {
 
             String content = msg.getContent();
-            System.out.println(content);
-
 
             if(content == null || content.isEmpty()) {
                 contentObject = (Map<String, Object>) msg.getContentObject();
@@ -226,7 +232,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
             switch(content) {
                 case MessageContent.AMBULANCE_AUCTION_BEGIN_REQUEST:
-                    handleStartHospitalAuction();
+                    handleStartHospitalAuction(msg.getSender());
                     break;
                 default:
                     log("Message Content not understood");
