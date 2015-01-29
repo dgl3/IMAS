@@ -48,4 +48,9 @@ public class MessageContent {
      */
     public static final String START_CONTRACTNET = "Start Contract Net";
     
+     /**
+     * Message sent to reject the proposal of starting a contract net
+     */
+    public static final String REJECT_CONTRACTNET = "Reject Contract Net";
+    
 }
