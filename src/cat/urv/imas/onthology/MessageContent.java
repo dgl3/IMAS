@@ -43,4 +43,9 @@ public class MessageContent {
      */
     public static final String END_TURN = "End Of Turn";
     
+    /**
+     * Message sent to propose about starting a contract net
+     */
+    public static final String START_CONTRACTNET = "Start Contract Net";
+    
 }
