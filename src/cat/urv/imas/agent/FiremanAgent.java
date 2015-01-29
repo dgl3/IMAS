@@ -112,6 +112,9 @@ public class FiremanAgent extends ImasAgent{
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.CFP:
+                            handleCFP(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -159,6 +162,11 @@ public class FiremanAgent extends ImasAgent{
             Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    private void handleCFP(ACLMessage msg) {
+        FiremanAgent agent = this;
+        agent.log("Contract Net request recieved from agent");
+    }    
     
     /**
      * Update the game settings.
