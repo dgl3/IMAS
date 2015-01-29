@@ -6,16 +6,23 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.behaviour.ambulance.InformBehaviour;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -100,24 +107,64 @@ public class AmbulanceAgent extends ImasAgent{
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                AmbulanceAgent agent = (AmbulanceAgent)this.getAgent();
-                ACLMessage msg = receive();
-                if (msg != null){
-                    if (msg.getPerformative() == ACLMessage.INFORM) {
-                        try {
-                            agent.setGame((GameSettings) msg.getContentObject());
-                        } catch (UnreadableException ex) {
-                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        agent.log("Game updated");
-                        agent.updatePosition();
-                        agent.updateLoadingSpeed();
-                        agent.updateAmbulanceCapacity();
+                ACLMessage msg;
+                while ((msg = receive()) != null){
+                    switch (msg.getPerformative()){
+                        case ACLMessage.INFORM:
+                            handleInform(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
                     }
-                }   
+                }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
+    }
+    
+    private void handleInform(ACLMessage msg) {
+        AmbulanceAgent agent = this;
+        Map<String,Object> contentObject;
+        
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.SEND_GAME:
+                    agent.setGame((GameSettings) contentObject.get(content));
+                    agent.log("Game updated");
+                    agent.updatePosition();
+                    agent.updateLoadingSpeed();
+                    agent.updateAmbulanceCapacity();
+
+                    // TODO: this is just a test for the movement, all of this will be changed:
+
+                    Cell cPosition = agent.getCurrentPosition();
+                    int[] nextPosition = new int[2];
+                    nextPosition[0] = cPosition.getRow();
+                    nextPosition[1] = cPosition.getCol() + 1;
+
+                    Cell[][] map = agent.getGame().getMap();
+                    if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
+                        nextPosition[1] = cPosition.getCol() - 1;
+                    }
+
+                    AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
+
+                    agent.endTurn(nextAction);
+                    break;
+                default:
+                    agent.log("Message Content not understood");
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public Cell getCurrentPosition() {
+        return this.currentPosition;
     }
     
     /**
@@ -161,5 +208,25 @@ public class AmbulanceAgent extends ImasAgent{
     public void updateAmbulanceCapacity() {
         this.ambulanceCapacity = this.game.getPeoplePerAmbulance();
         log("Capacity updated: " + this.ambulanceCapacity);
+    }
+    
+    public void endTurn(AgentAction nextAction) {
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(this.hospitalCoordinatorAgent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            //gameinformRequest.setContent(MessageContent.SEND_GAME);
+            Map<String,AgentAction> content = new HashMap<>();
+            content.put(MessageContent.END_TURN, nextAction);
+            gameinformRequest.setContentObject((Serializable) content);
+            log("Inform message content: " + MessageContent.END_TURN);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
     }
 }

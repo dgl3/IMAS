@@ -8,6 +8,7 @@ package cat.urv.imas.agent;
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -17,6 +18,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -100,24 +102,47 @@ public class HospitalAgent extends ImasAgent{
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                HospitalAgent agent = (HospitalAgent)this.getAgent();
-                ACLMessage msg = receive();
-                if (msg != null){
-                    if (msg.getPerformative() == ACLMessage.INFORM) {
-                        try {
-                            agent.setGame((GameSettings) msg.getContentObject());
-                        } catch (UnreadableException ex) {
-                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        agent.log("Game updated");
-                        agent.updatePosition();
-                        agent.updateRecoveryTime();
-                        agent.updateMaxCapacity();
+                ACLMessage msg;
+                while ((msg = receive()) != null){
+                    switch (msg.getPerformative()){
+                        case ACLMessage.INFORM:
+                            handleInform(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
                     }
                 }   
-                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+                block();
             };
         };
+    }
+    
+    private void handleInform(ACLMessage msg) {
+        HospitalAgent agent = this;
+        Map<String,Object> contentObject;
+        
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.SEND_GAME:
+                    agent.setGame((GameSettings) contentObject.get(content));
+                    agent.log("Game updated");
+                    agent.updatePosition();
+                    agent.updateRecoveryTime();
+                    agent.updateMaxCapacity();
+
+                    // TODO: this is just a test for the movement, all of this will be changed:
+
+                    break;
+                default:
+                    agent.log("Message Content not understood");
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**

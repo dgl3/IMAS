@@ -105,38 +105,59 @@ public class FiremanAgent extends ImasAgent{
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                FiremanAgent agent = (FiremanAgent)this.getAgent();
-                ACLMessage msg = receive();
-                if (msg != null){
-                    if (msg.getPerformative() == ACLMessage.INFORM) {
-                        try {
-                            agent.setGame((GameSettings) msg.getContentObject());
-                        } catch (UnreadableException ex) {
-                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        agent.log("Game updated");
-                        agent.updatePosition();
-                        
-                        // TODO: this is just a test for the movement, all of this will be changed:
-                        
-                        Cell currentPosition = agent.getCurrentPosition();
-                        int[] nextPosition = new int[2];
-                        nextPosition[0] = currentPosition.getRow();
-                        nextPosition[1] = currentPosition.getCol() + 1;
-                        
-                        Cell[][] map = agent.getGame().getMap();
-                        if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
-                            nextPosition[1] = currentPosition.getCol() - 1;
-                        }
-                        
-                        AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
-                        
-                        agent.endTurn(nextAction);
+                
+                ACLMessage msg;
+                while ((msg = receive()) != null){
+                    switch (msg.getPerformative()){
+                        case ACLMessage.INFORM:
+                            handleInform(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
                     }
                 }   
                 block();
             };
         };
+    }
+
+    private void handleInform(ACLMessage msg) {
+        FiremanAgent agent = this;
+        Map<String,Object> contentObject;
+        
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.SEND_GAME:
+                    agent.setGame((GameSettings) contentObject.get(content));
+                    agent.log("Game updated");
+                    agent.updatePosition();
+
+                    // TODO: this is just a test for the movement, all of this will be changed:
+
+                    Cell cPosition = agent.getCurrentPosition();
+                    int[] nextPosition = new int[2];
+                    nextPosition[0] = cPosition.getRow();
+                    nextPosition[1] = cPosition.getCol() + 1;
+
+                    Cell[][] map = agent.getGame().getMap();
+                    if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
+                        nextPosition[1] = cPosition.getCol() - 1;
+                    }
+
+                    AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
+
+                    agent.endTurn(nextAction);
+                    break;
+                default:
+                    agent.log("Message Content not understood");
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**

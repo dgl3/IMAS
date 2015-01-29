@@ -221,7 +221,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
         log("Inform message to agent");
         try {
-            gameinformRequest.setContentObject(this.game);
+            Map<String,GameSettings> content = new HashMap<>();
+            content.put(MessageContent.SEND_GAME, this.game);
+            gameinformRequest.setContentObject((Serializable) content);
             log("Inform message content: game");
         } catch (Exception e) {
             e.printStackTrace();

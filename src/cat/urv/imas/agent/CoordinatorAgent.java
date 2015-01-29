@@ -203,24 +203,14 @@ public class CoordinatorAgent extends ImasAgent {
                     if (msg.getSender().getLocalName().equals("firemenCoord")) {
                         finishedFiremanAgents = new ArrayList<>();
                         finishedFiremanAgents.addAll((List<AgentAction>) contentObject.get(content));
-                        
-                        // TODO: to be removed when ambulance movement is implemented
-                        finishedAmbulanceAgents = new ArrayList<>();
-                        finishedAmbulanceAgents.addAll((List<AgentAction>) contentObject.get(content));
                     } else {
                         finishedAmbulanceAgents = new ArrayList<>();
                         finishedAmbulanceAgents.addAll((List<AgentAction>) contentObject.get(content));
                     }
-                    
+                    // TODO: This is not reliable enough, look for another way
                     if (finishedFiremanAgents != null && finishedAmbulanceAgents != null) {
                         this.endTurn();
                     }
-                    // TODO: This is not reliable enough, look for another way
-                    /*if (finishedFiremanAgents.size() == firemenAgents.size()) {
-                        this.endTurn();
-                    }*/
-
-
                     break;
                 default:
                     agent.log("Message Content not understood");
@@ -235,9 +225,6 @@ public class CoordinatorAgent extends ImasAgent {
     private void newTurn() {
         // Coordinator agent actively sends game info at the start of each turn
         this.sendGame();
-        
-        // This will need to be removed later
-        this.sendEndTurn();
     }
 
     /**
@@ -271,22 +258,6 @@ public class CoordinatorAgent extends ImasAgent {
             content.put(MessageContent.SEND_GAME, this.game);
             gameinformRequest.setContentObject((Serializable) content);
             log("Inform message content: game");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
-    }
-    
-    public void sendEndTurn() {
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.centralAgent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("End turn message sent to central Agent");
-        try {
-            gameinformRequest.setContent(MessageContent.END_TURN);
         } catch (Exception e) {
             e.printStackTrace();
         }

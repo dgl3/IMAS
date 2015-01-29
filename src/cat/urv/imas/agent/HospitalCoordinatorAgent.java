@@ -5,10 +5,10 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
@@ -16,6 +16,9 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +43,11 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     
     private List<AID> ambulanceAgents;
     private List<AID> hospitalAgents;
+    
+    /**
+     * List of agents ready to end the turn
+     */
+    private List<AgentAction> finishedAmbulanceAgents;
     
     public HospitalCoordinatorAgent() {
         super(AgentType.HOSPITAL_COORDINATOR);
@@ -82,6 +90,8 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
         ambulanceAgents = new LinkedList<>();
         hospitalAgents = new LinkedList<>();
+        
+        finishedAmbulanceAgents = new ArrayList<>();
 
         addBehaviour( newListenerBehaviour() );
     }
@@ -90,44 +100,81 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                HospitalCoordinatorAgent agent = (HospitalCoordinatorAgent)this.getAgent();
-                ACLMessage msg = receive();
-                if (msg != null){
-                    if (msg.getPerformative() == ACLMessage.SUBSCRIBE){
-                        if (msg.getSender().getLocalName().startsWith("ambu")){
-                            ambulanceAgents.add(msg.getSender());
-                            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
-                        }
-                        if (msg.getSender().getLocalName().startsWith("hosp")){
-                            hospitalAgents.add(msg.getSender());
-                            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
-                        }
-                        // If game information is set, send it to the subscriber
-                        if (agent.getGame() != null) {
-                            agent.sendGame(msg.getSender());
-                        }
-                    } else if (msg.getPerformative() == ACLMessage.INFORM) {
-                        try {
-                            agent.setGame((GameSettings) msg.getContentObject());
-                        } catch (UnreadableException ex) {
-                            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        agent.log("Game updated");
-                        
-                        // When game information is updated, send it to all children
-                        
-                        for (AID hospitalAgent : agent.hospitalAgents) {
-                            agent.sendGame(hospitalAgent);
-                        }
-                        
-                        for (AID ambulanceAgent : agent.ambulanceAgents) {
-                            agent.sendGame(ambulanceAgent);
-                        }
+                log("INFORM MESSAGE RECEIVED");
+                ACLMessage msg;
+                while ((msg = receive()) != null) {
+                    switch (msg.getPerformative()){
+                        case ACLMessage.SUBSCRIBE:
+                            handleSubscribe(msg);
+                            break;
+                        case ACLMessage.INFORM:
+                            handleInform(msg);
+                            break;
+                        default:
+                            log("Unsupported message received.");
                     }
-                }   
+                }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
+    }
+    
+    private void handleSubscribe(ACLMessage msg) {
+        if (msg.getSender().getLocalName().startsWith("ambu")){
+            ambulanceAgents.add(msg.getSender());
+            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+        }
+        if (msg.getSender().getLocalName().startsWith("hosp")){
+            hospitalAgents.add(msg.getSender());
+            System.out.println(getLocalName() + ": added " + msg.getSender().getLocalName());
+        }
+        // If game information is set, send it to the subscriber
+        if (this.getGame() != null) {
+            this.sendGame(msg.getSender());
+        }
+    }
+    
+    private void handleInform(ACLMessage msg) {
+        HospitalCoordinatorAgent agent = this;
+        Map<String,Object> contentObject;
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.SEND_GAME:
+                    agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                    agent.setGame((GameSettings) contentObject.get(content));
+                    agent.log("Game updated");
+
+                    // When game information is updated, send it to all children
+
+                    for (AID hospitalAgent : agent.hospitalAgents) {
+                        agent.sendGame(hospitalAgent);
+                    }
+
+                    for (AID ambulanceAgent : agent.ambulanceAgents) {
+                        agent.sendGame(ambulanceAgent);
+                    }
+                    break;
+                case MessageContent.NEW_FIRE_PETITION:
+                    // This will need to change to handle a new fire petition
+                    break;
+                case MessageContent.END_TURN:
+                    finishedAmbulanceAgents.add((AgentAction) contentObject.get(content));
+                    // TODO: This is not reliable enough, look for another way
+                    if (finishedAmbulanceAgents.size() == ambulanceAgents.size()) {
+                        this.endTurn();
+                    }
+
+                    break;
+            default:
+                agent.log("Message Content not understood");
+                break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
@@ -156,7 +203,9 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
         log("Inform message to agent");
         try {
-            gameinformRequest.setContentObject(this.game);
+            Map<String,GameSettings> content = new HashMap<>();
+            content.put(MessageContent.SEND_GAME, this.game);
+            gameinformRequest.setContentObject((Serializable) content);
             log("Inform message content: game");
         } catch (Exception e) {
             e.printStackTrace();
@@ -164,5 +213,27 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
+    }
+    
+    public void endTurn() {
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(this.coordinatorAgent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            //gameinformRequest.setContent(MessageContent.SEND_GAME);
+            Map<String,List<AgentAction>> content = new HashMap<>();
+            content.put(MessageContent.END_TURN, this.finishedAmbulanceAgents);
+            gameinformRequest.setContentObject((Serializable) content);
+            log("Inform message content: " + MessageContent.END_TURN);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
+        
+        this.finishedAmbulanceAgents = new ArrayList<>();
     }
 }

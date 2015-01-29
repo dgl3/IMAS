@@ -272,7 +272,16 @@ public class CentralAgent extends ImasAgent {
                     content.put(AgentType.FIREMAN, positions);
                 }
             } else {
-                
+                if (content.get(AgentType.AMBULANCE) == null) {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.add(position);
+                    content.put(AgentType.AMBULANCE, positions);
+                } else {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.addAll(content.get(AgentType.AMBULANCE));
+                    positions.add(position);
+                    content.put(AgentType.AMBULANCE, positions);
+                }
             }
         }
         
