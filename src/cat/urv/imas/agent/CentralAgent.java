@@ -58,6 +58,8 @@ import java.util.logging.Logger;
  */
 public class CentralAgent extends ImasAgent {
 
+    Scanner in;
+    
     /**
      * GUI with the map, central agent log and statistics.
      */
@@ -222,6 +224,7 @@ public class CentralAgent extends ImasAgent {
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
         */
+        this.in = new Scanner(System.in);
         this.activeFires = new ArrayList<>();
         this.RNG = new Random((int)this.game.getSeed());
         
@@ -276,10 +279,8 @@ public class CentralAgent extends ImasAgent {
             Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        Scanner in = new Scanner(System.in);
         this.log("Press Enter for New Turn");
         String s = in.nextLine();
-        in.close();
         this.log("NEW TURN");
         
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
@@ -289,7 +290,7 @@ public class CentralAgent extends ImasAgent {
         
         //this.gui.showGameMap(emptyMap);
         this.gui.showGameMap(this.game.getMap());
-        //this.newTurn();
+        this.newTurn();
     }
 
     private void sendGame() {
@@ -444,6 +445,8 @@ public class CentralAgent extends ImasAgent {
                     positions.add(position);
                     content.put(AgentType.FIREMAN, positions);
                 }
+                int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                this.game.getAgentList().get(AgentType.FIREMAN).set(numAgent, position);
             } else {
                 if (content.get(AgentType.AMBULANCE) == null) {
                     List<Cell> positions = new ArrayList<>();
@@ -455,6 +458,8 @@ public class CentralAgent extends ImasAgent {
                     positions.add(position);
                     content.put(AgentType.AMBULANCE, positions);
                 }
+                int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                this.game.getAgentList().get(AgentType.AMBULANCE).set(numAgent, position);
             }
         }
         
