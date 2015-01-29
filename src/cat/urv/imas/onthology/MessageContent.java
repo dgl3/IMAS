@@ -52,4 +52,15 @@ public class MessageContent {
      * Message sent if an ambulance wants the ambulance coordinator to start a auction
      */
     public static final String AMBULANCE_AUCTION_BID_REQUEST = "Request To Reply A Bid From A Hospital";
+
+    /**
+     * Message sent to propose about starting a contract net
+     */
+    public static final String START_CONTRACTNET = "Start Contract Net";
+    
+    /**
+     * Message sent to reject the proposal of starting a contract net
+     */
+    public static final String REJECT_CONTRACTNET = "Reject Contract Net";
+
 }

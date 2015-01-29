@@ -1,0 +1,129 @@
+Types:
+1.-accept-proposal 
+    The accept-proposal performative allows an agent to state that it accepts 
+    a proposal made by another agent.
+
+2.-agree 
+    An accept performative is used by one agent to indicate that it has acquiesced
+    to a request made by another agent. It indicates that the sender of
+    the agree message intends to carry out the requested action.
+
+3.-cancel 
+    A cancel performative is used by an ageril to follow up lo a pieviuus
+    request message, and indicates that it no longer desires a particular action
+    to be carried out.
+
+4.-cfp
+    A cfp (call for proposals) performative is used to initiate negotiation
+    between agents. The content attribute of a cfp message contains both anI 
+    Agent Communication Languages 177 action (e.g. 'sell me a car') and a 
+    condition (e.g. 'the price of the car is less
+    than US$10 000'). Essentially, it says 'here is an action that I wish to be carried
+    out, and here are the terms under which I want it to be carried out - send
+    me your proposals'. (We will see in the next chapter that the cf p message is
+    a central component of task-sharing systems such as the Contract Net.)
+
+5.-confirm
+    The confirm performative allows the sender of the message to confirm
+    the truth of the content to the recipient, where, before sending the message,
+    the sender believes that the recipient is unsure about the truth or otherwise
+    of the content.
+
+6.-disconfirm
+    Similar to confirm, but this performative indicates to a recipient
+    that is unsure as to whether or not the sender believes the content that the
+    content is in fact false.
+
+7.-failure
+    This allows an agent to indicate to another agent that an attempt to
+    perform some action (typically, one that it was previously requested to
+    perform) failed.
+
+8.-inform
+    Along with request, the inform performative is one of the two most
+    important performatives in the FIPA ACL. It is the basic mechanism for communicating
+    information. The content of an i nform performative is a statement,
+    and the idea is that the sender of the i nf orm wants the recipient to
+    believe this content. Intuitively, the sender is also implicitly stating that it
+    believes the content of the message.
+
+9.-inform-if 
+    An inform-if implicitly says either that a particular statement is
+    true or that it is false. Typically, an inform-if performative forms the content
+    part of a message. An agent will send a request message to another
+    agent, with the content part being an inform-if message. The idea is that
+    the sender of the request is saying 'tell me if the content of the inform-if
+    is either true or false'.
+
+10.-inform-ref 
+    The idea of inform-ref is somewhat similar to that of inform-if:
+    the difference is that rather than asking whether or not an expression is true
+    or false, the agent asks for the value of an expression.
+
+11.-not-understood 
+    This performative is used by one agent to indicate to another
+    rent that it recognized that it performed some action, but did not undetstand
+    why this action was performed. The most common use of notunderstood
+    is for one agent to indicate to another agent that a message
+    that was just received was not understood. The content part of a
+    not-understood message consists of both an action (the one whose purpose
+    was not understood) and a statement, which gives some explanation of
+    why it was not understood. This performative is the central error-handling
+    mechanism in the FIPA ACL.
+
+12.-propagate 
+    The content attribute of a propagate message consists of two
+    things: another message, and an expression that denotes a set of agents.
+    The idea is that the recipient of the propagate message should send the
+    embedded message to the agent(s) denoted by this expression.
+
+13.-propose 
+    This performative allows an agent to make a proposal to another agent,
+    for example m response to a cfp message that was previously sent out.
+
+14.-proxy 
+    The proxy message type allows the sender of the message to treat the
+    recipient of the message as a proxy for a set of agents. The content of a
+    proxy message will contain both an embedded message (one that it wants
+    forwarded to others) and a specification of the agents that it wants the message
+    forwarded to.
+
+15.-query-if 
+    This performative allows one agent to ask another whether or not
+    some specific statement is true or not. The content of the message will be
+    the statement that the sender wishes to enquire about
+
+16.-query-ref 
+    This performative is used by one agent to determine a specific value
+    for an expression (cf. the eval uate performative in KQML).
+
+17.-refuse 
+    A refuse performative is used by one agent to state to another agent
+    that it will not perform some action. The message content will contain both
+    the action and a sentence that characterizes why the agent will not perform
+    the action.
+
+18.-reject-proposal 
+    Allows an agent to indicate to another that it does not accept
+    a proposal that was made as part of a negotiation process. The content
+    specifies both the proposal that is being rejected, and a statement that chactcrizcs
+    the reasons for this rejection.
+
+19.-request 
+    The second fundamental performative allows an agent to request
+    another agent to perform some action.
+
+20.-request-when 
+    The content of a request-when message will be both an action
+    and a statement; the idea is that the sender wants the recipient to carry
+    out the action when the statement is true (e.g. 'sound the bell when the
+    temperature falls below 20 Celsius').
+
+21.-request-whenever
+    Similar to request-when, the idea is that the recipient
+    should perform the action whenever the statement is true.
+
+22.-subscribe 
+    Essentially as in KQML: the content will be a statement, and the
+    sender wants to be notified whenever something relating to the statement
+    changes.
