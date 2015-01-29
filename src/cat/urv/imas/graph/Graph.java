@@ -122,6 +122,7 @@ public class Graph {
             }
         }
         //Prints the graph's information
+        /**
         System.out.println(nodes);
         for(Node n: edgesMap.keySet()){
             System.out.println("Node in position: "+n.getCell().getRow()+","+n.getCell().getCol());
@@ -129,9 +130,9 @@ public class Graph {
             System.out.println(edges);
         }
         System.out.println("Graph created correctly");
+        **/
     }
 
-    //Futur improvement: stop when the size of the optimum path is 18
     /**
      * Returns a List containing the minimum path from the initialPoint
      * to the target Point
@@ -165,12 +166,13 @@ public class Graph {
         
         //Explore the graph until the final state is found or the distance 
         //to nodes is greater than 18
+       if(FIFOqueue.isEmpty()){
+            return null;
+       }
        Node neighbour = FIFOqueue.poll();
 
         while(found == null && neighbour.getDistance() < 18){
-           if(FIFOqueue.isEmpty()){
-               return null;
-           } 
+
            visited.add(neighbour);
            List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
@@ -182,7 +184,10 @@ public class Graph {
                 }
                 FIFOqueue.add(child);  
            }
-        neighbour = FIFOqueue.poll();
+            if(FIFOqueue.isEmpty()){
+              return null;
+            } 
+            neighbour = FIFOqueue.poll();
 
         }
         

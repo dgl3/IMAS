@@ -6,6 +6,8 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+
+import cat.urv.imas.agent.communication.AmbulanceDetails;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -108,6 +110,9 @@ public class HospitalAgent extends ImasAgent{
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.REQUEST:
+                            handleRequests(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -116,7 +121,28 @@ public class HospitalAgent extends ImasAgent{
             };
         };
     }
-    
+
+    private void handleRequests(ACLMessage msg) {
+        try {
+
+            Map<String,Object> contentObject = (Map<String, Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+
+
+            switch(content) {
+                case MessageContent.AMBULANCE_AUCTION_BID_REQUEST:
+                    System.out.println("Received Bid Request! Load: " + ((AmbulanceDetails)contentObject.get(content)).getLoad() );
+                    break;
+                default:
+                    log("Message Content not understood");
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
     private void handleInform(ACLMessage msg) {
         HospitalAgent agent = this;
         Map<String,Object> contentObject;

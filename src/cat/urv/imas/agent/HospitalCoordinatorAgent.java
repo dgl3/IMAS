@@ -5,9 +5,10 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
+import cat.urv.imas.agent.communication.AmbulanceDetails;
 import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
@@ -15,7 +16,10 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
+import jade.domain.introspection.*;
 import jade.lang.acl.*;
+import jade.lang.acl.ACLMessage;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -110,6 +114,9 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.REQUEST:
+                            handleRequests(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -117,6 +124,33 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
+    }
+    
+    /**
+     * This method starts an auction to assign a hospital to a ambulance.
+     */
+    private void handleStartHospitalAuction() {
+        // Dummy. To be replaced by real ambulance details.
+        AmbulanceDetails ambDetails = new AmbulanceDetails(new StreetCell(10, 10), 2);
+
+        ACLMessage bidRequest = new ACLMessage(ACLMessage.REQUEST);
+
+        for(AID hospital: hospitalAgents){
+            bidRequest.addReceiver(hospital);
+        }
+
+        // Add Message Content
+        try {
+            Map<String, AmbulanceDetails> content = new HashMap<>();
+            content.put(MessageContent.AMBULANCE_AUCTION_BID_REQUEST, ambDetails);
+            bidRequest.setContentObject((Serializable) content);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        send(bidRequest);
+
+        log("Starting Ambulance Auction");
     }
     
     private void handleSubscribe(ACLMessage msg) {
@@ -171,6 +205,32 @@ public class HospitalCoordinatorAgent extends ImasAgent {
             default:
                 agent.log("Message Content not understood");
                 break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void handleRequests(ACLMessage msg) {
+        Map<String,Object> contentObject;
+        try {
+
+            String content = msg.getContent();
+            System.out.println(content);
+
+
+            if(content == null || content.isEmpty()) {
+                contentObject = (Map<String, Object>) msg.getContentObject();
+                content = contentObject.keySet().iterator().next();
+            }
+
+            switch(content) {
+                case MessageContent.AMBULANCE_AUCTION_BEGIN_REQUEST:
+                    handleStartHospitalAuction();
+                    break;
+                default:
+                    log("Message Content not understood");
+                    break;
             }
         } catch (UnreadableException ex) {
             Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
