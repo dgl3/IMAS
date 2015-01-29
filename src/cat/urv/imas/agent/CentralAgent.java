@@ -22,6 +22,7 @@ import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.gui.GraphicInterface;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.CellType;
 import cat.urv.imas.map.StreetCell;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,6 +72,16 @@ public class CentralAgent extends ImasAgent {
      * round.
      */
     private AID coordinatorAgent;
+    
+    /**
+     * List of active fires
+     */
+    private List<Cell> activeFires;
+    
+    /**
+     * Random Number Generator
+     */
+    private Random RNG;
     
     private Graph graph;
 
@@ -123,7 +135,7 @@ public class CentralAgent extends ImasAgent {
      */
     @Override
     protected void setup() {
-
+        
         /* ** Very Important Line (VIL) ************************************* */
         this.setEnabledO2ACommunication(true, 1);
 
@@ -210,6 +222,10 @@ public class CentralAgent extends ImasAgent {
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
         */
+        this.activeFires = new ArrayList<>();
+        this.RNG = new Random((int)this.game.getSeed());
+        
+        
         this.addBehaviour(newListenerBehaviour());
         this.newTurn();
     }
@@ -225,6 +241,16 @@ public class CentralAgent extends ImasAgent {
      */
     private void newTurn() {
         // Central agent actively sends game info at the start of each turn
+        
+        // TODO: generate new fires acording to probability
+        if (true) {
+            Cell fire = this.generateFire();
+            
+            this.game.setNewFire(fire);
+        } else {
+            this.game.setNewFire(null);
+        }
+        
         this.sendGame();
         
     }
@@ -255,68 +281,23 @@ public class CentralAgent extends ImasAgent {
         String s = in.nextLine();
         in.close();
         this.log("NEW TURN");
-        Map<AgentType, List<Cell>> content = new HashMap<>();
         
-        for (AgentAction action : agentActions) {
-            Cell position = new StreetCell(action.nextPosition[0],action.nextPosition[1]);
-            
-            if (action.agentName.startsWith("fireman")) {
-                if (content.get(AgentType.FIREMAN) == null) {
-                    List<Cell> positions = new ArrayList<>();
-                    positions.add(position);
-                    content.put(AgentType.FIREMAN, positions);
-                } else {
-                    List<Cell> positions = new ArrayList<>();
-                    positions.addAll(content.get(AgentType.FIREMAN));
-                    positions.add(position);
-                    content.put(AgentType.FIREMAN, positions);
-                }
-            } else {
-                if (content.get(AgentType.AMBULANCE) == null) {
-                    List<Cell> positions = new ArrayList<>();
-                    positions.add(position);
-                    content.put(AgentType.AMBULANCE, positions);
-                } else {
-                    List<Cell> positions = new ArrayList<>();
-                    positions.addAll(content.get(AgentType.AMBULANCE));
-                    positions.add(position);
-                    content.put(AgentType.AMBULANCE, positions);
-                }
-            }
-        }
+        Cell[][] currentMap = this.game.getMap();
         
-        Cell[][] emptyMap = this.game.getMap();
+        int act[] = new int[2];
+        act[0] = 8;
+        act[1] = 3;
+        agentActions.get(0).setAction(act);
         
-        for (Cell[] cl : emptyMap) {
-            for (Cell c : cl) {
-                if (c instanceof StreetCell) {
-                    StreetCell sc = (StreetCell)c;
-                    try {
-                        if (sc.isThereAnAgent()) {
-                            sc.removeAgent();
-                        }
-                    } catch (Exception ex) {
-                        Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        }
+        List<Cell> modifiedFires = this.performAgentActions(currentMap, agentActions);
+        log("HEEEEEEEEEEERRRRRRRRRRRREEEEEEEEEEEEE");
+        log(modifiedFires.toString());
+        this.updateFires(modifiedFires);
         
-        for (Map.Entry<AgentType, List<Cell>> entry : content.entrySet()) {
-            for (Cell c : entry.getValue()) {
-                StreetCell sc = (StreetCell)emptyMap[c.getRow()][c.getCol()];
-                try {
-                    if (sc.isThereAnAgent()) {
-                        sc.removeAgent();
-                    }
-                    sc.addAgent(new InfoAgent(entry.getKey()));
-                } catch (Exception ex) {
-                    Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
+        this.updateAgentMovements(agentActions);
         
-        this.gui.showGameMap(emptyMap);
+        //this.gui.showGameMap(emptyMap);
+        this.gui.showGameMap(this.game.getMap());
         //this.newTurn();
     }
 
@@ -382,6 +363,127 @@ public class CentralAgent extends ImasAgent {
             }
         } catch (UnreadableException ex) {
             Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private Cell generateFire() {
+        List<Cell> buildings = this.game.getClearBuildings();
+        if (buildings.size() > 0) {
+            int fireIndex = this.RNG.nextInt(buildings.size());
+            return buildings.get(fireIndex);
+        } else {
+            return null;
+        }
+    }
+    
+    private List<Cell> performAgentActions(Cell[][] currentMap, List<AgentAction> actions) {
+        
+        List<Cell> modifiedCells = new ArrayList<>();
+        
+        for (AgentAction action : actions) {
+            if (action.hasAction()) {
+                BuildingCell bc;
+                log("HERE");
+                log(action.actionPosition.toString());
+                switch (action.getAgentType()) {
+                    case FIREMAN:
+                        bc = (BuildingCell)currentMap[action.actionPosition[0]][action.actionPosition[1]];
+                        bc.updateBurnedRatio(this.game.getFireSpeed());
+                        modifiedCells.add(bc);
+                        break;
+                    case AMBULANCE:
+                        bc = (BuildingCell)currentMap[action.actionPosition[0]][action.actionPosition[1]];
+                        bc.updateBurnedRatio(this.game.getFireSpeed());
+                        modifiedCells.add(bc);
+                        // TODO: perform acion depending on type of cell
+                        break;
+                }
+            }
+        }
+        
+        return modifiedCells;
+    }
+    
+    private void updateFires(List<Cell> modifiedFires) {
+        Cell[][] currentMap = this.game.getMap();
+        
+        List<Cell> currentFires = this.game.getBuildingsOnFire();
+        currentFires.add(this.game.getNewFire());
+        
+        for (Cell bof : currentFires) {
+            Boolean modified = false;
+            for (Cell mbof : modifiedFires) {
+                if (bof.getRow() == mbof.getRow() &&
+                        bof.getCol() == mbof.getCol()) {
+                    modified = true;
+                }
+            }
+            if (!modified) {
+                ((BuildingCell)currentMap[bof.getRow()][bof.getCol()]).updateBurnedRatio(-this.game.getFireSpeed());
+            }
+        }
+    }
+    
+    private void updateAgentMovements(List<AgentAction> actions) {
+        Cell[][] currentMap = this.game.getMap();
+        
+        for (Cell[] cl : currentMap) {
+            for (Cell c : cl) {
+                if (c instanceof StreetCell) {
+                    StreetCell sc = (StreetCell)c;
+                    try {
+                        if (sc.isThereAnAgent()) {
+                            sc.removeAgent();
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+        
+        Map<AgentType, List<Cell>> content = new HashMap<>();
+        
+        for (AgentAction action : actions) {
+            Cell position = new StreetCell(action.nextPosition[0],action.nextPosition[1]);
+            
+            if (action.agentName.startsWith("fireman")) {
+                if (content.get(AgentType.FIREMAN) == null) {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.add(position);
+                    content.put(AgentType.FIREMAN, positions);
+                } else {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.addAll(content.get(AgentType.FIREMAN));
+                    positions.add(position);
+                    content.put(AgentType.FIREMAN, positions);
+                }
+            } else {
+                if (content.get(AgentType.AMBULANCE) == null) {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.add(position);
+                    content.put(AgentType.AMBULANCE, positions);
+                } else {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.addAll(content.get(AgentType.AMBULANCE));
+                    positions.add(position);
+                    content.put(AgentType.AMBULANCE, positions);
+                }
+            }
+        }
+        
+        for (Map.Entry<AgentType, List<Cell>> entry : content.entrySet()) {
+            for (Cell c : entry.getValue()) {
+                StreetCell sc = (StreetCell)currentMap[c.getRow()][c.getCol()];
+                try {
+                    if (sc.isThereAnAgent()) {
+                        sc.removeAgent();
+                    }
+                    sc.addAgent(new InfoAgent(entry.getKey()));
+                } catch (Exception ex) {
+                    Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
 }

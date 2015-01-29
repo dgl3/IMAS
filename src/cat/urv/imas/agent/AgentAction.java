@@ -16,7 +16,8 @@ public class AgentAction implements java.io.Serializable {
     public int nextPosition[];
     
     public boolean extraActions;
-    //public Map<String,int[]> extraActionsPosition;
+    
+    public int actionPosition[];
     
     public AgentAction(String agentName, int nextPosition[]) {
         this.agentName = agentName;
@@ -24,8 +25,20 @@ public class AgentAction implements java.io.Serializable {
         this.extraActions = false;
     }
     
-    /*public void setExtraActions(String actionName, int actionPosition[]) {
+    public void setAction(int actionPosition[]) {
         this.extraActions = true;
-        this.extraActionsPosition.put(actionName, actionPosition);
-    }*/
+        this.actionPosition = actionPosition;
+    }
+    
+    public Boolean hasAction() {
+        return this.extraActions;
+    }
+    
+    public AgentType getAgentType() {
+        if (this.agentName.startsWith("fire")) {
+            return AgentType.FIREMAN;
+        } else {
+            return AgentType.AMBULANCE;
+        }
+    }
 }

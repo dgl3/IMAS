@@ -18,7 +18,9 @@
 package cat.urv.imas.onthology;
 
 import cat.urv.imas.agent.AgentType;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
+import java.util.ArrayList;
 import static java.util.Collections.list;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +96,11 @@ public class GameSettings implements java.io.Serializable {
      * Title to set to the GUI.
      */
     protected String title = "Demo title";
+    
+    /**
+     * Keeps track of new fires appearing
+     */
+    private Cell newFire;
     
 
     public float getSeed() {
@@ -275,4 +282,41 @@ public class GameSettings implements java.io.Serializable {
         return retstr;
     }
     
+    public void setNewFire(Cell fireCell) {
+        this.newFire = fireCell;
+    }
+    
+    public Cell getNewFire() {
+        return this.newFire;
+    }
+    
+    public List<Cell> getBuildingsOnFire() {
+        List<Cell> buildingsOnFire = new ArrayList<>();
+        
+        for (Cell[] c1 : this.getMap()) {
+            for (Cell c : c1) {
+                if (c instanceof BuildingCell) {
+                    if (((BuildingCell)c).isOnFire()) {
+                        buildingsOnFire.add(c);
+                    }
+                }
+            }
+        }
+        return buildingsOnFire;
+    }
+    
+    public List<Cell> getClearBuildings() {
+        List<Cell> buildingsOnFire = new ArrayList<>();
+        
+        for (Cell[] c1 : this.getMap()) {
+            for (Cell c : c1) {
+                if (c instanceof BuildingCell) {
+                    if (!((BuildingCell)c).isOnFire()) {
+                        buildingsOnFire.add(c);
+                    }
+                }
+            }
+        }
+        return buildingsOnFire;
+    }
 }
