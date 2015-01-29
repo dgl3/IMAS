@@ -282,16 +282,7 @@ public class CentralAgent extends ImasAgent {
         in.close();
         this.log("NEW TURN");
         
-        Cell[][] currentMap = this.game.getMap();
-        
-        int act[] = new int[2];
-        act[0] = 8;
-        act[1] = 3;
-        agentActions.get(0).setAction(act);
-        
-        List<Cell> modifiedFires = this.performAgentActions(currentMap, agentActions);
-        log("HEEEEEEEEEEERRRRRRRRRRRREEEEEEEEEEEEE");
-        log(modifiedFires.toString());
+        List<Cell> modifiedFires = this.performAgentActions(agentActions);
         this.updateFires(modifiedFires);
         
         this.updateAgentMovements(agentActions);
@@ -376,15 +367,13 @@ public class CentralAgent extends ImasAgent {
         }
     }
     
-    private List<Cell> performAgentActions(Cell[][] currentMap, List<AgentAction> actions) {
-        
+    private List<Cell> performAgentActions(List<AgentAction> actions) {
+        Cell[][] currentMap = this.game.getMap();
         List<Cell> modifiedCells = new ArrayList<>();
         
         for (AgentAction action : actions) {
             if (action.hasAction()) {
                 BuildingCell bc;
-                log("HERE");
-                log(action.actionPosition.toString());
                 switch (action.getAgentType()) {
                     case FIREMAN:
                         bc = (BuildingCell)currentMap[action.actionPosition[0]][action.actionPosition[1]];
@@ -392,9 +381,6 @@ public class CentralAgent extends ImasAgent {
                         modifiedCells.add(bc);
                         break;
                     case AMBULANCE:
-                        bc = (BuildingCell)currentMap[action.actionPosition[0]][action.actionPosition[1]];
-                        bc.updateBurnedRatio(this.game.getFireSpeed());
-                        modifiedCells.add(bc);
                         // TODO: perform acion depending on type of cell
                         break;
                 }
