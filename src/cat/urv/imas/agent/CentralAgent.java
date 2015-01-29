@@ -233,16 +233,16 @@ public class CentralAgent extends ImasAgent {
      * Method for the central agent to check for collisions on any of the agents
      * capable of moving
      */
-    private void checkMovementCollisions(List<AID> agents) {
+    private void checkMovementCollisions(List<AgentAction> agentActions) {
         // TODO: this will be a dummy method for now
-        this.endTurn(agents);
+        this.endTurn(agentActions);
     }
     
     /**
      * Method for the central agent to finish the current turn. It updates
      * the map with the turns movement and starts a new turn
      */
-    private void endTurn(List<AID> agents) {
+    private void endTurn(List<AgentAction> agentActions) {
         
         try {
             Thread.sleep(1000);
@@ -257,10 +257,24 @@ public class CentralAgent extends ImasAgent {
         this.log("NEW TURN");
         Map<AgentType, List<Cell>> content = new HashMap<>();
         
-        
-        List<Cell> positions = new ArrayList<Cell>();
-        positions.add(new StreetCell(1,1));
-        content.put(AgentType.AMBULANCE,positions);
+        for (AgentAction action : agentActions) {
+            Cell position = new StreetCell(action.nextPosition[0],action.nextPosition[1]);
+            
+            if (action.agentName.startsWith("fireman")) {
+                if (content.get(AgentType.FIREMAN) == null) {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.add(position);
+                    content.put(AgentType.FIREMAN, positions);
+                } else {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.addAll(content.get(AgentType.FIREMAN));
+                    positions.add(position);
+                    content.put(AgentType.FIREMAN, positions);
+                }
+            } else {
+                
+            }
+        }
         
         Cell[][] emptyMap = this.game.getMap();
         
@@ -283,15 +297,15 @@ public class CentralAgent extends ImasAgent {
             for (Cell c : entry.getValue()) {
                 StreetCell sc = (StreetCell)emptyMap[c.getRow()][c.getCol()];
                 try {
+                    if (sc.isThereAnAgent()) {
+                        sc.removeAgent();
+                    }
                     sc.addAgent(new InfoAgent(entry.getKey()));
                 } catch (Exception ex) {
                     Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            
         }
-        
-        
         
         this.gui.showGameMap(emptyMap);
         //this.newTurn();
@@ -321,8 +335,8 @@ public class CentralAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                ACLMessage msg = receive();
-                if (msg != null){
+                ACLMessage msg;
+                while ((msg = receive()) != null) {
                     switch (msg.getPerformative()){
                         case ACLMessage.INFORM:
                             handleInform(msg);
@@ -330,8 +344,8 @@ public class CentralAgent extends ImasAgent {
                         default:
                             log("Unsupported message received.");
                     }
-                }   
-                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+                } 
+                block();
             };
         };
     }
@@ -341,21 +355,24 @@ public class CentralAgent extends ImasAgent {
      */
     private void handleInform(ACLMessage msg) {
         CentralAgent agent = this;
-        String content = (String) msg.getContent();
-        switch(content) {
-            case MessageContent.END_TURN:
-                agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                try {
+        Map<String,Object> contentObject;
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.END_TURN:
+                    List<AgentAction> finishedAgents = new ArrayList<>();
+                    finishedAgents.addAll((List<AgentAction>) contentObject.get(content));
                     //List<AID> agents = (List<AID>) msg.getContentObject();
-                    //this.checkMovementCollisions(agents);
-                    this.endTurn(null);
-                } catch (Exception e) {
-                    agent.errorLog("Incorrect content: " + e.toString());
-                }
-                break;
-            default:
-                agent.log("Message Content not understood");
-                break;
+                    this.checkMovementCollisions(finishedAgents);
+                    break;
+                default:
+                    agent.log("Message Content not understood");
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

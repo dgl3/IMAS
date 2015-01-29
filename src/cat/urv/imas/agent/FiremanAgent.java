@@ -6,16 +6,23 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.behaviour.fireman.InformBehaviour;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,11 +42,6 @@ public class FiremanAgent extends ImasAgent{
      * Game settings in use.
      */
     private GameSettings game;
-    
-    /**
-     * Coordinator agent id.
-     */
-    private AID coordinatorAgent;
     
     /**
      * Fireman-Coordinator agent id.
@@ -114,9 +116,25 @@ public class FiremanAgent extends ImasAgent{
                         }
                         agent.log("Game updated");
                         agent.updatePosition();
+                        
+                        // TODO: this is just a test for the movement, all of this will be changed:
+                        
+                        Cell currentPosition = agent.getCurrentPosition();
+                        int[] nextPosition = new int[2];
+                        nextPosition[0] = currentPosition.getRow();
+                        nextPosition[1] = currentPosition.getCol() + 1;
+                        
+                        Cell[][] map = agent.getGame().getMap();
+                        if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
+                            nextPosition[1] = currentPosition.getCol() - 1;
+                        }
+                        
+                        AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
+                        
+                        agent.endTurn(nextAction);
                     }
                 }   
-                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+                block();
             };
         };
     }
@@ -146,5 +164,29 @@ public class FiremanAgent extends ImasAgent{
         int firemanNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
+    }
+    
+    public Cell getCurrentPosition() {
+        return this.currentPosition;
+    }
+    
+    public void endTurn(AgentAction nextAction) {
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(this.firemanCoordinatorAgent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            //gameinformRequest.setContent(MessageContent.SEND_GAME);
+            Map<String,AgentAction> content = new HashMap<>();
+            content.put(MessageContent.END_TURN, nextAction);
+            gameinformRequest.setContentObject((Serializable) content);
+            log("Inform message content: " + MessageContent.END_TURN);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
     }
 }

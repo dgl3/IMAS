@@ -6,19 +6,24 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
-import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
-import jade.domain.FIPANames.InteractionProtocol;
+import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +48,11 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      */
     // TODO: Change to map
     private List<AID> firemenAgents;
+    
+    /**
+     * List of agents ready to end the turn
+     */
+    private List<AgentAction> finishedFiremanAgents;
 
     public FiremenCoordinatorAgent() {
         super(AgentType.FIREMEN_COORDINATOR);
@@ -83,6 +93,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         //this.fireman = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
         firemenAgents = new LinkedList<>();
+        finishedFiremanAgents = new ArrayList<>();
         addBehaviour(newListenerBehaviour());
     }
 
@@ -96,8 +107,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                ACLMessage msg = receive();
-                if (msg != null) {
+                log("INFORM MESSAGE RECEIVED");
+                ACLMessage msg;
+                while ((msg = receive()) != null) {
                     switch (msg.getPerformative()){
                         case ACLMessage.SUBSCRIBE:
                             handleSubscribe(msg);
@@ -115,16 +127,60 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     }
     
     private void handleInform(ACLMessage msg) {
+        FiremenCoordinatorAgent agent = this;
+        Map<String,Object> contentObject;
         try {
-            setGame((GameSettings) msg.getContentObject());
-        } catch (UnreadableException ex) {
-            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        log("Game updated");
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.SEND_GAME:
+                    agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                    try {
+                        finishedFiremanAgents = new ArrayList<>();
+                        setGame((GameSettings) contentObject.get(content));
 
-        // When game information is updated, send it to all children
-        for (AID firemanAgent : firemenAgents) {
-            sendGame(firemanAgent);
+                        log("Game updated");
+
+                        // When game information is updated, send it to all children
+                        for (AID firemanAgent : firemenAgents) {
+                            sendGame(firemanAgent);
+                        }
+                    } catch (Exception e) {
+                        agent.errorLog("Incorrect content: " + e.toString());
+                    }
+                    break;
+                case MessageContent.NEW_FIRE_PETITION:
+                    // This will need to change to handle a new fire petition
+                    agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                    try {
+                        finishedFiremanAgents = new ArrayList<>();
+                        setGame((GameSettings) contentObject.get(content));
+
+                        log("Game updated");
+
+                        // When game information is updated, send it to all children
+                        for (AID firemanAgent : firemenAgents) {
+                            sendGame(firemanAgent);
+                        }
+                    } catch (Exception e) {
+                        agent.errorLog("Incorrect content: " + e.toString());
+                    }
+                    break;
+                case MessageContent.END_TURN:
+                    finishedFiremanAgents.add((AgentAction) contentObject.get(content));
+                    // TODO: This is not reliable enough, look for another way
+                    if (finishedFiremanAgents.size() == firemenAgents.size()) {
+                        this.endTurn();
+                    }
+
+                    break;
+            default:
+                agent.log("Message Content not understood");
+                break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -173,5 +229,27 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
+    }
+    
+    public void endTurn() {
+        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
+        gameinformRequest.clearAllReceiver();
+        gameinformRequest.addReceiver(this.coordinatorAgent);
+        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to agent");
+        try {
+            //gameinformRequest.setContent(MessageContent.SEND_GAME);
+            Map<String,List<AgentAction>> content = new HashMap<>();
+            content.put(MessageContent.END_TURN, this.finishedFiremanAgents);
+            gameinformRequest.setContentObject((Serializable) content);
+            log("Inform message content: " + MessageContent.END_TURN);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
+        this.addBehaviour(gameInformBehaviour);
+        
+        finishedFiremanAgents = new ArrayList<>();
     }
 }
