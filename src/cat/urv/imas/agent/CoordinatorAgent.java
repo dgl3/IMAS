@@ -19,6 +19,7 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.behaviour.coordinator.InformBehaviour;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
+import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
@@ -167,6 +168,9 @@ public class CoordinatorAgent extends ImasAgent {
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.REJECT_PROPOSAL:
+                            handleRejectProposal(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -195,6 +199,8 @@ public class CoordinatorAgent extends ImasAgent {
                         agent.setGame(gameSettings);
                         agent.log(gameSettings.getShortString());
                         this.newTurn();
+                        //Check if there is any new fire
+                        this.checkNewFires();
                     } catch (Exception e) {
                         agent.errorLog("Incorrect content: " + e.toString());
                     }
@@ -220,6 +226,36 @@ public class CoordinatorAgent extends ImasAgent {
             Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+    }
+    
+    /**
+     * Handle new incoming REJECT_PROPOSAL message
+     */
+    private void handleRejectProposal(ACLMessage msg) {
+        CoordinatorAgent agent = this;
+        Map<String,Object> contentObject;
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            switch(content) {
+                case MessageContent.SEND_GAME://TODO: What kind of content will have reject proposal from fireman coordinator
+                    // send proposal
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Check if there is anynew fire in the game
+     */
+    private void checkNewFires(){
+        //Check newFire game property to know if in this turn appeared a new fire and in which cell.
+        Cell newFire = this.game.getNewFire();
+        if(newFire!=null){
+            sendProposal(this.firemenCoordinator);
+        }
     }
     
     private void newTurn() {
@@ -292,6 +328,23 @@ public class CoordinatorAgent extends ImasAgent {
         
         finishedFiremanAgents = null;
         finishedAmbulanceAgents = null;
+    }
+    
+    public void sendProposal(AID reciever) {
+        ACLMessage contractNetProposal = new ACLMessage(ACLMessage.PROPOSE);
+        contractNetProposal.clearAllReceiver();
+        contractNetProposal.addReceiver(reciever);
+        contractNetProposal.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Propose to create Contract Net to agent: " + reciever.getName());
+        try {
+            Map<String,Object> content = new HashMap<>();
+            content.put(MessageContent.START_CONTRACTNET, null);
+            contractNetProposal.setContentObject((Serializable) content);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        InformBehaviour proposeBehaviour = new InformBehaviour(this, contractNetProposal);
+        this.addBehaviour(proposeBehaviour);
     }
     
 }
