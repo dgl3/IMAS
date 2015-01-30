@@ -7,7 +7,6 @@ package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
-import cat.urv.imas.behaviour.contractNet.ContractNetInitatorImpl;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
