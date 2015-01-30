@@ -18,8 +18,10 @@
 package cat.urv.imas.onthology;
 
 import cat.urv.imas.agent.AgentType;
+import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.HospitalCell;
 import java.util.ArrayList;
 import static java.util.Collections.list;
 import java.util.List;
@@ -60,9 +62,17 @@ public class GameSettings implements java.io.Serializable {
      */
     private int peoplePerAmbulance = 3;
     /**
+     * Number of people inside each ambulance
+     */
+    private int[] ambulanceCurrentLoad;
+    /**
      * Number of people loaded into an ambulance per simulation step.
      */
     private int ambulanceLoadingSpeed = 1;
+    /**
+     * Map graph
+     */
+    private Graph graph;
     /**
      * Percentage of burning of a building without firemen. A value -fireSpeed
      * has to be applied when there are firemen surrounding the fire, at a total
@@ -318,5 +328,38 @@ public class GameSettings implements java.io.Serializable {
             }
         }
         return buildingsOnFire;
+    }
+    
+    public static Boolean isBurned(Cell c) {
+        if (((BuildingCell)c).getBurnedRatio() == 100) {
+            return ((BuildingCell)c).isDestroyed();
+        }
+        return false;
+    }
+    
+    public void initializeAmbulanceCapacities() {
+        int nAmbulances = this.agentList.get(AgentType.AMBULANCE).size();
+        int[] aCapacities = new int[nAmbulances];
+        for (int i : aCapacities) {
+            i = this.peoplePerAmbulance;
+        }
+        
+        this.ambulanceCurrentLoad = aCapacities;
+    }
+    
+    public int getAmbulanceCurrentLoad(int ambulance) {
+        return this.ambulanceCurrentLoad[ambulance];
+    }
+    
+    public void updateAmbulanceCurrentLoad(int ambulance, int load) {
+        this.ambulanceCurrentLoad[ambulance] += load;
+    }
+    
+    public void updateGraph(Graph graph) {
+        this.graph = graph;
+    }
+    
+    public Graph getGraph() {
+        return this.graph;
     }
 }
