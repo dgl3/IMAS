@@ -31,6 +31,8 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.InfoAgent;
 import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.statistics.FireStatistics;
+import cat.urv.imas.statistics.GameStatistics;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
@@ -60,6 +62,11 @@ import java.util.logging.Logger;
 public class CentralAgent extends ImasAgent {
 
     Scanner in;
+    
+    /**
+     * Game Statistics
+     */
+    private GameStatistics statistics;
     
     /**
      * Number of the current turn
@@ -232,6 +239,7 @@ public class CentralAgent extends ImasAgent {
         this.activeFires = new ArrayList<>();
         this.RNG = new Random((int)this.game.getSeed());
         
+        this.statistics = new GameStatistics();
         
         this.addBehaviour(newListenerBehaviour());
         this.newTurn();
@@ -255,6 +263,8 @@ public class CentralAgent extends ImasAgent {
             Cell fire = this.generateFire();
             
             this.game.setNewFire(fire);
+            
+            this.statistics.newFire(fire, this.turn);
         } else {
             this.game.setNewFire(null);
         }
@@ -296,8 +306,15 @@ public class CentralAgent extends ImasAgent {
         
         this.updateAgentMovements(agentActions);
         
+        List<Integer> currentOccupancy = new ArrayList<>();
+        for (Cell c : this.game.getAgentList().get(AgentType.HOSPITAL)) {
+            currentOccupancy.add(((HospitalCell)c).useRatio());
+        }
+        this.statistics.setNewTurnHospitalOccupancy(currentOccupancy);
+        
         //this.gui.showGameMap(this.game.getMap());
         this.gui.updateGame();
+        this.gui.printNewStatistics(this.statistics.getCurrentStatistics());
         this.newTurn();
     }
 
@@ -430,6 +447,12 @@ public class CentralAgent extends ImasAgent {
             }
             if (!modified) {
                 ((BuildingCell)currentMap[bof.getRow()][bof.getCol()]).updateBurnedRatio(-this.game.getFireSpeed());
+                int newBurnedRatio = ((BuildingCell)currentMap[bof.getRow()][bof.getCol()]).getBurnedRatio();
+                FireStatistics fs = this.statistics.getActiveFireStatistics(currentMap[bof.getRow()][bof.getCol()]);
+                if (fs != null) {
+                    fs.updateBurnedRatio(newBurnedRatio, this.turn, 
+                            ((BuildingCell)currentMap[bof.getRow()][bof.getCol()]).getNumberOfCitizens());
+                }
             }
         }
     }

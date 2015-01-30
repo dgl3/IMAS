@@ -22,7 +22,7 @@ public class FireStatistics {
     /**
      * Boolean to check if the fire was burnt down or not
      */
-    private Boolean isBurned;
+    private Boolean isBurned = false;
     
     /**
      * Turn in which the fire was put off or it burned the building
@@ -39,7 +39,7 @@ public class FireStatistics {
      */
     private int burnPercentage;
     
-    void FireStatistics(Cell building, int startingTurn) {
+    public FireStatistics(Cell building, int startingTurn) {
         this.building = building;
         this.startingTurn = startingTurn;
     }
@@ -48,4 +48,34 @@ public class FireStatistics {
         return (this.finishingTurn == -1);
     }
     
+    public void fireExtinguished(int turn) {
+        this.finishingTurn = turn;
+    }
+    
+    public Cell getFireCell() {
+        return this.building;
+    }
+    
+    public void updateBurnedRatio(int burnedRatio, int turn, int peopleInBuilding) {
+        if (this.burnPercentage > burnedRatio) {
+            this.burnPercentage = burnedRatio;
+        }
+        if (burnedRatio >= 100) {
+            this.isBurned = true;
+            this.finishingTurn = turn;
+            this.casualties = peopleInBuilding;
+        }
+    }
+    
+    public int getBurnPercentage() {
+        return this.burnPercentage;
+    }
+    
+    public Boolean getIsBurned() {
+        return this.isBurned;
+    }
+    
+    public int getCasualties() {
+        return this.casualties;
+    }
 }

@@ -112,7 +112,7 @@ public class HospitalCell extends Cell {
      * @return ratio of the number of used beds.
      */
     public int useRatio() {
-        return 0;
+        return 100 * (int)((float)this.usedBeds / (float)this.capacity);
     }
 
     /* ***************** Map visualization API ********************************/

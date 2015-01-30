@@ -167,6 +167,16 @@ public class GraphicInterface extends JFrame {
     public void showStatistics(String msg) {
         this.jStatisticsPanel.showMessage(msg);
     }
+    
+    /**
+     * Replace the statistics
+     * 
+     * @param msg String to show
+     */
+    public void printNewStatistics(String msg) {
+        this.jStatisticsPanel.cleanMessages();
+        this.jStatisticsPanel.showMessage(msg);
+    }
 
     /**
      * Update the game GUI.
