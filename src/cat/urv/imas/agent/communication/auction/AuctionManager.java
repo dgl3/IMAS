@@ -1,6 +1,6 @@
 package cat.urv.imas.agent.communication.auction;
 
-import cat.urv.imas.agent.communication.util.MessageCreatorUtil;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.Agent;
@@ -51,7 +51,7 @@ public class AuctionManager {
         String messageType = MessageContent.AMBULANCE_AUCTION;
         Offer offer = new Offer(auctioneer.getAID(), currentAuction.getID(), currentAuction.getItem());
 
-        ACLMessage bidRequestMsg = MessageCreatorUtil.createRequestMessage(participants, messageType, offer);
+        ACLMessage bidRequestMsg = MessageCreator.createRequest(participants, messageType, offer);
 
         auctioneer.send(bidRequestMsg);
     }
@@ -64,7 +64,7 @@ public class AuctionManager {
             if( currentAuction.readyForEvaluation() ){
                 AID winner = currentAuction.getWinner();
                 notifyWinner(winner);
-                notifySeller();
+                notifySeller(winner);
             }
         }else{
             throw new IllegalStateException("Received Bid for non-existing, or pending auction.");
@@ -72,8 +72,9 @@ public class AuctionManager {
 
     }
 
-    private void notifySeller() {
-        System.out.println("Notify Seller");
+    private void notifySeller(AID winner) {
+        ACLMessage msg = MessageCreator.createInform(currentAuction.getSeller(), MessageContent.AMBULANCE_AUCTION, winner);
+        auctioneer.send(msg);
     }
 
     private void notifyWinner(AID winner) {
@@ -82,7 +83,7 @@ public class AuctionManager {
         String messageType = MessageContent.AMBULANCE_AUCTION;
         Offer offer = new Offer(auctioneer.getAID(), currentAuction.getID(), currentAuction.getItem());
 
-        ACLMessage bidRequestMsg = MessageCreatorUtil.createMessage(ACLMessage.ACCEPT_PROPOSAL, winner, messageType, offer);
+        ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, winner, messageType, offer);
 
         auctioneer.send(bidRequestMsg);
     }

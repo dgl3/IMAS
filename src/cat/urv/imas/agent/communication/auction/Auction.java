@@ -71,4 +71,8 @@ public class Auction {
 
         return this.winner;
     }
+
+    public AID getSeller() {
+        return seller;
+    }
 }
