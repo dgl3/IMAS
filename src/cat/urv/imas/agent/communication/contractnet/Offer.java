@@ -11,13 +11,13 @@ import jade.lang.acl.ACLMessage;
  * Created by Philipp Oliver on 29/1/15.
  */
 public class Offer implements java.io.Serializable {
-    private AID auctioneer;
-    private int auctionID;
+    private AID contractor;
+    private int contractNetID;
     private Cell cell;
 
-    public Offer(AID auctioneer, int auctionID, Cell cell) {
-        this.auctionID = auctionID;
-        this.auctioneer = auctioneer;
+    public Offer(AID contractor, int contractNetID, Cell cell) {
+        this.contractNetID = contractNetID;
+        this.contractor = contractor;
         this.cell = cell;
     }
 
@@ -25,18 +25,18 @@ public class Offer implements java.io.Serializable {
         return cell;
     }
 
-    public AID getAuctioneer() {
-        return auctioneer;
+    public AID getContractor() {
+        return contractor;
     }
 
     public void reply(Agent sender, int bidValue){
-        System.out.println("########## Auction Attendee Replies ##########");
-        Bid bid = new Bid(auctionID, bidValue);
-        ACLMessage bidMsg = MessageCreator.createPropose(auctioneer, MessageContent.FIRMEN_CONTRACTNET, bid);
+        System.out.println("########## ContractNet Fireman Replies ##########");
+        Bid bid = new Bid(contractNetID, bidValue);
+        ACLMessage bidMsg = MessageCreator.createPropose(contractor, MessageContent.FIRMEN_CONTRACTNET, bid);
         sender.send(bidMsg);
     }
 
-    public int getAuctionID() {
-        return auctionID;
+    public int getContractNetID() {
+        return contractNetID;
     }
 }

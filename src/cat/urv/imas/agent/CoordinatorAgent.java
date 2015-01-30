@@ -296,6 +296,8 @@ public class CoordinatorAgent extends ImasAgent {
     
     public void sendProxy(AID reciever) {
         //TODO: Send PROXY to firemen Coordinator but it crashes somehow...
+        //TODO: Sometimes it not crashes, but this codeline executes too fast, so some agents doesn't update its game yet...
+        //TODO: Maybe we should make all lower level agents say back again the got gameinfo in order to start the whole process of ContractNets and Auctions with this codeline.
         //ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIRMEN_CONTRACTNET, null);
         //send(contractNetProposal);
     }

@@ -11,6 +11,8 @@ import cat.urv.imas.agent.communication.contractnet.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.fireman.InformBehaviour;
+import cat.urv.imas.graph.Graph;
+import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -26,6 +28,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -222,8 +225,25 @@ public class FiremanAgent extends ImasAgent{
         }
     }    
     
-    private int studyDistance(Cell cell) {
+    private int studyDistance(Cell buildingFire) {
         //study distance through danis code
+        /*
+        Graph graph = new Graph(game);        
+        List<Cell> adjacent = graph.getAdjacentCells(buildingFire);
+        System.out.println("Number of cells returned: "+adjacent.size());
+        //System.out.println("Kind of cells: "+adjacent.get(0).toString()+"\n"+adjacent.get(1).toString()+"\n"+adjacent.get(2).toString()+"\n");
+        int minimumdistance = Integer.MAX_VALUE;
+        for(Cell contigousCell: adjacent){
+            Path path = graph.bfs(currentPosition, contigousCell);
+            int currentdistance = path.getDistance();
+            if(currentdistance<minimumdistance){
+                minimumdistance = currentdistance;
+            }
+        }
+        if(minimumdistance<19){
+            return minimumdistance;
+        }
+        */
         return -1;
     }
     

@@ -43,11 +43,11 @@ public class ContractNetManager {
 
     private void startNextAuction(){
         currentContractNet = pendingContractNets.poll();
-        startAuction(currentContractNet);
+        startContractNet(currentContractNet);
         contractNetInProgress = true;
     }
 
-    private void startAuction(ContractNet currentAuction) {
+    private void startContractNet(ContractNet currentAuction) {
         System.out.println("########## Sending CFP's ##########");
         Collection<AID> participants = currentAuction.getOutstandingBidders();
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
@@ -70,7 +70,7 @@ public class ContractNetManager {
                 notifySeller(winner);
             }
         }else{
-            throw new IllegalStateException("Received Bid for non-existing, or pending auction.");
+            throw new IllegalStateException("Received Bid for non-existing, or pending ContractNet.");
         }
 
     }
@@ -95,7 +95,7 @@ public class ContractNetManager {
 
         if( currentContractNet.readyForEvaluation()
             && currentContractNet.getWinner().equals(sender)
-            && offer.getAuctionID() == currentContractNet.getID() )
+            && offer.getContractNetID() == currentContractNet.getID() )
         {
             System.out.println("########### ANNOUNCING COMPLETED #############");
             currentContractNet = null;
@@ -105,7 +105,7 @@ public class ContractNetManager {
                 startNextAuction();
             }
         }else{
-            throw new IllegalStateException("Received illegal auction confirmation from agent aid " + sender + " for auction id " + offer.getAuctionID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
+            throw new IllegalStateException("Received illegal contractNet confirmation from agent aid " + sender + " for auction id " + offer.getContractNetID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
         }
     }
 }

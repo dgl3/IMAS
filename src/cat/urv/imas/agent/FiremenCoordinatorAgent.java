@@ -6,7 +6,6 @@
 package cat.urv.imas.agent;
 
 import cat.urv.imas.agent.communication.contractnet.Bid;
-import cat.urv.imas.agent.communication.contractnet.ContractNetInfo;
 import cat.urv.imas.agent.communication.contractnet.ContractNetManager;
 import cat.urv.imas.agent.communication.contractnet.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
@@ -44,6 +43,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      */
     private GameSettings game;
     
+    /**
+     * Class responsible of ContractNet management
+     */
     private ContractNetManager contractor;
 
     /**
@@ -55,13 +57,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * Coordinator agent id.
      */
     // TODO: Change to map
-    private List<AID> firemenAgents;
-    
-    /**
-     * Key: AID of an agent
-     * Value: true if the agent is available; false otherwise
-     */
-    private Map<AID, ContractNetInfo> contractNetAgents;       
+    private List<AID> firemenAgents;    
     
     /**
      * List of agents ready to end the turn
@@ -70,7 +66,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     public FiremenCoordinatorAgent() {
         super(AgentType.FIREMEN_COORDINATOR);
-        contractNetAgents = new HashMap<AID, ContractNetInfo>();
     }
 
     @Override
@@ -152,7 +147,8 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     }
     
     private void handleProxy(ACLMessage msg){
-        contractor.setupNewContractNet(coordinatorAgent, this.game.getNewFire(), firemenAgents);
+        log("New Fire: "+game.getNewFire().toString());
+        contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), firemenAgents);
     }
     
     private void handleConfirm(ACLMessage msg) {
@@ -178,64 +174,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                 break;
                    
         }
-    }
-    
-    private Boolean lastBid(){
-        //CODING
-        
-        return Boolean.TRUE;
-    }
-    
-    private AID chooseAgent(){
-        
-        return null;
-    }
-    
-    
-    private void initiateContractNet(/*List<AID> available*/){
-        List<AID> recievers = new ArrayList<AID>();
-        for(AID agent: this.contractNetAgents.keySet()){
-            contractNetAgents.get(agent).setBid(-2);
-            if(contractNetAgents.get(agent).getAvailable()){
-                recievers.add(agent);
-            }
-        }
-        ACLMessage CFPproposals = MessageCreator.createMessage(ACLMessage.CFP, recievers, MessageContent.PROPOSAL_CONTRACTNET, null);
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, CFPproposals);
-        this.addBehaviour(gameInformBehaviour);
-    }
-        
-    public void rejectContractNet(){
-        ACLMessage contractnetReject = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, coordinatorAgent, MessageContent.REJECT_CONTRACTNET, null);
-        log("Reject proposal (Contract Net) to Coordinator Agent");
-        InformBehaviour rejectInformBehaviour = new InformBehaviour(this, contractnetReject);
-        this.addBehaviour(rejectInformBehaviour);
-    }
-    
-    private List<AID> enoughFiremen(){
-        List<AID> available = new ArrayList<AID>();
-        log("Available Agents...");
-        for(AID agent: this.contractNetAgents.keySet()){
-             if(contractNetAgents.get(agent).getAvailable()){
-                 available.add(agent);
-             }
-        }
-        return available;
-        /**
-        Cell cellFire = game.getNewFire();
-        if(cellFire != null){
-           for(AID agent: this.availableAgents.keySet()){
-               if(availableAgents.get(agent)){
-                   return true;
-                   
-                   int number = Integer.valueOf(agent.getLocalName().substring(agent.getLocalName().length()-1));
-                   Cell currentCell = this.game.getAgentList().get(AgentType.FIREMAN).get(number);
-                   //Compute distance to the fire
-               }
-           }
-        }
-        return false;
-        * **/
     }
     
     private void handleInform(ACLMessage msg) {
@@ -268,8 +206,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         if (msg.getSender().getLocalName().startsWith("fireman")) {
             AID subscriber = msg.getSender();
             firemenAgents.add(subscriber);
-            ContractNetInfo agentInfo = new ContractNetInfo(Boolean.TRUE, -2);
-            contractNetAgents.put(subscriber, agentInfo);
             log("added " + msg.getSender().getLocalName());
         }
         // If game information is set, send it to the subscriber
