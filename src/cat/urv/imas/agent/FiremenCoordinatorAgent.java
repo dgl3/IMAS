@@ -65,6 +65,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     public FiremenCoordinatorAgent() {
         super(AgentType.FIREMEN_COORDINATOR);
+        availableAgents = new HashMap<AID, Boolean>();
     }
 
     @Override
@@ -163,6 +164,16 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                         this.errorLog("Incorrect content: " + e.toString());
                     }
                     break;
+                case MessageContent.BID_CONTRACTNET:
+                    // Check if it is possible to start a ContractNet.
+                    // If not, reject the proposal. 
+                    this.log("Bid received from " + ((AID) msg.getSender()).getLocalName());
+                    try {
+                        //Thing about how to store the bids of each agent
+                    } catch (Exception e) {
+                        this.errorLog("Incorrect content: " + e.toString());
+                    }
+                    break;
             default:
                 this.log("Message Content not understood");
                 break;
@@ -179,9 +190,19 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         for(AID aid:available){
             CFPproposals.addReceiver(aid);
         }
-        
-        ContractNetInitiator initiator = new ContractNetInitatorImpl(this,CFPproposals);
-        
+        CFPproposals.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("ContractNet message formation sent");
+        try {
+            //TODO
+            Map<String,GameSettings> content = new HashMap<>();
+            content.put(MessageContent.PROPOSAL_CONTRACTNET, null);
+            CFPproposals.setContentObject((Serializable) content);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        InformBehaviour gameInformBehaviour = new InformBehaviour(this, CFPproposals);
+        this.addBehaviour(gameInformBehaviour);
     }
         
     public void rejectContractNet(){
@@ -205,6 +226,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     
     private List<AID> enoughFiremen(){
         List<AID> available = new ArrayList<AID>();
+        log("Available Agents...");
         for(AID agent: this.availableAgents.keySet()){
              if(availableAgents.get(agent)){
                  available.add(agent);
@@ -288,7 +310,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     private void handleSubscribe(ACLMessage msg) {
         if (msg.getSender().getLocalName().startsWith("fireman")) {
-            firemenAgents.add(msg.getSender());
+            AID subscriber = msg.getSender();
+            firemenAgents.add(subscriber);
+            availableAgents.put(subscriber, Boolean.TRUE);
             log("added " + msg.getSender().getLocalName());
         }
         // If game information is set, send it to the subscriber
