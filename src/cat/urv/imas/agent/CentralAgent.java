@@ -25,6 +25,7 @@ import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.CellType;
+import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.InfoAgent;
@@ -84,8 +85,6 @@ public class CentralAgent extends ImasAgent {
      * Random Number Generator
      */
     private Random RNG;
-    
-    private Graph graph;
 
     /**
      * Builds the Central agent.
@@ -160,10 +159,10 @@ public class CentralAgent extends ImasAgent {
 
         // 2. Load game settings.
         this.game = InitialGameSettings.load("game.settings");
+        this.game.initializeAmbulanceCapacities();
+        Graph graph = new Graph(this.game);
+        this.game.updateGraph(graph);
         log("Initial configuration settings loaded");
-
-        //Creates the graph corresponding to the map cells
-        this.graph = new Graph(game);
         
         
         // 3. Load GUI
@@ -284,12 +283,13 @@ public class CentralAgent extends ImasAgent {
         this.log("NEW TURN");
         
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
+        
         this.updateFires(modifiedFires);
         
         this.updateAgentMovements(agentActions);
         
-        //this.gui.showGameMap(emptyMap);
-        this.gui.showGameMap(this.game.getMap());
+        //this.gui.showGameMap(this.game.getMap());
+        this.gui.updateGame();
         this.newTurn();
     }
 
@@ -374,14 +374,29 @@ public class CentralAgent extends ImasAgent {
         
         for (AgentAction action : actions) {
             if (action.hasAction()) {
-                BuildingCell bc;
+                
                 switch (action.getAgentType()) {
                     case FIREMAN:
+                        BuildingCell bc;
                         bc = (BuildingCell)currentMap[action.actionPosition[0]][action.actionPosition[1]];
                         bc.updateBurnedRatio(this.game.getFireSpeed());
                         modifiedCells.add(bc);
                         break;
                     case AMBULANCE:
+                        Cell c = currentMap[action.actionPosition[0]][action.actionPosition[1]];
+                        if (c instanceof BuildingCell) {
+                            BuildingCell BC = (BuildingCell)c;
+                            if (!BC.isDestroyed()) {
+                                int taken = BC.take(action.actionParameter);
+                                int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                                this.game.updateAmbulanceCurrentLoad(numAgent, taken);
+                            }
+                        } else if (c instanceof HospitalCell) {
+                            HospitalCell hc = (HospitalCell)c;
+                            int signedIn = hc.signInPatients(action.actionParameter, this.game.getStepsToHealth());
+                            int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                            this.game.updateAmbulanceCurrentLoad(numAgent, -signedIn);
+                        }
                         // TODO: perform acion depending on type of cell
                         break;
                 }

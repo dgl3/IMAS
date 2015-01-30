@@ -18,6 +18,9 @@
 package cat.urv.imas.map;
 
 import cat.urv.imas.gui.CellVisualizer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Cell that represents a hospital.
@@ -35,6 +38,11 @@ public class HospitalCell extends Cell {
     private int usedBeds;
 
     /**
+     * Current patients in the hospital and the number of turns untill health
+     */
+    private List<Integer> currentPatients;
+    
+    /**
      * Initializes a cell with a hospital.
      *
      * @param row row number (zero based).
@@ -45,6 +53,34 @@ public class HospitalCell extends Cell {
         super(CellType.HOSPITAL, row, col);
         this.capacity = capacity;
         usedBeds = 0;
+        this.currentPatients = new ArrayList<>();
+    }
+    
+    public int signInPatients(int numPatients, int releaseTime) {
+        int signedIn = 0;
+        for (int i=0;i<numPatients;i++) {
+            if (this.currentPatients.size() < this.capacity) {
+                this.currentPatients.add(releaseTime);
+                this.usedBeds += 1;
+                signedIn += 1;
+            }
+        }
+        return signedIn;
+    }
+    
+    public void newTurn() {
+        for (Iterator<Integer> iterator = this.currentPatients.iterator(); iterator.hasNext();) {
+            Integer patient = iterator.next();
+            patient -= 1;
+            if (patient == 0) {
+                this.usedBeds -= 1;
+                iterator.remove();
+            }
+        }
+    }
+    
+    public List<Integer> getCurrentPatients() {
+        return this.currentPatients;
     }
 
     /**
