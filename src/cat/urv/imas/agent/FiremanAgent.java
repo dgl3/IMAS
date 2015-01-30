@@ -51,6 +51,11 @@ public class FiremanAgent extends ImasAgent{
     private GameSettings game;
     
     /**
+     * Goal (extinguish) building in Fire cell.
+     */
+    private Cell extinguishCell;
+    
+    /**
      * Fireman-Coordinator agent id.
      */
     private AID firemanCoordinatorAgent;
@@ -105,7 +110,7 @@ public class FiremanAgent extends ImasAgent{
         send(creationNotificationMsg);
         
         System.out.println(getLocalName() + " sent subscription request.");
-        
+        extinguishCell = null;
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -125,6 +130,9 @@ public class FiremanAgent extends ImasAgent{
                         case ACLMessage.ACCEPT_PROPOSAL:
                             handleAcceptProposal(msg);
                             break;
+                        case ACLMessage.REJECT_PROPOSAL:
+                            handleRejectProposal(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -142,11 +150,17 @@ public class FiremanAgent extends ImasAgent{
                 log("OK! I go there! " + offer.getCell());
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
+                //TODO: set extinguish goal
+                extinguishCell = offer.getCell();
                 break;
             default:
                 log("Unsupported message");
                 break;
         }
+    }
+    
+    private void handleRejectProposal(ACLMessage msg) {
+        //This agent was no selected for the contract net --> actions possible
     }
 
     private void handleInform(ACLMessage msg) {
@@ -174,9 +188,14 @@ public class FiremanAgent extends ImasAgent{
                     if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
                         nextPosition[1] = cPosition.getCol() - 1;
                     }
-
+                    
+                    if(game.getNewFire()==null){
+                        //TODO: nextAction based on distribution
+                    }else{
+                        //TODO: wait for contractNet, if ACCEPT-->action, if REJECT nextAction based on distribution
+                    }
+                    
                     AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
-
                     agent.endTurn(nextAction);
                     break;
                 default:
@@ -215,8 +234,8 @@ public class FiremanAgent extends ImasAgent{
                     
                     Offer offer = (Offer)contentObject.get(content);
                     int distanceBid = studyDistance(offer.getCell());
-                    offer.reply(this, distanceBid);
                     log("I replied");
+                    offer.reply(this, distanceBid);
                     break;
             }
                 
@@ -227,23 +246,17 @@ public class FiremanAgent extends ImasAgent{
     
     private int studyDistance(Cell buildingFire) {
         //study distance through danis code
-        /*
-        Graph graph = new Graph(game);        
-        List<Cell> adjacent = graph.getAdjacentCells(buildingFire);
-        System.out.println("Number of cells returned: "+adjacent.size());
-        //System.out.println("Kind of cells: "+adjacent.get(0).toString()+"\n"+adjacent.get(1).toString()+"\n"+adjacent.get(2).toString()+"\n");
-        int minimumdistance = Integer.MAX_VALUE;
-        for(Cell contigousCell: adjacent){
-            Path path = graph.bfs(currentPosition, contigousCell);
-            int currentdistance = path.getDistance();
-            if(currentdistance<minimumdistance){
-                minimumdistance = currentdistance;
-            }
+        
+        Graph graph = new Graph(game);
+        log("getting path...");
+        Path path = graph.computeOptimumPath(currentPosition, buildingFire);
+        if(path==null){
+            log("WARNING!! --> path is null");
         }
-        if(minimumdistance<19){
-            return minimumdistance;
+        int distance = path.getDistance();
+        if(distance<19){
+            return distance;
         }
-        */
         return -1;
     }
     
@@ -282,22 +295,7 @@ public class FiremanAgent extends ImasAgent{
     }
     
     public void endTurn(AgentAction nextAction) {
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.firemanCoordinatorAgent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            //gameinformRequest.setContent(MessageContent.SEND_GAME);
-            Map<String,AgentAction> content = new HashMap<>();
-            content.put(MessageContent.END_TURN, nextAction);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: " + MessageContent.END_TURN);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
+        ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
+        send(actionInfo);
     }
 }

@@ -2,8 +2,10 @@ package cat.urv.imas.agent.communication.contractnet;
 
 import cat.urv.imas.map.Cell;
 import jade.core.AID;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * This class keeps track of the bidders and their bids.
@@ -53,26 +55,34 @@ public class ContractNet {
         return id;
     }
 
-    public AID getWinner(){
+    public List<AID> getWinner(){
+        List<AID> winnerList = new ArrayList<>();
         if ( !readyForEvaluation() ){
             throw new IllegalStateException("Winner can not be queried. Not all bidders have replied.");
         }
 
-        if( this.winner == null ) {
+        if( winner == null ) {
             int highestBid = Integer.MAX_VALUE;
             System.out.println("Int initial value: "+highestBid);
-            for (AID bidder : bids.keySet()) {
+            for (AID bidder : bids.keySet()){
                 int bid = bids.get(bidder);
                 System.out.println("bid: "+bid);
-                if ((bid > -1)&&(bid < highestBid)) {
+                if ((bid > -1)&&(bid < highestBid)){
                     System.out.println("BBBBB");
                     highestBid = bid;
-                    this.winner = bidder;
+                    winner = bidder;
                 }
             }
         }
+        
+        winnerList.add(winner);
+        for (AID bidder : bids.keySet()){
+            if(bidder!=winner){
+                winnerList.add(bidder);
+            }
+        }
 
-        return this.winner;
+        return winnerList;
     }
 
     public AID getSeller() {

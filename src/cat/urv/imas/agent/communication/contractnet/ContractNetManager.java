@@ -64,10 +64,11 @@ public class ContractNetManager {
             currentContractNet.takeBid(sender, bid.getValue());
 
             if( currentContractNet.readyForEvaluation() ){
-                AID winner = currentContractNet.getWinner();
+                List<AID> winner = currentContractNet.getWinner();
                 System.out.println("Winner: "+winner);
-                notifyWinner(winner);
-                notifySeller(winner);
+                //TODO: Maybe the case there is no winner because anyone bid for the ContractNet!!!
+                notifyWinnerLossers(winner);
+                notifySeller(winner.get(0));
             }
         }else{
             throw new IllegalStateException("Received Bid for non-existing, or pending ContractNet.");
@@ -76,19 +77,21 @@ public class ContractNetManager {
     }
 
     private void notifySeller(AID winner) {
-        ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), MessageContent.AMBULANCE_AUCTION, winner);
+        ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), MessageContent.FIRMEN_CONTRACTNET, winner);
         contractor.send(msg);
     }
 
-    private void notifyWinner(AID winner) {
+    private void notifyWinnerLossers(List<AID> list) {
         System.out.println("########### ANNOUNCING WINNER #############");
 
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
         Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
-
-        ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, winner, messageType, offer);
-
+        ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(0), messageType, offer);
         contractor.send(winNotification);
+        
+        list.remove(0);
+        ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list, messageType, null);
+        contractor.send(lostNotification);
     }
 
     public void confirmAction(AID sender, Offer offer) {
