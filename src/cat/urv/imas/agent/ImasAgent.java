@@ -17,7 +17,14 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.agent.communication.util.KeyValue;
 import jade.core.Agent;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
+
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Agent abstraction used in this practical work.
@@ -77,5 +84,24 @@ public class ImasAgent extends Agent {
     public void errorLog(String str) {
         System.err.println(getLocalName() + ": " + str);
     }
-    
+
+    /**
+     * Helper to extract the content from a ACLMessage.
+     * @param msg
+     * @return
+     */
+    protected <O> KeyValue<String, O> getMessageContent(ACLMessage msg){
+        KeyValue<String, O> keyValue = null;
+
+        try {
+            Map<String,Object> contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+
+            keyValue = new KeyValue<>(content, (O)contentObject.get(content));
+        } catch (UnreadableException ex) {
+            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return keyValue;
+    }
 }

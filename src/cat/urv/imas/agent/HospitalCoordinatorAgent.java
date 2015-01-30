@@ -8,6 +8,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.auction.Bid;
 import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.AuctionManager;
+import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -130,22 +131,15 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     }
 
     private void handleProposal(ACLMessage msg) {
-        try {
-
-            Map<String,Object> contentObject = (Map<String, Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-
-            switch(content) {
-                case MessageContent.AMBULANCE_AUCTION_BID:
-                    Bid bid = (Bid) contentObject.get(content);
-                    auctionManager.takeBid(msg.getSender(), bid);
-                    break;
-                default:
-                    log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        KeyValue<String, Bid> content = getMessageContent(msg);
+        switch(content.getKey()) {
+            case MessageContent.AMBULANCE_AUCTION_BID:
+                Bid bid = content.getValue();
+                auctionManager.takeBid(msg.getSender(), bid);
+                break;
+            default:
+                log("Message Content not understood");
+                break;
         }
     }
 

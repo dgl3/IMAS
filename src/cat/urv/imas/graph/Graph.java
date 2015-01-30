@@ -2,6 +2,7 @@ package cat.urv.imas.graph;
 
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.CellType;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -201,9 +202,9 @@ public class Graph {
                    path.add(currentNode.getPreviousNode());
                    if(currentNode.getPreviousNode().equals(initialNode)){
                        break;
-                   }
-                   currentNode = currentNode.getPreviousNode();
-               }               
+                   }                  
+               }   
+               currentNode = currentNode.getPreviousNode();
             }
             Collections.reverse(path);
             Path optimumPath = new Path(path);
@@ -240,6 +241,50 @@ public class Graph {
             node.setDistance(0);
         }
     }
+    
+    public List<Cell> getAdjacentCells(Cell cellTarget){
+        List<Cell> adjacentCells = new ArrayList<Cell>();
+        for(int i=cellTarget.getRow()-1;i<=cellTarget.getRow()+1;i++){
+            for(int j=cellTarget.getCol()-1;j<=cellTarget.getCol()+1;j++){
+                Cell currentCell = new StreetCell(i,j);
+                Node current = nodes.get(currentCell);
+                if(current != null){
+                    adjacentCells.add(currentCell);
+                }
+            }
+        }            
+        return adjacentCells;
+    }
+    /**
+     * It is the method to be called by the firemen and the ambulances to get
+     * the optimum path between them and the building in fire or the hospital.
+     * 
+     * 
+     * @return 
+     */
+    /**
+     * It is the method to be called by the firemen and the ambulances to get
+     * the optimum path between them and the building in fire or the hospital.
+     * @param init Cell of the fireman or ambulance
+     * @param target Cell of the building in fire or hospital
+     * @return Agent's optimum path from the init position to the desired target.
+     */
+    public Path computeOptimumPath(Cell init, Cell target){
+        List<Cell> adjacentCells = getAdjacentCells(target);
+        Path optimumPath = null;
+        for(Cell cell: adjacentCells){
+            Path path = bfs(init, cell);
+            if(optimumPath == null){
+                optimumPath = path;
+            }else{
+                if(path.getDistance() < optimumPath.getDistance()){
+                    optimumPath = path;
+                }
+            }
+        }
+        return optimumPath;
+    }
+         
     
 
 }

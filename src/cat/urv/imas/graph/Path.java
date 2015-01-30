@@ -17,7 +17,7 @@ public class Path {
     private List<Node> path;
 
     public Path( List<Node> path) {
-        this.distance = path.size()-1;
+        this.distance = path.size();
         this.path = path;
     }
 
