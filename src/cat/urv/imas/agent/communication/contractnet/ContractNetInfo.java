@@ -20,5 +20,28 @@ public class ContractNetInfo {
      * Agent bid sent (if positive is the distance to building in fire, if negative means not bidding).
      */
     private int bid;
+
+    public ContractNetInfo(Boolean available, int bid) {
+        this.available = available;
+        this.bid = bid;
+    }
+
+    public Boolean getAvailable() {
+        return available;
+    }
+
+    public int getBid() {
+        return bid;
+    }
+
+    public void setAvailable(Boolean available) {
+        this.available = available;
+    }
+
+    public void setBid(int bid) {
+        this.bid = bid;
+    }
+    
+    
     
 }

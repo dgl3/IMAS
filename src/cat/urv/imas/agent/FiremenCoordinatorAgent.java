@@ -7,6 +7,8 @@ package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.agent.communication.contractnet.ContractNetInfo;
+import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreatorUtil;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
@@ -165,11 +167,13 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                     }
                     break;
                 case MessageContent.BID_CONTRACTNET:
-                    // Check if it is possible to start a ContractNet.
-                    // If not, reject the proposal. 
-                    this.log("Bid received from " + ((AID) msg.getSender()).getLocalName());
+                    AID bidder = msg.getSender();
+                    this.log("Bid received from " + bidder.getLocalName());
                     try {
                         //Thing about how to store the bids of each agent
+                        contractNetAgents.get(bidder).setBid((int) contentObject.get(MessageContent.BID_CONTRACTNET));
+                        //TODO: Check if all bids have been sent --> lastBid()
+                        //TODO: If its the last, check which is the minimum positive bid --> chooseAgent()
                         
                     } catch (Exception e) {
                         this.errorLog("Incorrect content: " + e.toString());
@@ -183,6 +187,17 @@ public class FiremenCoordinatorAgent extends ImasAgent {
             Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    private Boolean lastBid(){
+        //CODING
+        return Boolean.TRUE;
+    }
+    
+    private AID chooseAgent(){
+        
+        return null;
+    }
+    
     
     private void initiateContractNet(List<AID> available){
         ACLMessage CFPproposals = new ACLMessage(ACLMessage.CFP);
@@ -207,20 +222,8 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     }
         
     public void rejectContractNet(){
-        ACLMessage contractnetReject = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-        contractnetReject.clearAllReceiver();
-        contractnetReject.addReceiver(coordinatorAgent);
-        contractnetReject.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        ACLMessage contractnetReject = MessageCreatorUtil.createMessage(ACLMessage.REJECT_PROPOSAL, coordinatorAgent, MessageContent.REJECT_CONTRACTNET, null);
         log("Reject proposal (Contract Net) to Coordinator Agent");
-        try {
-            Map<String,Object> content = new HashMap<>();
-            content.put(MessageContent.REJECT_CONTRACTNET, null);
-            contractnetReject.setContentObject((Serializable) content);
-            log("Added Reject message content (null)");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         InformBehaviour rejectInformBehaviour = new InformBehaviour(this, contractnetReject);
         this.addBehaviour(rejectInformBehaviour);
     }
@@ -229,7 +232,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         List<AID> available = new ArrayList<AID>();
         log("Available Agents...");
         for(AID agent: this.contractNetAgents.keySet()){
-             if(contractNetAgents.get(agent)){
+             if(contractNetAgents.get(agent).getAvailable()){
                  available.add(agent);
              }
         }
@@ -252,60 +255,42 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     }
     
     private void handleInform(ACLMessage msg) {
-        FiremenCoordinatorAgent agent = this;
-        Map<String,Object> contentObject;
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
+        KeyValue<String, Object> content = getMessageContent(msg);
+        
             
-            switch(content) {
-                case MessageContent.SEND_GAME:
-                    agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                    try {
-                        finishedFiremanAgents = new ArrayList<>();
-                        setGame((GameSettings) contentObject.get(content));
+        switch(content.getKey()) {
+            case MessageContent.SEND_GAME:
+                log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                //finishedFiremanAgents = new ArrayList<>();
+                setGame((GameSettings) content.getValue());
+                log("Game updated");
 
-                        log("Game updated");
-
-                        // When game information is updated, send it to all children
-                        for (AID firemanAgent : firemenAgents) {
-                            sendGame(firemanAgent);
-                        }
-                    } catch (Exception e) {
-                        agent.errorLog("Incorrect content: " + e.toString());
+                // When game information is updated, send it to all children
+                for (AID firemanAgent : firemenAgents) {
+                    sendGame(firemanAgent);
                     }
-                    break;
-                case MessageContent.NEW_FIRE_PETITION:
-                    // This will need to change to handle a new fire petition
-                    agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                    try {
-                        finishedFiremanAgents = new ArrayList<>();
-                        setGame((GameSettings) contentObject.get(content));
-
-                        log("Game updated");
-
-                        // When game information is updated, send it to all children
-                        for (AID firemanAgent : firemenAgents) {
-                            sendGame(firemanAgent);
-                        }
-                    } catch (Exception e) {
-                        agent.errorLog("Incorrect content: " + e.toString());
-                    }
-                    break;
-                case MessageContent.END_TURN:
-                    finishedFiremanAgents.add((AgentAction) contentObject.get(content));
-                    // TODO: This is not reliable enough, look for another way
-                    if (finishedFiremanAgents.size() == firemenAgents.size()) {
-                        this.endTurn();
-                    }
-
-                    break;
-            default:
-                agent.log("Message Content not understood");
                 break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+            case MessageContent.NEW_FIRE_PETITION:
+                // This will need to change to handle a new fire petition
+                log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                //finishedFiremanAgents = new ArrayList<>();
+                setGame((GameSettings) content.getValue());
+                log("Game updated");
+                // When game information is updated, send it to all children
+                for (AID firemanAgent : firemenAgents) {
+                    sendGame(firemanAgent);
+                }
+                break;
+            case MessageContent.END_TURN:
+                finishedFiremanAgents.add((AgentAction) content.getValue());
+                // TODO: This is not reliable enough, look for another way
+                if (finishedFiremanAgents.size() == firemenAgents.size()) {
+                    this.endTurn();
+                }
+                break;
+        default:
+            log("Message Content not understood");
+            break;
         }
     }
 
@@ -313,7 +298,8 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         if (msg.getSender().getLocalName().startsWith("fireman")) {
             AID subscriber = msg.getSender();
             firemenAgents.add(subscriber);
-            contractNetAgents.put(subscriber, Boolean.TRUE);
+            ContractNetInfo agentInfo = new ContractNetInfo(Boolean.TRUE, -2);
+            contractNetAgents.put(subscriber, agentInfo);
             log("added " + msg.getSender().getLocalName());
         }
         // If game information is set, send it to the subscriber
@@ -342,20 +328,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     private void sendGame(AID agent) {
         /* TODO: Define all the behaviours **/
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(agent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            Map<String,GameSettings> content = new HashMap<>();
-            content.put(MessageContent.SEND_GAME, this.game);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: game");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        ACLMessage gameinformRequest = MessageCreatorUtil.createMessage(ACLMessage.INFORM, agent, MessageContent.SEND_GAME, this.game);
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
     }
