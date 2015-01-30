@@ -209,27 +209,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                 recievers.add(agent);
             }
         }
-        //ACLMessage CFPproposals = MessageCreator.createMessage(ACLMessage.CFP, recievers, MessageContent.PROPOSAL_CONTRACTNET, null);
-        
-        
-        
-        ACLMessage CFPproposals = new ACLMessage(ACLMessage.CFP);
-        //Add receivers (available fireman agents)
-        CFPproposals.clearAllReceiver();
-        for(AID aid:available){
-            CFPproposals.addReceiver(aid);
-        }
-        CFPproposals.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("ContractNet message formation sent");
-        try {
-            //TODO
-            Map<String,GameSettings> content = new HashMap<>();
-            content.put(MessageContent.PROPOSAL_CONTRACTNET, null);
-            CFPproposals.setContentObject((Serializable) content);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        ACLMessage CFPproposals = MessageCreator.createMessage(ACLMessage.CFP, recievers, MessageContent.PROPOSAL_CONTRACTNET, null);
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, CFPproposals);
         this.addBehaviour(gameInformBehaviour);
     }
@@ -330,10 +310,11 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         ACLMessage gameinformRequest = MessageCreator.createMessage(ACLMessage.INFORM, agent, MessageContent.SEND_GAME, this.game);
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
+        send(gameinformRequest);
     }
     
     public void endTurn() {
-        ACLMessage gameinformRequest = MessageCreatorUtil.createMessage(ACLMessage.INFORM, this.coordinatorAgent, MessageContent.END_TURN, this.finishedFiremanAgents);
+        ACLMessage gameinformRequest = MessageCreator.createMessage(ACLMessage.INFORM, this.coordinatorAgent, MessageContent.END_TURN, this.finishedFiremanAgents);
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
         finishedFiremanAgents = new ArrayList<>();
