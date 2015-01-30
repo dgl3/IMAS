@@ -6,6 +6,7 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.agent.communication.contractnet.ContractNetInfo;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
 import cat.urv.imas.behaviour.contractNet.ContractNetInitatorImpl;
 import cat.urv.imas.map.Cell;
@@ -56,7 +57,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * Key: AID of an agent
      * Value: true if the agent is available; false otherwise
      */
-    private Map<AID, Boolean> availableAgents;
+    private Map<AID, ContractNetInfo> contractNetAgents;       
     
     /**
      * List of agents ready to end the turn
@@ -65,7 +66,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     public FiremenCoordinatorAgent() {
         super(AgentType.FIREMEN_COORDINATOR);
-        availableAgents = new HashMap<AID, Boolean>();
+        contractNetAgents = new HashMap<AID, ContractNetInfo>();
     }
 
     @Override
@@ -170,6 +171,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                     this.log("Bid received from " + ((AID) msg.getSender()).getLocalName());
                     try {
                         //Thing about how to store the bids of each agent
+                        
                     } catch (Exception e) {
                         this.errorLog("Incorrect content: " + e.toString());
                     }
@@ -227,8 +229,8 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     private List<AID> enoughFiremen(){
         List<AID> available = new ArrayList<AID>();
         log("Available Agents...");
-        for(AID agent: this.availableAgents.keySet()){
-             if(availableAgents.get(agent)){
+        for(AID agent: this.contractNetAgents.keySet()){
+             if(contractNetAgents.get(agent)){
                  available.add(agent);
              }
         }
@@ -312,7 +314,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         if (msg.getSender().getLocalName().startsWith("fireman")) {
             AID subscriber = msg.getSender();
             firemenAgents.add(subscriber);
-            availableAgents.put(subscriber, Boolean.TRUE);
+            contractNetAgents.put(subscriber, Boolean.TRUE);
             log("added " + msg.getSender().getLocalName());
         }
         // If game information is set, send it to the subscriber

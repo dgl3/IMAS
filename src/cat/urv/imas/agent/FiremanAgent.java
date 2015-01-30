@@ -165,7 +165,31 @@ public class FiremanAgent extends ImasAgent{
     
     private void handleCFP(ACLMessage msg) {
         FiremanAgent agent = this;
-        agent.log("Contract Net request recieved from agent");
+        Map<String,Object> contentObject;
+        
+        try {
+            contentObject = (Map<String,Object>) msg.getContentObject();
+            String content = contentObject.keySet().iterator().next();
+            
+            switch(content) {
+                case MessageContent.PROPOSAL_CONTRACTNET:
+                    agent.log("Contract Net request recieved from agent " + msg.getSender().getLocalName());
+                    //TODO: Study if bid or not bid for the Contract Net...
+                    //1.Consider the contiguos street cells of the building with the new fire
+                    Cell builtFire = this.game.getNewFire();
+                    
+                    //2.Possibilities: 1 street-cell (out-corner) 3 street-cells (aperture), 5 street-cells (in-corner)
+                    //3.Use middle street-cell to cumpute the RBF minimum path.
+                    //4.Based on the possible scenario substract (0, 1 or 2 respectively) to the path length (if negative number then 0).
+                    //5.Since the agents are forced to first do the action and then move, the minimum number
+                    //of cells should be 18 or less to arrive at 95% of building in fire. If it is the case
+                    //bid with the number of turns to arrive.
+                    
+                    break;
+            }
+        } catch (UnreadableException ex) {
+            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }    
     
     /**
