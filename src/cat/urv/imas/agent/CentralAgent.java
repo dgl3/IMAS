@@ -62,6 +62,11 @@ public class CentralAgent extends ImasAgent {
     Scanner in;
     
     /**
+     * Number of the current turn
+     */
+    private int turn = 0;
+    
+    /**
      * GUI with the map, central agent log and statistics.
      */
     private GraphicInterface gui;
@@ -160,8 +165,8 @@ public class CentralAgent extends ImasAgent {
         // 2. Load game settings.
         this.game = InitialGameSettings.load("game.settings");
         this.game.initializeAmbulanceCapacities();
-        Graph graph = new Graph(this.game);
-        this.game.updateGraph(graph);
+        //Graph graph = new Graph(this.game);
+        //this.game.updateGraph(graph);
         log("Initial configuration settings loaded");
         
         
@@ -242,6 +247,7 @@ public class CentralAgent extends ImasAgent {
      * for the end turn message from the children agents
      */
     private void newTurn() {
+        this.turn += 1;
         // Central agent actively sends game info at the start of each turn
         
         // TODO: generate new fires acording to probability
@@ -281,6 +287,8 @@ public class CentralAgent extends ImasAgent {
         this.log("Press Enter for New Turn");
         String s = in.nextLine();
         this.log("NEW TURN");
+        
+        this.game.advanceTurn();
         
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
         
@@ -395,9 +403,9 @@ public class CentralAgent extends ImasAgent {
                             HospitalCell hc = (HospitalCell)c;
                             int signedIn = hc.signInPatients(action.actionParameter, this.game.getStepsToHealth());
                             int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                            
                             this.game.updateAmbulanceCurrentLoad(numAgent, -signedIn);
                         }
-                        // TODO: perform acion depending on type of cell
                         break;
                 }
             }

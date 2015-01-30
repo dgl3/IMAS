@@ -353,6 +353,11 @@ public class GameSettings implements java.io.Serializable {
     
     public void updateAmbulanceCurrentLoad(int ambulance, int load) {
         this.ambulanceCurrentLoad[ambulance] += load;
+        if (this.ambulanceCurrentLoad[ambulance] > this.peoplePerAmbulance) {
+            this.ambulanceCurrentLoad[ambulance] = this.peoplePerAmbulance;
+        } else if (this.ambulanceCurrentLoad[ambulance] < 0 ) {
+            this.ambulanceCurrentLoad[ambulance] = 0;
+        }
     }
     
     public void updateGraph(Graph graph) {
@@ -361,5 +366,12 @@ public class GameSettings implements java.io.Serializable {
     
     public Graph getGraph() {
         return this.graph;
+    }
+    
+    public void advanceTurn() {
+        for (Cell c : this.agentList.get(AgentType.HOSPITAL)) {
+            HospitalCell hc = (HospitalCell)c;
+            hc.newTurn();
+        }
     }
 }

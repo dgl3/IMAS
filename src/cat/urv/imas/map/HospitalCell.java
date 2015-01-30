@@ -69,9 +69,13 @@ public class HospitalCell extends Cell {
     }
     
     public void newTurn() {
+        
+        for (int i=0;i<this.currentPatients.size();i++) {
+            this.currentPatients.set(i,this.currentPatients.get(i)-1);
+        }
+        
         for (Iterator<Integer> iterator = this.currentPatients.iterator(); iterator.hasNext();) {
             Integer patient = iterator.next();
-            patient -= 1;
             if (patient == 0) {
                 this.usedBeds -= 1;
                 iterator.remove();
