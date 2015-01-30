@@ -10,6 +10,7 @@ import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.AuctionManager;
 import cat.urv.imas.agent.communication.auction.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -101,6 +102,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         auctionManager = new AuctionManager(this);
 
         addBehaviour( newListenerBehaviour() );
+
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -148,8 +150,8 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     }
 
     private void handleProxy(ACLMessage msg) {
-        String content = msg.getContent();
-        switch(content) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
                 handleStartHospitalAuction(msg.getSender());
                 break;

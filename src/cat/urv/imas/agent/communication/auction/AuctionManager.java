@@ -31,7 +31,7 @@ public class AuctionManager {
     public void setupNewAuction(AID seller, Item item, HashSet<AID> participants){
         System.out.println("########## Setup Auction ##########");
         auctionIds++;
-        Auction auction = new Auction(auctionIds, item, participants);
+        Auction auction = new Auction(auctionIds, seller, item, participants);
         pendingAuctions.add(auction);
 
         if( !auctionInProgress ){

@@ -20,11 +20,12 @@ public class Auction {
     private AID winner;
 
 
-    public Auction(int id, Item item, HashSet<AID> outstandingBidders) {
+    public Auction(int id, AID seller, Item item, HashSet<AID> outstandingBidders) {
         this.id = id;
         this.item = item;
         this.outstandingBidders = outstandingBidders;
         this.bids = new HashMap<>();
+        this.seller = seller;
     }
 
     public void takeBid(AID aid, Float bid){
@@ -58,7 +59,7 @@ public class Auction {
         }
 
         if( this.winner == null ) {
-            Float highestBid = Float.MIN_VALUE;
+            Float highestBid = Float.NEGATIVE_INFINITY;
             for (AID bidder : bids.keySet()) {
 
                 Float bid = bids.get(bidder);

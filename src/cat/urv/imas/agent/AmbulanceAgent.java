@@ -6,6 +6,10 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+
+import cat.urv.imas.agent.communication.util.AIDUtil;
+import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.ambulance.InformBehaviour;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
@@ -110,6 +114,9 @@ public class AmbulanceAgent extends ImasAgent{
                 ACLMessage msg;
                 while ((msg = receive()) != null){
                     switch (msg.getPerformative()){
+                        case ACLMessage.CFP:
+                            handleCFP(msg);
+                            break;
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
@@ -117,52 +124,62 @@ public class AmbulanceAgent extends ImasAgent{
                             log("Unsupported message received.");
                     }
                 }
-                block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
+                block(); // Confirm. Apparently 'just' schedules next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
             };
         };
     }
-    
-    private void handleInform(ACLMessage msg) {
-        AmbulanceAgent agent = this;
-        Map<String,Object> contentObject;
-        
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.SEND_GAME:
-                    agent.setGame((GameSettings) contentObject.get(content));
-                    agent.log("Game updated");
-                    agent.updatePosition();
-                    agent.updateLoadingSpeed();
-                    agent.updateAmbulanceCapacity();
 
-                    // TODO: this is just a test for the movement, all of this will be changed:
-
-                    Cell cPosition = agent.getCurrentPosition();
-                    int[] nextPosition = new int[2];
-                    nextPosition[0] = cPosition.getRow();
-                    nextPosition[1] = cPosition.getCol() + 1;
-
-                    Cell[][] map = agent.getGame().getMap();
-                    if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
-                        nextPosition[1] = cPosition.getCol() - 1;
-                    }
-
-                    AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
-
-                    agent.endTurn(nextAction);
-                    break;
-                default:
-                    agent.log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private void handleCFP(ACLMessage msg) {
+        // TODO: For testing call this to let ambulance initiate auction.
+        ACLMessage proxy = MessageCreator.createProxy(hospitalCoordinatorAgent, MessageContent.AMBULANCE_AUCTION, null);
+        send(proxy);
     }
-    
+
+    private void handleInform(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+
+        switch(content.getKey()) {
+            case MessageContent.AMBULANCE_AUCTION:
+                AID targetHospital = (AID)content.getValue();
+
+                Cell targetCell = game.getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital));
+
+                log("I will go to: " + targetCell);
+                break;
+            case MessageContent.SEND_GAME:
+                manageSendGame((GameSettings) content.getValue());
+                break;
+            default:
+                log("Message Content not understood");
+                break;
+        }
+
+    }
+
+    private void manageSendGame(GameSettings gameSettings) {
+        setGame(gameSettings);
+        log("Game updated");
+        updatePosition();
+        updateLoadingSpeed();
+        updateAmbulanceCapacity();
+
+        // TODO: this is just a test for the movement, all of this will be changed:
+
+        Cell cPosition = getCurrentPosition();
+        int[] nextPosition = new int[2];
+        nextPosition[0] = cPosition.getRow();
+        nextPosition[1] = cPosition.getCol() + 1;
+
+        Cell[][] map = getGame().getMap();
+        if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
+            nextPosition[1] = cPosition.getCol() - 1;
+        }
+
+        AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+
+        endTurn(nextAction);
+    }
+
     public Cell getCurrentPosition() {
         return this.currentPosition;
     }
