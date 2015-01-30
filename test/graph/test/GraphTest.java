@@ -4,6 +4,7 @@ import cat.urv.imas.graph.Edge;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Node;
 import cat.urv.imas.graph.Path;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -47,7 +48,7 @@ public class GraphTest {
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(6,2);
         Path path = graph.bfs(initialPoint, finalPoint);
-        assertTrue(path.getDistance() == 5);
+        assertTrue(path.getDistance() == 6);
     }
     
     @Test
@@ -56,7 +57,7 @@ public class GraphTest {
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(3,9);
         Path path = graph.bfs(initialPoint, finalPoint);
-        assertTrue(path.getDistance() == 9);
+        assertTrue(path.getDistance() == 10);
     }
     
     
@@ -66,6 +67,39 @@ public class GraphTest {
         Cell finalPoint = new StreetCell(15,9);
         Path path = graph.bfs(initialPoint, finalPoint);
         assertEquals(path,null);
+    }
+    
+    @Test
+    public void testGetAdjacentCellsMethod(){
+        //Should return only 1 adjacent cell        
+        Cell targetCell = new BuildingCell(10,0,0);
+        List<Cell> adjacentCells = graph.getAdjacentCells(targetCell);
+        assertTrue(adjacentCells.size() == 1);
+        
+        //Should return only 2 adjacent cell
+        targetCell = new BuildingCell(10,0,1);
+        adjacentCells = graph.getAdjacentCells(targetCell);
+        assertTrue(adjacentCells.size() == 2);
+        
+        
+        //Should return only 3 adjacent cell
+        targetCell = new BuildingCell(10,0,2);
+        adjacentCells = graph.getAdjacentCells(targetCell);
+        assertTrue(adjacentCells.size() == 3);
+        
+        //Should return only 5 adjacent cell
+        targetCell = new BuildingCell(10,3,3);
+        adjacentCells = graph.getAdjacentCells(targetCell);
+        assertTrue(adjacentCells.size() == 5);
+    }
+    
+    @Test
+    public void testComputeOptimumPathMethod(){
+        Cell initialPoint = new StreetCell(1,2);
+        Cell targetCell = new BuildingCell(10,3,3);
+        Path path = graph.computeOptimumPath(initialPoint, targetCell);
+        assertTrue(path.getDistance() == 1);
+
     }
 
 }
