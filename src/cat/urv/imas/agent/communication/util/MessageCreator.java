@@ -5,10 +5,7 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Utility class to create ACLMessages with an message object.
@@ -21,7 +18,7 @@ public class MessageCreator {
         return createMessage(ACLMessage.INFORM, receivers, contentType, contentObj);
     }
 
-    public static ACLMessage createInform(Set<AID> receivers, String contentType, Object contentObj) {
+    public static ACLMessage createInform(Collection<AID> receivers, String contentType, Object contentObj) {
         return createMessage(ACLMessage.INFORM, receivers, contentType, contentObj);
     }
 
@@ -37,7 +34,7 @@ public class MessageCreator {
         return createMessage(ACLMessage.REQUEST, receiver, contentType, contentObj);
     }
 
-    public static ACLMessage createRequest(Set<AID> receivers, String contentType, Object contentObj) {
+    public static ACLMessage createRequest(Collection<AID> receivers, String contentType, Object contentObj) {
         return createMessage(ACLMessage.REQUEST, receivers, contentType, contentObj);
     }
 
@@ -53,7 +50,7 @@ public class MessageCreator {
         return createMessage(type, receivers, contentType, contentObj);
     }
 
-    public static ACLMessage createMessage(int type, Set<AID> receivers, String contentType, Object contentObj){
+    public static ACLMessage createMessage(int type, Collection<AID> receivers, String contentType, Object contentObj){
         ACLMessage message = new ACLMessage(type);
 
         for(AID receiver: receivers){
