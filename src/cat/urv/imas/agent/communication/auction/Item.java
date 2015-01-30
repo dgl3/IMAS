@@ -1,4 +1,4 @@
-package cat.urv.imas.agent.communication;
+package cat.urv.imas.agent.communication.auction;
 
 import cat.urv.imas.map.Cell;
 
@@ -6,11 +6,11 @@ import cat.urv.imas.map.Cell;
  *
  * @author philipp
  */
-public class AmbulanceDetails  implements java.io.Serializable {
+public class Item implements java.io.Serializable {
     private final Cell position;
     private final int load;
 
-    public AmbulanceDetails(Cell position, int load) {
+    public Item(Cell position, int load) {
         this.position = position;
         this.load = load;
     }
