@@ -1,13 +1,14 @@
 
 package cat.urv.imas.graph;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Represent connections between nodes
  * @author dgl3
  */
-public class Edge {
+public class Edge implements Serializable{
     
     private Node node1;
     private Node node2;

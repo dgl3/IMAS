@@ -4,6 +4,7 @@ import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.CellType;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import java.util.Queue;
  *
  * @author dgl3
  */
-public class Graph {
+public class Graph implements Serializable{
     private GameSettings settings;
     
     private Map<Cell,Node> nodes; // Map of nodes
