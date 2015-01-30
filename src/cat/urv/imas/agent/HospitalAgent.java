@@ -140,11 +140,11 @@ public class HospitalAgent extends ImasAgent{
     }
 
     private void handleRequests(ACLMessage msg) {
-        KeyValue<String, Object> content = getMessageContent(msg);
+        KeyValue<String, Offer> content = getMessageContent(msg);
 
         switch( content.getKey() ) {
             case MessageContent.AMBULANCE_AUCTION_BID_REQUEST:
-                handleBidRequest((Offer)content.getValue());
+                handleBidRequest(content.getValue());
                 break;
             default:
                 log("Message Content not understood");
@@ -177,21 +177,6 @@ public class HospitalAgent extends ImasAgent{
                 log("Message Content not understood");
                 break;
         }
-
-    }
-
-    private KeyValue<String, Object> getMessageContent(ACLMessage msg){
-        KeyValue<String, Object> keyValue = null;
-
-        try {
-            Map<String,Object> contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            keyValue = new KeyValue<>(content, contentObject.get(content));
-        } catch (UnreadableException ex) {
-            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return keyValue;
     }
 
     /**
