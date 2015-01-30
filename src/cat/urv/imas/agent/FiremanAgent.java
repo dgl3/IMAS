@@ -246,7 +246,7 @@ public class FiremanAgent extends ImasAgent{
     
     private int studyDistance(Cell buildingFire) {
         //study distance through danis code
-        
+        /*
         Graph graph = new Graph(game);
         log("getting path...");
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
@@ -257,6 +257,7 @@ public class FiremanAgent extends ImasAgent{
         if(distance<19){
             return distance;
         }
+        */
         return -1;
     }
     
