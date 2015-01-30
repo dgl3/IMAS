@@ -44,7 +44,7 @@ public class MessageContent {
     public static final String END_TURN = "End Of Turn";
     
     /**
-     * Message sent if an ambulance wants the ambulance coordinator to start a auction
+     * Message sent for all messages within the ambulance/hospital auction realm
      */
     public static final String AMBULANCE_AUCTION = "Ambulance Auction";
 

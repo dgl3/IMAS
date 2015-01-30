@@ -5,12 +5,10 @@
  */
 package cat.urv.imas.agent;
 
-import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.agent.communication.contractnet.ContractNetInfo;
 import cat.urv.imas.agent.communication.util.KeyValue;
-import cat.urv.imas.agent.communication.util.MessageCreatorUtil;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
-import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
@@ -22,7 +20,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
-import jade.proto.ContractNetInitiator;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -222,7 +220,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     }
         
     public void rejectContractNet(){
-        ACLMessage contractnetReject = MessageCreatorUtil.createMessage(ACLMessage.REJECT_PROPOSAL, coordinatorAgent, MessageContent.REJECT_CONTRACTNET, null);
+        ACLMessage contractnetReject = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, coordinatorAgent, MessageContent.REJECT_CONTRACTNET, null);
         log("Reject proposal (Contract Net) to Coordinator Agent");
         InformBehaviour rejectInformBehaviour = new InformBehaviour(this, contractnetReject);
         this.addBehaviour(rejectInformBehaviour);
@@ -328,7 +326,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     private void sendGame(AID agent) {
         /* TODO: Define all the behaviours **/
-        ACLMessage gameinformRequest = MessageCreatorUtil.createMessage(ACLMessage.INFORM, agent, MessageContent.SEND_GAME, this.game);
+        ACLMessage gameinformRequest = MessageCreator.createMessage(ACLMessage.INFORM, agent, MessageContent.SEND_GAME, this.game);
         InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
         this.addBehaviour(gameInformBehaviour);
     }

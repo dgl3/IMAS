@@ -8,7 +8,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
-import cat.urv.imas.agent.communication.util.MessageCreatorUtil;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -19,10 +19,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -134,7 +130,7 @@ public class HospitalAgent extends ImasAgent{
                 System.out.println("TODO: Update Status");
                 Offer offer = content.getValue();
 
-                ACLMessage bidRequestMsg = MessageCreatorUtil.createMessage(ACLMessage.CONFIRM, offer.getAuctioneer(), MessageContent.AMBULANCE_AUCTION, offer);
+                ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CONFIRM, offer.getAuctioneer(), MessageContent.AMBULANCE_AUCTION, offer);
                 send(bidRequestMsg);
 
                 break;

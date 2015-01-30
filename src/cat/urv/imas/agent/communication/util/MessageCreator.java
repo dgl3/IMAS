@@ -15,13 +15,33 @@ import java.util.Set;
  *
  * Created by Philipp Oliver on 29/1/15.
  */
-public class MessageCreatorUtil {
+public class MessageCreator {
 
-    public static ACLMessage createRequestMessage(Set<AID> receivers, String contentType, Object contentObj) {
+    public static ACLMessage createInform(AID receivers, String contentType, Object contentObj) {
+        return createMessage(ACLMessage.INFORM, receivers, contentType, contentObj);
+    }
+
+    public static ACLMessage createInform(Set<AID> receivers, String contentType, Object contentObj) {
+        return createMessage(ACLMessage.INFORM, receivers, contentType, contentObj);
+    }
+
+    public static ACLMessage createConfirm(AID receivers, String contentType, Object contentObj) {
+        return createMessage(ACLMessage.CONFIRM, receivers, contentType, contentObj);
+    }
+
+    public static ACLMessage createProxy(AID receiver, String contentType, Object contentObj) {
+        return createMessage(ACLMessage.PROXY, receiver, contentType, contentObj);
+    }
+
+    public static ACLMessage createRequest(AID receiver, String contentType, Object contentObj) {
+        return createMessage(ACLMessage.REQUEST, receiver, contentType, contentObj);
+    }
+
+    public static ACLMessage createRequest(Set<AID> receivers, String contentType, Object contentObj) {
         return createMessage(ACLMessage.REQUEST, receivers, contentType, contentObj);
     }
 
-    public static ACLMessage createProposeMessage(AID receiver, String contentType, Object contentObj) {
+    public static ACLMessage createPropose(AID receiver, String contentType, Object contentObj) {
         HashSet<AID> receivers = new HashSet<>();
         receivers.add(receiver);
         return createMessage(ACLMessage.PROPOSE, receivers, contentType, contentObj);
@@ -34,7 +54,6 @@ public class MessageCreatorUtil {
     }
 
     public static ACLMessage createMessage(int type, Set<AID> receivers, String contentType, Object contentObj){
-
         ACLMessage message = new ACLMessage(type);
 
         for(AID receiver: receivers){

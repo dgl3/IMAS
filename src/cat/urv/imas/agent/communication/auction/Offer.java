@@ -1,6 +1,6 @@
 package cat.urv.imas.agent.communication.auction;
 
-import cat.urv.imas.agent.communication.util.MessageCreatorUtil;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.Agent;
@@ -31,7 +31,7 @@ public class Offer implements java.io.Serializable {
     public void reply(Agent sender, Float bidValue){
         System.out.println("########## Auction Attendee Replies ##########");
         Bid bid = new Bid(auctionID, bidValue);
-        ACLMessage bidMsg = MessageCreatorUtil.createProposeMessage(auctioneer, MessageContent.AMBULANCE_AUCTION, bid);
+        ACLMessage bidMsg = MessageCreator.createPropose(auctioneer, MessageContent.AMBULANCE_AUCTION, bid);
         sender.send(bidMsg);
     }
 
