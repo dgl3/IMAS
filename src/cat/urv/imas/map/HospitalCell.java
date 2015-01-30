@@ -69,9 +69,13 @@ public class HospitalCell extends Cell {
     }
     
     public void newTurn() {
+        
+        for (int i=0;i<this.currentPatients.size();i++) {
+            this.currentPatients.set(i,this.currentPatients.get(i)-1);
+        }
+        
         for (Iterator<Integer> iterator = this.currentPatients.iterator(); iterator.hasNext();) {
             Integer patient = iterator.next();
-            patient -= 1;
             if (patient == 0) {
                 this.usedBeds -= 1;
                 iterator.remove();
@@ -108,7 +112,7 @@ public class HospitalCell extends Cell {
      * @return ratio of the number of used beds.
      */
     public int useRatio() {
-        return 0;
+        return 100 * (int)((float)this.usedBeds / (float)this.capacity);
     }
 
     /* ***************** Map visualization API ********************************/

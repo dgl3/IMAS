@@ -251,6 +251,7 @@ public class FiremanAgent extends ImasAgent{
      * Updates the new current position from the game settings
      */
     public void updatePosition() {
+        AID agentID;
         int firemanNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");

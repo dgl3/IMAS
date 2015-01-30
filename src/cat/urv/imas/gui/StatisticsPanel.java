@@ -28,6 +28,10 @@ public class StatisticsPanel
     public void showMessage(String msg) {
         jTextArea.append(msg);
     }
+    
+    public void cleanMessages() {
+        jTextArea.replaceRange("", 0, jTextArea.getDocument().getLength());
+    }
 
     private void initComponents() {
         this.setLayout(new AbsoluteLayout());
