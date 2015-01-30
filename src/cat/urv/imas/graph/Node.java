@@ -2,6 +2,7 @@
 package cat.urv.imas.graph;
 
 import cat.urv.imas.map.Cell;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -10,7 +11,7 @@ import java.util.Objects;
  *
  * @author dgl3
  */
-public class Node {
+public class Node implements Serializable{
     /**
      * Represent connections between other nodes and this one.
      */

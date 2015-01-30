@@ -6,13 +6,14 @@
 
 package cat.urv.imas.graph;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  *
  * @author dgl3
  */
-public class Path {
+public class Path implements Serializable{
     private int distance;
     private List<Node> path;
 
