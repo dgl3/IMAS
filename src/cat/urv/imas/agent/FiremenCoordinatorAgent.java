@@ -5,7 +5,10 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.agent.communication.contractnet.Bid;
 import cat.urv.imas.agent.communication.contractnet.ContractNetInfo;
+import cat.urv.imas.agent.communication.contractnet.ContractNetManager;
+import cat.urv.imas.agent.communication.contractnet.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
@@ -40,6 +43,8 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * Game settings in use.
      */
     private GameSettings game;
+    
+    private ContractNetManager contractor;
 
     /**
      * Coordinator agent id.
@@ -104,6 +109,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         // searchAgent is a blocking method, so we will obtain always a correct AID
         firemenAgents = new LinkedList<>();
         finishedFiremanAgents = new ArrayList<>();
+        contractor = new ContractNetManager(this);
         addBehaviour(newListenerBehaviour());
     }
 
@@ -130,6 +136,12 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                         case ACLMessage.PROPOSE:
                             handlePropose(msg);
                             break;
+                        case ACLMessage.PROXY:
+                            handleProxy(msg);
+                            break;
+                        case ACLMessage.CONFIRM:
+                            handleConfirm(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -139,53 +151,32 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         };
     }
     
-    private void handlePropose(ACLMessage msg){
-        Map<String,Object> contentObject;
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.START_CONTRACTNET:
-                    // Check if it is possible to start a ContractNet.
-                    // If not, reject the proposal. 
-                    this.log("Propose received from " + ((AID) msg.getSender()).getLocalName());
-                    this.log("Propose type: "+MessageContent.START_CONTRACTNET);
-                    try {
-                        /**
-                        List<AID> available = enoughFiremen();
-                        if(available.size()>0){
-                            //Accepts the ContractNet
-                            initiateContractNet(available);
-                        }else{
-                            //Reject the ContractNet
-                            rejectContractNet();
-                        }
-                        **/
-                        this.initiateContractNet();
-                    } catch (Exception e) {
-                        this.errorLog("Incorrect content: " + e.toString());
-                    }
-                    break;
-                case MessageContent.BID_CONTRACTNET:
-                    AID bidder = msg.getSender();
-                    this.log("Bid received from " + bidder.getLocalName());
-                    try {
-                        //Thing about how to store the bids of each agent
-                        contractNetAgents.get(bidder).setBid((int) contentObject.get(MessageContent.BID_CONTRACTNET));
-                        //TODO: Check if all bids have been sent --> lastBid()
-                        //TODO: If its the last, check which is the minimum positive bid --> chooseAgent()
-                        
-                    } catch (Exception e) {
-                        this.errorLog("Incorrect content: " + e.toString());
-                    }
-                    break;
-            default:
-                this.log("Message Content not understood");
+    private void handleProxy(ACLMessage msg){
+        contractor.setupNewContractNet(coordinatorAgent, this.game.getNewFire(), firemenAgents);
+    }
+    
+    private void handleConfirm(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                contractor.confirmAction(msg.getSender(), (Offer) content.getValue());
                 break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+            default:
+                log("Unsupported message");
+                break;
+        }
+    }
+    
+    private void handlePropose(ACLMessage msg){
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                contractor.takeBid(msg.getSender(), (Bid) content.getValue());
+                break;
+            default:
+                log("Unsupported message");
+                break;
+                   
         }
     }
     

@@ -17,6 +17,9 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.agent.communication.contractnet.Offer;
+import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.coordinator.InformBehaviour;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.map.Cell;
@@ -184,48 +187,39 @@ public class CoordinatorAgent extends ImasAgent {
      * Handle new incoming INFORM message
      */
     private void handleInform(ACLMessage msg) {
-        CoordinatorAgent agent = this;
-        Map<String,Object> contentObject;
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.SEND_GAME:
-                    agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                    try {
-                        //GameSettings gameSettings = (GameSettings) msg.getContentObject();
-                        GameSettings gameSettings = (GameSettings) contentObject.get(content);
-                        agent.setGame(gameSettings);
-                        agent.log(gameSettings.getShortString());
-                        this.newTurn();
-                        //Check if there is any new fire
-                        this.checkNewFires();
-                    } catch (Exception e) {
-                        agent.errorLog("Incorrect content: " + e.toString());
-                    }
-                    break;
-                case MessageContent.END_TURN:
-                    if (msg.getSender().getLocalName().equals("firemenCoord")) {
-                        finishedFiremanAgents = new ArrayList<>();
-                        finishedFiremanAgents.addAll((List<AgentAction>) contentObject.get(content));
-                    } else {
-                        finishedAmbulanceAgents = new ArrayList<>();
-                        finishedAmbulanceAgents.addAll((List<AgentAction>) contentObject.get(content));
-                    }
-                    // TODO: This is not reliable enough, look for another way
-                    if (finishedFiremanAgents != null && finishedAmbulanceAgents != null) {
-                        this.endTurn();
-                    }
-                    break;
-                default:
-                    agent.log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.SEND_GAME:
+                log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+                try {
+                    //GameSettings gameSettings = (GameSettings) msg.getContentObject();
+                    GameSettings gameSettings = (GameSettings) content.getValue();
+                    setGame(gameSettings);
+                    log(gameSettings.getShortString());
+                    this.newTurn();
+                    //Check if there is any new fire
+                    this.checkNewFires();
+                } catch (Exception e) {
+                    errorLog("Incorrect content: " + e.toString());
+                }
+                break;
+            case MessageContent.END_TURN:
+                if (msg.getSender().getLocalName().equals("firemenCoord")) {
+                    finishedFiremanAgents = new ArrayList<>();
+                    finishedFiremanAgents.addAll((List<AgentAction>) content.getValue());
+                } else {
+                    finishedAmbulanceAgents = new ArrayList<>();
+                    finishedAmbulanceAgents.addAll((List<AgentAction>) content.getValue());
+                }
+                // TODO: This is not reliable enough, look for another way
+                if (finishedFiremanAgents != null && finishedAmbulanceAgents != null) {
+                    this.endTurn();
+                }
+                break;
+            default:
+                log("Unsupported message");
+                break;
         }
-        
     }
     
     /**
@@ -254,7 +248,8 @@ public class CoordinatorAgent extends ImasAgent {
         //Check newFire game property to know if in this turn appeared a new fire and in which cell.
         Cell newFire = this.game.getNewFire();
         if(newFire!=null){
-            sendProposal(this.firemenCoordinator);
+            //ACLMessage 
+            sendProxy(this.firemenCoordinator);
         }
     }
     
@@ -282,69 +277,27 @@ public class CoordinatorAgent extends ImasAgent {
     }
     
     public void sendGame() {
-        /* TODO: Define all the behaviours **/
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.hospitalCoordinator);
-        gameinformRequest.addReceiver(this.firemenCoordinator);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            Map<String,GameSettings> content = new HashMap<>();
-            content.put(MessageContent.SEND_GAME, this.game);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: game");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
+        List<AID> recievers = new ArrayList();
+        recievers.add(hospitalCoordinator);
+        recievers.add(firemenCoordinator);
+        ACLMessage gameinformRequest = MessageCreator.createInform(recievers, MessageContent.SEND_GAME, game);
+        send(gameinformRequest);
     }
 
     public void endTurn() {
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.centralAgent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            //gameinformRequest.setContent(MessageContent.SEND_GAME);
-            Map<String,List<AgentAction>> content = new HashMap<>();
-            
-            List<AgentAction> actions = new ArrayList<>();
-            actions.addAll(this.finishedFiremanAgents);
-            actions.addAll(this.finishedAmbulanceAgents);
-            
-            content.put(MessageContent.END_TURN, actions);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: " + MessageContent.END_TURN);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
-        
+        List<AgentAction> actions = new ArrayList<>();
+        actions.addAll(this.finishedFiremanAgents);
+        actions.addAll(this.finishedAmbulanceAgents);
+        ACLMessage gameinformRequest = MessageCreator.createInform(centralAgent, MessageContent.END_TURN, actions);
+        send(gameinformRequest);
         finishedFiremanAgents = null;
         finishedAmbulanceAgents = null;
     }
     
-    public void sendProposal(AID reciever) {
-        ACLMessage contractNetProposal = new ACLMessage(ACLMessage.PROPOSE);
-        contractNetProposal.clearAllReceiver();
-        contractNetProposal.addReceiver(reciever);
-        contractNetProposal.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Propose to create Contract Net to agent: " + reciever.getName());
-        try {
-            Map<String,Object> content = new HashMap<>();
-            content.put(MessageContent.START_CONTRACTNET, null);
-            contractNetProposal.setContentObject((Serializable) content);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        InformBehaviour proposeBehaviour = new InformBehaviour(this, contractNetProposal);
-        this.addBehaviour(proposeBehaviour);
+    public void sendProxy(AID reciever) {
+        //TODO: Send PROXY to firemen Coordinator but it crashes somehow...
+        //ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIRMEN_CONTRACTNET, null);
+        //send(contractNetProposal);
     }
     
 }

@@ -59,6 +59,11 @@ public class MessageContent {
     public static final String REJECT_CONTRACTNET = "Reject Contract Net";
     
     /**
+     * Message sent to reject the proposal of starting a contract net
+     */
+    public static final String FIRMEN_CONTRACTNET = "Firemen Contract Net";
+    
+    /**
      * Message sent to mobile agents in order to study if bid for the ContractNet
      */
     public static final String PROPOSAL_CONTRACTNET = "Proposal Contract Net";

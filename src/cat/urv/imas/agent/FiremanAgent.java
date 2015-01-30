@@ -6,6 +6,10 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.agent.communication.contractnet.Bid;
+import cat.urv.imas.agent.communication.contractnet.Offer;
+import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.fireman.InformBehaviour;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
@@ -115,6 +119,9 @@ public class FiremanAgent extends ImasAgent{
                         case ACLMessage.CFP:
                             handleCFP(msg);
                             break;
+                        case ACLMessage.ACCEPT_PROPOSAL:
+                            handleAcceptProposal(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -122,6 +129,21 @@ public class FiremanAgent extends ImasAgent{
                 block();
             };
         };
+    }
+    
+    private void handleAcceptProposal(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                Offer offer = (Offer) content.getValue();
+                log("OK! I go there! " + offer.getCell());
+                ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
+                send(confirmation);
+                break;
+            default:
+                log("Unsupported message");
+                break;
+        }
     }
 
     private void handleInform(ACLMessage msg) {
@@ -176,7 +198,7 @@ public class FiremanAgent extends ImasAgent{
                     agent.log("Contract Net request recieved from agent " + msg.getSender().getLocalName());
                     //TODO: Study if bid or not bid for the Contract Net...
                     //1.Consider the contiguos street cells of the building with the new fire
-                    Cell builtFire = this.game.getNewFire();
+                    //Cell builtFire = this.game.getNewFire();
                     
                     //2.Possibilities: 1 street-cell (out-corner) 3 street-cells (aperture), 5 street-cells (in-corner)
                     //3.Use middle street-cell to cumpute the RBF minimum path.
@@ -186,11 +208,26 @@ public class FiremanAgent extends ImasAgent{
                     //bid with the number of turns to arrive.
                     
                     break;
+                case MessageContent.FIRMEN_CONTRACTNET:
+                    
+                    Offer offer = (Offer)contentObject.get(content);
+                    int distanceBid = studyDistance(offer.getCell());
+                    offer.reply(this, distanceBid);
+                    log("I replied");
+                    break;
             }
+                
         } catch (UnreadableException ex) {
             Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }    
+    
+    private int studyDistance(Cell cell) {
+        //study distance through danis code
+        return -1;
+    }
+    
+    
     
     /**
      * Update the game settings.
