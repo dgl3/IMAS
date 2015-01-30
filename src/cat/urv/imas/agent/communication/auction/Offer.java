@@ -24,10 +24,18 @@ public class Offer implements java.io.Serializable {
         return item;
     }
 
+    public AID getAuctioneer() {
+        return auctioneer;
+    }
+
     public void reply(Agent sender, Float bidValue){
         System.out.println("########## Auction Attendee Replies ##########");
         Bid bid = new Bid(auctionID, bidValue);
-        ACLMessage bidMsg = MessageCreatorUtil.createProposeMessage(auctioneer, MessageContent.AMBULANCE_AUCTION_BID, bid);
+        ACLMessage bidMsg = MessageCreatorUtil.createProposeMessage(auctioneer, MessageContent.AMBULANCE_AUCTION, bid);
         sender.send(bidMsg);
+    }
+
+    public int getAuctionID() {
+        return auctionID;
     }
 }

@@ -8,6 +8,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreatorUtil;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -125,12 +126,16 @@ public class HospitalAgent extends ImasAgent{
     }
 
     private void handleAcceptProposal(ACLMessage msg) {
-        KeyValue<String, Object> content = getMessageContent(msg);
+        KeyValue<String, Offer> content = getMessageContent(msg);
 
         switch( content.getKey() ) {
-            case MessageContent.AMBULANCE_AUCTION_BID_ACCEPTED:
+            case MessageContent.AMBULANCE_AUCTION:
                 // TODO: Update Status!
                 System.out.println("TODO: Update Status");
+                Offer offer = content.getValue();
+
+                ACLMessage bidRequestMsg = MessageCreatorUtil.createMessage(ACLMessage.CONFIRM, offer.getAuctioneer(), MessageContent.AMBULANCE_AUCTION, offer);
+                send(bidRequestMsg);
 
                 break;
             default:
@@ -143,7 +148,7 @@ public class HospitalAgent extends ImasAgent{
         KeyValue<String, Offer> content = getMessageContent(msg);
 
         switch( content.getKey() ) {
-            case MessageContent.AMBULANCE_AUCTION_BID_REQUEST:
+            case MessageContent.AMBULANCE_AUCTION:
                 handleBidRequest(content.getValue());
                 break;
             default:

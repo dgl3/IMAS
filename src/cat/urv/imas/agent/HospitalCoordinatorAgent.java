@@ -8,6 +8,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.auction.Bid;
 import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.AuctionManager;
+import cat.urv.imas.agent.communication.auction.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
 import cat.urv.imas.map.StreetCell;
@@ -115,11 +116,14 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
-                        case ACLMessage.REQUEST:
-                            handleRequests(msg);
-                            break;
                         case ACLMessage.PROPOSE:
                             handleProposal(msg);
+                            break;
+                        case ACLMessage.PROXY:
+                            handleProxy(msg);
+                            break;
+                        case ACLMessage.CONFIRM:
+                            handleConfirm(msg);
                             break;
                         default:
                             log("Unsupported message received.");
@@ -130,10 +134,35 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         };
     }
 
+    private void handleConfirm(ACLMessage msg) {
+        KeyValue<String, Offer> content = getMessageContent(msg);
+        switch(content.getKey()) {
+            case MessageContent.AMBULANCE_AUCTION:
+                Offer offer = content.getValue();
+                auctionManager.confirmAction(msg.getSender(), offer);
+                break;
+            default:
+                log("Message Content not understood");
+                break;
+        }
+    }
+
+    private void handleProxy(ACLMessage msg) {
+        String content = msg.getContent();
+        switch(content) {
+            case MessageContent.AMBULANCE_AUCTION:
+                handleStartHospitalAuction(msg.getSender());
+                break;
+            default:
+                log("Message Content not understood");
+                break;
+        }
+    }
+
     private void handleProposal(ACLMessage msg) {
         KeyValue<String, Bid> content = getMessageContent(msg);
         switch(content.getKey()) {
-            case MessageContent.AMBULANCE_AUCTION_BID:
+            case MessageContent.AMBULANCE_AUCTION:
                 Bid bid = content.getValue();
                 auctionManager.takeBid(msg.getSender(), bid);
                 break;
@@ -212,30 +241,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
             Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private void handleRequests(ACLMessage msg) {
-        Map<String,Object> contentObject;
-        try {
 
-            String content = msg.getContent();
-
-            if(content == null || content.isEmpty()) {
-                contentObject = (Map<String, Object>) msg.getContentObject();
-                content = contentObject.keySet().iterator().next();
-            }
-
-            switch(content) {
-                case MessageContent.AMBULANCE_AUCTION_BEGIN_REQUEST:
-                    handleStartHospitalAuction(msg.getSender());
-                    break;
-                default:
-                    log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
     
     /**
      * Update the game settings.

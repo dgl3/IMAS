@@ -46,22 +46,7 @@ public class MessageContent {
     /**
      * Message sent if an ambulance wants the ambulance coordinator to start a auction
      */
-    public static final String AMBULANCE_AUCTION_BEGIN_REQUEST = "Request To Start An Ambulance Auction";
-
-    /**
-     * Message sent if an ambulance wants the ambulance coordinator to start a auction
-     */
-    public static final String AMBULANCE_AUCTION_BID_REQUEST = "Request To Reply A Bid From A Hospital";
-
-    /**
-     * Message sent if bidder replies with a bid (proposal)
-     */
-    public static final String AMBULANCE_AUCTION_BID = "Bid To A Ambulance Auction";
-
-    /**
-     * Message sent if bid is accepted (proposal accepted)
-     */
-    public static final String AMBULANCE_AUCTION_BID_ACCEPTED = "Bid To A Ambulance Auction Accepted";
+    public static final String AMBULANCE_AUCTION = "Ambulance Auction";
 
     /**
      * Message sent to propose about starting a contract net

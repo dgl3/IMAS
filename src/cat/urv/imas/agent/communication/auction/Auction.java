@@ -17,6 +17,7 @@ public class Auction {
     private AID seller;
     private HashSet<AID> outstandingBidders;
     private HashMap<AID, Float> bids;
+    private AID winner;
 
 
     public Auction(int id, Item item, HashSet<AID> outstandingBidders) {
@@ -52,22 +53,22 @@ public class Auction {
     }
 
     public AID getWinner(){
-
         if ( !readyForEvaluation() ){
             throw new IllegalStateException("Winner can not be queried. Not all bidders have replied.");
         }
 
-        AID winner = null;
-        Float highestBid = Float.MIN_VALUE;
-        for ( AID bidder: bids.keySet() ){
+        if( this.winner == null ) {
+            Float highestBid = Float.MIN_VALUE;
+            for (AID bidder : bids.keySet()) {
 
-            Float bid = bids.get(bidder);
-            if( bid > highestBid ){
-                highestBid = bid;
-                winner = bidder;
+                Float bid = bids.get(bidder);
+                if (bid > highestBid) {
+                    highestBid = bid;
+                    this.winner = bidder;
+                }
             }
         }
 
-        return winner;
+        return this.winner;
     }
 }

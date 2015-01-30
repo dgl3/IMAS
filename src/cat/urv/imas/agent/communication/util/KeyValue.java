@@ -30,4 +30,5 @@ public class KeyValue<T, O> {
     public void O(O value) {
         this.value = value;
     }
+
 }

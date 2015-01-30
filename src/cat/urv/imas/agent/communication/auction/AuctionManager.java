@@ -48,7 +48,7 @@ public class AuctionManager {
     private void startAuction(Auction currentAuction) {
         System.out.println("########## Sending Auction Letters ##########");
         Set<AID> participants = currentAuction.getOutstandingBidders();
-        String messageType = MessageContent.AMBULANCE_AUCTION_BID_REQUEST;
+        String messageType = MessageContent.AMBULANCE_AUCTION;
         Offer offer = new Offer(auctioneer.getAID(), currentAuction.getID(), currentAuction.getItem());
 
         ACLMessage bidRequestMsg = MessageCreatorUtil.createRequestMessage(participants, messageType, offer);
@@ -79,9 +79,29 @@ public class AuctionManager {
     private void notifyWinner(AID winner) {
         System.out.println("########### ANNOUNCING WINNER #############");
 
-        String messageType = MessageContent.AMBULANCE_AUCTION_BID_ACCEPTED;
-        ACLMessage bidRequestMsg = MessageCreatorUtil.createMessage(ACLMessage.ACCEPT_PROPOSAL, winner, messageType, currentAuction.getItem());
+        String messageType = MessageContent.AMBULANCE_AUCTION;
+        Offer offer = new Offer(auctioneer.getAID(), currentAuction.getID(), currentAuction.getItem());
+
+        ACLMessage bidRequestMsg = MessageCreatorUtil.createMessage(ACLMessage.ACCEPT_PROPOSAL, winner, messageType, offer);
 
         auctioneer.send(bidRequestMsg);
+    }
+
+    public void confirmAction(AID sender, Offer offer) {
+
+        if( currentAuction.readyForEvaluation()
+            && currentAuction.getWinner().equals(sender)
+            && offer.getAuctionID() == currentAuction.getID() )
+        {
+            System.out.println("########### ANNOUNCING COMPLETED #############");
+            currentAuction = null;
+            auctionInProgress = false;
+
+            if( !pendingAuctions.isEmpty() ) {
+                startNextAuction();
+            }
+        }else{
+            throw new IllegalStateException("Received illegal auction confirmation from agent aid " + sender + " for auction id " + offer.getAuctionID() + ", current auction id is " + currentAuction.getID() + ", winner is "+currentAuction.getWinner() + " and auction is ready for evaluation: " + currentAuction.readyForEvaluation());
+        }
     }
 }
