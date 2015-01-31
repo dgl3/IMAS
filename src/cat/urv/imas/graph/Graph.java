@@ -151,6 +151,8 @@ public class Graph implements Serializable{
         Node initialNode = this.nodes.get(initialPoint);
         Node targesNode = this.nodes.get(targetPoint);
         
+        List<Node> visited = new ArrayList<>();
+
         //Get neighbours
         for(Edge edge:edgesMap.get(initialNode)){
             if(edge.getNode2().equals(targesNode)){
@@ -163,7 +165,8 @@ public class Graph implements Serializable{
             childNode.setDistance(1);
             FIFOqueue.add(childNode);  
         }
-        List<Node> visited = new ArrayList<>();
+        visited.add(initialNode);
+        
         Node found = null;
         
         //Explore the graph until the final state is found or the distance 
@@ -173,7 +176,7 @@ public class Graph implements Serializable{
        }
        Node neighbour = FIFOqueue.poll();
 
-        while(found == null && neighbour.getDistance() < maxPath){
+       while(found == null && neighbour.getDistance() < maxPath){
            visited.add(neighbour);
            List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
@@ -207,6 +210,13 @@ public class Graph implements Serializable{
                currentNode = currentNode.getPreviousNode();
             }
             Collections.reverse(path);
+            /**
+             * I'm deleting the inital state from the path, so actually, 
+             * the fist state of the path is the next state
+             */
+            path.remove(0);
+            
+            
             Path optimumPath = new Path(path);
             return optimumPath;
         }else{

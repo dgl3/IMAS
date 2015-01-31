@@ -33,7 +33,7 @@ public class GraphTest {
     }
     
     @Test
-    public void testPathFromXtoY(){
+    public void testGetNodes(){
         /**
          * StreetCell (2,2) has 4 neighbours
          */
@@ -48,7 +48,7 @@ public class GraphTest {
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(6,2);
         Path path = graph.bfs(initialPoint, finalPoint, 18);
-        assertTrue(path.getDistance() == 6);
+        assertTrue(path.getDistance() == 5);
     }
     
     @Test
@@ -57,7 +57,7 @@ public class GraphTest {
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(3,9);
         Path path = graph.bfs(initialPoint, finalPoint, 18);
-        assertTrue(path.getDistance() == 10);
+        assertTrue(path.getDistance() == 9);
     }
     
     
@@ -67,6 +67,16 @@ public class GraphTest {
         Cell finalPoint = new StreetCell(15,9);
         Path path = graph.bfs(initialPoint, finalPoint, 18);
         assertEquals(path,null);
+    }
+    
+    
+    @Test
+    public void strangeErrorWhenDistanceEqual2Test(){
+        Cell initialPoint = new StreetCell(1,2);
+        Cell finalPoint = new StreetCell(1,4);
+        Path path = graph.bfs(initialPoint, finalPoint, 18);
+        assertTrue(path != null);
+        assertTrue(path.getDistance() == 2);
     }
     
     @Test
