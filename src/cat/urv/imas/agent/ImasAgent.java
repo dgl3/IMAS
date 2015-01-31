@@ -18,6 +18,9 @@
 package cat.urv.imas.agent;
 
 import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreator;
+import cat.urv.imas.onthology.MessageContent;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
@@ -103,5 +106,13 @@ public class ImasAgent extends Agent {
         }
 
         return keyValue;
+    }
+
+    /**
+     * Confirms to the parent agent that the game update has been performed successfully.
+     */
+    protected void sendGameUpdateConfirmation(AID parent) {
+        ACLMessage gameUpdateConfirmationMsg = MessageCreator.createConfirm(parent, MessageContent.SEND_GAME, null);
+        send(gameUpdateConfirmationMsg);
     }
 }

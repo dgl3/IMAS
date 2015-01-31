@@ -171,7 +171,7 @@ public class HospitalAgent extends ImasAgent{
                 updateRecoveryTime();
                 updateMaxCapacity();
 
-                // TODO: this is just a test for the movement, all of this will be changed:
+                sendGameUpdateConfirmation(hospitalCoordinatorAgent);
 
                 break;
             default:
