@@ -11,6 +11,7 @@ import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.ambulance.InformBehaviour;
+import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -55,6 +56,12 @@ public class AmbulanceAgent extends ImasAgent{
      * Game settings in use.
      */
     private GameSettings game;
+
+    /**
+     * The cell the ambulance wants to move to.
+     */
+    private Cell targetCell;
+
     
     /**
      * Coordinator agent id.
@@ -142,13 +149,24 @@ public class AmbulanceAgent extends ImasAgent{
             case MessageContent.AMBULANCE_AUCTION:
                 AID targetHospital = (AID)content.getValue();
 
-                Cell targetCell = game.getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital));
+                if( targetCell != null ) throw new IllegalStateException("Can't send ambulance. Ambulance has already another target.");
+                targetCell = game.getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital));
 
                 log("I will go to: " + targetCell);
                 break;
             case MessageContent.SEND_GAME:
                 manageSendGame((GameSettings) content.getValue());
                 sendGameUpdateConfirmation(hospitalCoordinatorAgent);
+
+                if( targetCell != null ) {
+                    Path path = game.getGraph().computeOptimumPathUnconstrained(currentPosition, targetCell);
+                    Cell nextCell = path.getPath().get(0).getCell();
+                    int nextPosition[] = {nextCell.getRow(), nextCell.getCol()};
+
+                    AgentAction agentAction = new AgentAction(getLocalName(), nextPosition);
+                    endTurn(agentAction);
+                }
+
                 break;
             default:
                 log("Message Content not understood");

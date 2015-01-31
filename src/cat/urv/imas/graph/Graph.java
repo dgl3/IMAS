@@ -142,7 +142,7 @@ public class Graph implements Serializable{
      * @param targetPoint Cell
      * @return List<Node> Optimum path
      */
-    public Path bfs(Cell initialPoint, Cell targetPoint){
+    public Path bfs(Cell initialPoint, Cell targetPoint, int maxPath){
         resetGraph();
         
         List<Node> path = new ArrayList<>();
@@ -173,8 +173,7 @@ public class Graph implements Serializable{
        }
        Node neighbour = FIFOqueue.poll();
 
-        while(found == null && neighbour.getDistance() < 18){
-
+        while(found == null && neighbour.getDistance() < maxPath){
            visited.add(neighbour);
            List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
@@ -184,11 +183,11 @@ public class Graph implements Serializable{
                     path.add(child);
                     found = child;
                 }
-                FIFOqueue.add(child);  
+                FIFOqueue.add(child);
            }
             if(FIFOqueue.isEmpty()){
               return null;
-            } 
+            }
             neighbour = FIFOqueue.poll();
 
         }
@@ -266,6 +265,9 @@ public class Graph implements Serializable{
     /**
      * It is the method to be called by the firemen and the ambulances to get
      * the optimum path between them and the building in fire or the hospital.
+     *
+     * It returns null if the path is longer than 18, as this is the max sensible number for firemen.
+     *
      * @param init Cell of the fireman or ambulance
      * @param target Cell of the building in fire or hospital
      * @return Agent's optimum path from the init position to the desired target.
@@ -274,7 +276,31 @@ public class Graph implements Serializable{
         List<Cell> adjacentCells = getAdjacentCells(target);
         Path optimumPath = null;
         for(Cell cell: adjacentCells){
-            Path path = bfs(init, cell);
+            Path path = bfs(init, cell, 18);
+            if(optimumPath == null){
+                optimumPath = path;
+            }else{
+                if(path.getDistance() < optimumPath.getDistance()){
+                    optimumPath = path;
+                }
+            }
+        }
+        return optimumPath;
+    }
+
+    /**
+     * It is the method to be called by the firemen and the ambulances to get
+     * the optimum path between them and the building in fire or the hospital.
+     *
+     * @param init Cell of the fireman or ambulance
+     * @param target Cell of the building in fire or hospital
+     * @return Agent's optimum path from the init position to the desired target.
+     */
+    public Path computeOptimumPathUnconstrained(Cell init, Cell target){
+        List<Cell> adjacentCells = getAdjacentCells(target);
+        Path optimumPath = null;
+        for(Cell cell: adjacentCells){
+            Path path = bfs(init, cell, Integer.MAX_VALUE);
             if(optimumPath == null){
                 optimumPath = path;
             }else{
