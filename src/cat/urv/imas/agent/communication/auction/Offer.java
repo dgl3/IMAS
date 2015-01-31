@@ -29,7 +29,6 @@ public class Offer implements java.io.Serializable {
     }
 
     public void reply(Agent sender, Float bidValue){
-        System.out.println("########## Auction Attendee Replies ##########");
         Bid bid = new Bid(auctionID, bidValue);
         ACLMessage bidMsg = MessageCreator.createPropose(auctioneer, MessageContent.AMBULANCE_AUCTION, bid);
         sender.send(bidMsg);
