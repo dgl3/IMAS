@@ -163,8 +163,14 @@ public class AmbulanceAgent extends ImasAgent{
                     Cell nextCell = path.getPath().get(0).getCell();
                     int nextPosition[] = {nextCell.getRow(), nextCell.getCol()};
 
-                    AgentAction agentAction = new AgentAction(getLocalName(), nextPosition);
+                    AgentAction agentAction = new AgentAction(this.getAID(), nextPosition);
                     endTurn(agentAction);
+                }else{
+                    // Move to itself --> No move..
+                    Cell cPosition = getCurrentPosition();
+                    int nextPosition[] = {cPosition.getRow(), cPosition.getCol()};
+                    AgentAction nextAction = new AgentAction(this.getAID(), nextPosition);
+                    endTurn(nextAction);
                 }
 
                 break;
@@ -181,22 +187,6 @@ public class AmbulanceAgent extends ImasAgent{
         updatePosition();
         updateLoadingSpeed();
         updateAmbulanceCapacity();
-
-        // TODO: this is just a test for the movement, all of this will be changed:
-
-        Cell cPosition = getCurrentPosition();
-        int[] nextPosition = new int[2];
-        nextPosition[0] = cPosition.getRow();
-        nextPosition[1] = cPosition.getCol() + 1;
-
-        Cell[][] map = getGame().getMap();
-        if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
-            nextPosition[1] = cPosition.getCol() - 1;
-        }
-
-        AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
-
-        endTurn(nextAction);
     }
 
     public Cell getCurrentPosition() {

@@ -1,6 +1,7 @@
 package cat.urv.imas.onthology;
 
 import cat.urv.imas.agent.AgentType;
+import cat.urv.imas.agent.communication.util.AIDUtil;
 import jade.core.AID;
 
 /**
@@ -27,7 +28,7 @@ public class InfoAgent implements java.io.Serializable {
      * @param type type of agent.
      */
     public InfoAgent(AgentType type) {
-        this.type = type;
+       this.type = type;
     }
 
     /**
@@ -105,4 +106,21 @@ public class InfoAgent implements java.io.Serializable {
                 + ")";
     }
 
+    public String getDisplayString(){
+        String no = "";
+        if(aid != null){
+            no += AIDUtil.getLocalId(aid);
+        }
+
+        switch (type) {
+            case AMBULANCE:
+                return "A "+no;
+            case FIREMAN:
+                return "F "+no;
+            case PRIVATE_VEHICLE:
+                return "P "+no;
+            default:
+                return "Unknown AgentType";
+        }
+    }
 }

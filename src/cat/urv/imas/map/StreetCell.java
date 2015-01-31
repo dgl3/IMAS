@@ -17,6 +17,7 @@
  */
 package cat.urv.imas.map;
 
+import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.gui.CellVisualizer;
 import cat.urv.imas.onthology.InfoAgent;
 
@@ -133,23 +134,7 @@ public class StreetCell extends Cell {
         if (agent == null) {
             return "";
         } else {
-            switch (agent.getType()) {
-                case AMBULANCE:
-                    //TODO: You here should append the number of people in the ambulance
-                    int people = 0;
-                    String extraInfo = "";
-                    if (people != 0) {
-                        extraInfo = "<" + people + ">";
-                    }
-                    return "A" + extraInfo;
-                case FIREMAN:
-                    return "F";
-                case PRIVATE_VEHICLE:
-                    return "P";
-                default:
-                    // Do nothing. In fact, we'll never get here.
-                    return "";
-            }
+            return agent.getDisplayString();
         }
     }
 

@@ -16,6 +16,7 @@ import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.GasStationCell;
 import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.map.StreetCell;
+import cat.urv.imas.onthology.InfoAgent;
 
 /**
  * Visualization of the map. There are several elements to depict, as buildings,

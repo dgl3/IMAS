@@ -6,12 +6,12 @@
 
 package cat.urv.imas.agent;
 
-import java.util.Map;
+import jade.core.AID;
 
 
 public class AgentAction implements java.io.Serializable {
     
-    public String agentName;
+    public AID agentAID;
     
     public int nextPosition[];
     
@@ -20,8 +20,8 @@ public class AgentAction implements java.io.Serializable {
     public int actionPosition[];
     public int actionParameter;
     
-    public AgentAction(String agentName, int nextPosition[]) {
-        this.agentName = agentName;
+    public AgentAction(AID agentName, int nextPosition[]) {
+        this.agentAID = agentName;
         this.nextPosition = nextPosition;
         this.extraActions = false;
     }
@@ -37,7 +37,7 @@ public class AgentAction implements java.io.Serializable {
     }
     
     public AgentType getAgentType() {
-        if (this.agentName.startsWith("fire")) {
+        if (this.agentAID.getLocalName().startsWith("fire")) {
             return AgentType.FIREMAN;
         } else {
             return AgentType.AMBULANCE;
