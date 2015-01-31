@@ -148,6 +148,7 @@ public class AmbulanceAgent extends ImasAgent{
                 break;
             case MessageContent.SEND_GAME:
                 manageSendGame((GameSettings) content.getValue());
+                sendGameUpdateConfirmation(hospitalCoordinatorAgent);
                 break;
             default:
                 log("Message Content not understood");

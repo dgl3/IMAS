@@ -171,6 +171,9 @@ public class CoordinatorAgent extends ImasAgent {
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.CONFIRM:
+                            handleConfirm(msg);
+                            break;
                         case ACLMessage.REJECT_PROPOSAL:
                             handleRejectProposal(msg);
                             break;
@@ -182,7 +185,21 @@ public class CoordinatorAgent extends ImasAgent {
             };
         };
     }
-    
+
+    private void handleConfirm(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+
+        switch(content.getKey()) {
+            case MessageContent.SEND_GAME:
+                // TODO: Propagate to Central Agent?
+                log("### CONFIRMATIONS RECEIVED ###");
+                break;
+            default:
+                log("Message Content not understood");
+                break;
+        }
+    }
+
     /**
      * Handle new incoming INFORM message
      */
