@@ -90,14 +90,14 @@ public class ContractNetManager {
         contractor.send(winNotification);
         
         list.remove(0);
+        System.out.println(list.toString());
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list, messageType, null);
         contractor.send(lostNotification);
     }
 
     public void confirmAction(AID sender, Offer offer) {
-
         if( currentContractNet.readyForEvaluation()
-            && currentContractNet.getWinner().equals(sender)
+            //&& currentContractNet.getWinner().equals(sender)
             && offer.getContractNetID() == currentContractNet.getID() )
         {
             System.out.println("########### ANNOUNCING COMPLETED #############");

@@ -301,5 +301,4 @@ public class CoordinatorAgent extends ImasAgent {
         //ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIRMEN_CONTRACTNET, null);
         //send(contractNetProposal);
     }
-    
 }

@@ -66,7 +66,7 @@ public class ContractNet {
             System.out.println("Int initial value: "+highestBid);
             for (AID bidder : bids.keySet()){
                 int bid = bids.get(bidder);
-                System.out.println("bid: "+bid);
+                System.out.println(bidder.toString()+"bid: "+bid);
                 if ((bid > -1)&&(bid < highestBid)){
                     System.out.println("BBBBB");
                     highestBid = bid;
