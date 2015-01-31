@@ -163,6 +163,7 @@ public class FiremanAgent extends ImasAgent{
     private void handleRejectProposal(ACLMessage msg) {
         //This agent was no selected for the contract net --> actions possible
         //nextAction <-- movement related to distribution
+        dummyTask();
     }
 
     private void handleInform(ACLMessage msg) {
@@ -177,7 +178,7 @@ public class FiremanAgent extends ImasAgent{
                 updatePosition();
 
                 // TODO: this is just a test for the movement, all of this will be changed:
-
+                /*
                 Cell cPosition = getCurrentPosition();
                 int[] nextPosition = new int[2];
                 nextPosition[0] = cPosition.getRow();
@@ -187,20 +188,21 @@ public class FiremanAgent extends ImasAgent{
                 if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
                     nextPosition[1] = cPosition.getCol() - 1;
                 }
-
+                */
 
                 if(game.getNewFire()==null){
                     if(extinguishCell==null){
                         //TODO: nextAction based on distribution
+                        dummyTask();
                     }else{
                         //Pending task (extinguish)...
                         actionTask();
                     }
                 }
                 //Dummy response for make it progress right now
-                AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
-                endTurn(nextAction);
-                break;
+                //AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+                //endTurn(nextAction);
+                //break;
             default:
                 log("Message Content not understood");
                 break;
@@ -256,7 +258,7 @@ public class FiremanAgent extends ImasAgent{
      * Updates the new current position from the game settings
      */
     public void updatePosition() {
-        AID agentID;
+        //AID agentID;
         int firemanNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
         log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
@@ -269,12 +271,19 @@ public class FiremanAgent extends ImasAgent{
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
         send(actionInfo);
+        errorLog("Sending action!");
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
         Cell nextCell =  path.getPath().get(0).getCell();
         int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
+        AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+        endTurn(nextAction);
+    }
+
+    private void dummyTask() {
+        int nextPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
         AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
         endTurn(nextAction);
     }
