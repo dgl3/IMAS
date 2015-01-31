@@ -20,13 +20,10 @@ public class ControlWindow extends JFrame {
 
         JButton nextStepBtn = new JButton("Next Step");
 
-        if( parent == null ) System.out.println("######################## Problem!######################## Problem!######################## Problem!######################## Problem!");
-
         nextStepBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 centralAgent.nextTurn();
-                System.out.println("Hi!");
             }
         });
         this.add(nextStepBtn);
