@@ -161,7 +161,14 @@ public class FiremanAgent extends ImasAgent{
     private void handleRejectProposal(ACLMessage msg) {
         //This agent was no selected for the contract net --> actions possible
         //nextAction <-- movement related to distribution
-        dummyTask();
+        if(extinguishCell==null){
+            dummyTask();
+        }else{
+            actionTask();
+        }
+        //TODO: If there is a new fire I wait for the CFP and there agent will not bid if
+        //it can arrive or if he has an action, so here (when it is reject by the contractor)
+        //is dicriminating about which case was the reason to not bid.
     }
 
     private void handleInform(ACLMessage msg) {
@@ -172,6 +179,13 @@ public class FiremanAgent extends ImasAgent{
                 sendGameUpdateConfirmation(firemanCoordinatorAgent);
                 log("Game updated");
                 updatePosition();
+                if(game.getNewFire()==null){
+                    if(extinguishCell!=null){
+                        actionTask();
+                    }else{
+                        dummyTask();
+                    }
+                }
             default:
                 log("Message Content not understood");
                 break;
@@ -183,7 +197,10 @@ public class FiremanAgent extends ImasAgent{
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
                 Offer offer = (Offer)content.getValue();
-                int distanceBid = studyDistance(offer.getCell());
+                int distanceBid = -1;
+                if(extinguishCell==null){
+                    distanceBid = studyDistance(offer.getCell());
+                }
                 offer.reply(this, distanceBid);
                 break;
         }
@@ -242,14 +259,25 @@ public class FiremanAgent extends ImasAgent{
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
-        //TODO: consider case of path of distance 0 (agent is already there)
         if(path.getDistance()==0){
             //actioning
-            int nextPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
-            AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+            int actualPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
+            int actionPosition[] = {extinguishCell.getRow(),extinguishCell.getCol()};
+            AgentAction nextAction = new AgentAction(getAID(), actualPosition);
+            nextAction.setAction(actionPosition, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
-            //TODO: consider also moving since the world-norms dictate agents can action+movement
+            if(game.getFireList()==null){
+                //TODO: game.getFireList() is null for some reason at turn 3!!!!
+                errorLog("ERROR: game.getFireList() is null !!!");
+            }else{
+                if(game.getFireList().get(extinguishCell)==5){
+                    extinguishCell = null;
+                    //TODO: consider also moving since the world-norms dictate agents can action+movement
+                    //Here it is supposse that agent will do his last extinguish action and have a free movement...
+                    //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
+                }
+            }
         }else{
             //moving
             Cell nextCell =  path.getPath().get(0).getCell();
