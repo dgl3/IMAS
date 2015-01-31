@@ -28,10 +28,9 @@ public class AuctionManager {
         this.auctionInProgress = false;
     }
 
-    public void setupNewAuction(AID seller, Item item, HashSet<AID> participants){
-        System.out.println("########## Setup Auction ##########");
+    public void setupNewAuction(AID seller, Item item, Collection<AID> participants){
         auctionIds++;
-        Auction auction = new Auction(auctionIds, seller, item, participants);
+        Auction auction = new Auction(auctionIds, seller, item, new HashSet<>(participants) );
         pendingAuctions.add(auction);
 
         if( !auctionInProgress ){
@@ -46,7 +45,6 @@ public class AuctionManager {
     }
 
     private void startAuction(Auction currentAuction) {
-        System.out.println("########## Sending Auction Letters ##########");
         Set<AID> participants = currentAuction.getOutstandingBidders();
         String messageType = MessageContent.AMBULANCE_AUCTION;
         Offer offer = new Offer(auctioneer.getAID(), currentAuction.getID(), currentAuction.getItem());
@@ -57,7 +55,6 @@ public class AuctionManager {
     }
 
     public void takeBid(AID sender, Bid bid) {
-        System.out.println("########## Received Bid ##########");
         if( bid.getAuctionID() == currentAuction.getID() ) {
             currentAuction.takeBid(sender, bid.getValue());
 
@@ -78,7 +75,6 @@ public class AuctionManager {
     }
 
     private void notifyWinner(AID winner) {
-        System.out.println("########### ANNOUNCING WINNER #############");
 
         String messageType = MessageContent.AMBULANCE_AUCTION;
         Offer offer = new Offer(auctioneer.getAID(), currentAuction.getID(), currentAuction.getItem());
@@ -94,7 +90,6 @@ public class AuctionManager {
             && currentAuction.getWinner().equals(sender)
             && offer.getAuctionID() == currentAuction.getID() )
         {
-            System.out.println("########### ANNOUNCING COMPLETED #############");
             currentAuction = null;
             auctionInProgress = false;
 

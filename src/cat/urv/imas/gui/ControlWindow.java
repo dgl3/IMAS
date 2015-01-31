@@ -16,8 +16,6 @@ public class ControlWindow extends JFrame {
     public ControlWindow(String title, CentralAgent parent) throws HeadlessException {
         super(title);
         this.centralAgent = parent;
-        this.setSize(200, 50);
-
         JButton nextStepBtn = new JButton("Next Step");
 
         nextStepBtn.addActionListener(new ActionListener() {
@@ -26,6 +24,8 @@ public class ControlWindow extends JFrame {
                 centralAgent.nextTurn();
             }
         });
+
         this.add(nextStepBtn);
+        pack();
     }
 }
