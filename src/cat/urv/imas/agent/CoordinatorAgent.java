@@ -152,12 +152,14 @@ public class CoordinatorAgent extends ImasAgent {
         this.addBehaviour(initialRequestBehaviour);
         
         
-// setup finished. When we receive the last inform, the agent itself will add
+        // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
         */
         this.addBehaviour(newListenerBehaviour());
 
         pendingGameUpdateConfirmations = new HashSet<>();
+        finishedFiremanAgents = new ArrayList<>();
+        finishedAmbulanceAgents = new ArrayList<>();
     }
     
     /**
@@ -229,15 +231,15 @@ public class CoordinatorAgent extends ImasAgent {
                 break;
             case MessageContent.END_TURN:
                 if (msg.getSender().getLocalName().equals("firemenCoord")) {
-                    finishedFiremanAgents = new ArrayList<>();
+                    //finishedFiremanAgents.clear();
                     finishedFiremanAgents.addAll((List<AgentAction>) content.getValue());
                 } else {
-                    finishedAmbulanceAgents = new ArrayList<>();
+                    //finishedAmbulanceAgents.clear();
                     finishedAmbulanceAgents.addAll((List<AgentAction>) content.getValue());
                 }
                 // TODO: This is not reliable enough, look for another way
                 if (finishedFiremanAgents != null && finishedAmbulanceAgents != null) {
-                    this.endTurn();
+                    endTurn();
                 }
                 break;
             default:
@@ -321,6 +323,7 @@ public class CoordinatorAgent extends ImasAgent {
         send(gameinformRequest);
         finishedFiremanAgents = null;
         finishedAmbulanceAgents = null;
+        errorLog("All actions collected and sent to CentralAgent...");
     }
     
     public void sendProxy(AID reciever) {
