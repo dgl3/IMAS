@@ -66,6 +66,8 @@ public class GraphicInterface extends JFrame {
      */
     private CentralAgent parent;
 
+    ControlWindow controlWindow;
+
     /**
      * Initializes GUI elements, including the game.
      *
@@ -143,8 +145,9 @@ public class GraphicInterface extends JFrame {
         // Tabbed panel
         this.getContentPane().add(jGameTabbedPane);
 
-        ControlWindow controlWindow = new ControlWindow("Control Panel", parent);
+        controlWindow = new ControlWindow("Control Panel", parent);
         controlWindow.setVisible(true);
+        controlWindow.setAlwaysOnTop(true);
     }
 
     /**
