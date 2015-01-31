@@ -190,9 +190,11 @@ public class FiremanAgent extends ImasAgent{
     }    
     
     private int studyDistance(Cell buildingFire) {
-        //study distance through danis code
+        //study distance through graph
         Graph graph = game.getGraph();
+        log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
+        log("Path studied!");
         if(path==null){
             return -1;
         }else{
@@ -235,7 +237,6 @@ public class FiremanAgent extends ImasAgent{
     
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
-        errorLog("Sending action!");
         send(actionInfo);
     }
 
@@ -245,6 +246,7 @@ public class FiremanAgent extends ImasAgent{
         int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
         AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
         endTurn(nextAction);
+        errorLog("Moving...");
     }
 
     private void dummyTask() {

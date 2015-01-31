@@ -10,7 +10,6 @@ import cat.urv.imas.agent.communication.contractnet.ContractNetManager;
 import cat.urv.imas.agent.communication.contractnet.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.behaviour.FiremenCoordinator.InformBehaviour;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
@@ -19,14 +18,8 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
-import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
-
-import java.io.Serializable;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -181,6 +174,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
+                log("Bid recieved from agent "+msg.getSender().getName());
                 contractor.takeBid(msg.getSender(), (Bid) content.getValue());
                 break;
             default:

@@ -32,24 +32,23 @@ public class ContractNetManager {
     public void setupNewContractNet(AID seller, Cell item, Collection<AID> participants){
         contractNetIds++;
         ContractNet contractNet = new ContractNet(contractNetIds, item, new LinkedList(participants));
-        //ContractNet ney = new ContractNetz
         pendingContractNets.add(contractNet);
-
         if( !contractNetInProgress ){
             startNextAuction();
         }
     }
 
     private void startNextAuction(){
+        System.out.println("STARTING NEW CONTRACTNET");
         currentContractNet = pendingContractNets.poll();
-        startContractNet(currentContractNet);
         contractNetInProgress = true;
+        startContractNet(currentContractNet);
     }
 
-    private void startContractNet(ContractNet currentAuction) {
-        Collection<AID> participants = currentAuction.getOutstandingBidders();
+    private void startContractNet(ContractNet currentContractNet) {
+        Collection<AID> participants = currentContractNet.getOutstandingBidders();
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
-        Offer offer = new Offer(contractor.getAID(), currentAuction.getID(), currentAuction.getItem());
+        Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
         ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CFP, participants, messageType, offer);
         contractor.send(bidRequestMsg);
     }

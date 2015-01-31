@@ -25,8 +25,6 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
-import sun.plugin2.message.Message;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
