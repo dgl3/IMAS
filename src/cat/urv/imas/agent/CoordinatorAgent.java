@@ -194,17 +194,15 @@ public class CoordinatorAgent extends ImasAgent {
 
     private void handleConfirm(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
-
         switch(content.getKey()) {
             case MessageContent.SEND_GAME:
                 boolean wasRemoved = pendingGameUpdateConfirmations.remove(msg.getSender());
                 if ( !wasRemoved ) throw new IllegalStateException("Got game update confirmation from unknown AID");
-
                 // Propagate confirm message
                 if(pendingGameUpdateConfirmations.isEmpty()){
+                    log("Proxy method!!");
                     sendProxy(firemenCoordinator);
                 }
-
                 break;
             default:
                 log("Message Content not understood");
@@ -224,23 +222,20 @@ public class CoordinatorAgent extends ImasAgent {
                 setGame(gameSettings);
                 log(gameSettings.getShortString());
                 this.newTurn();
-
-                //Check if there is any new fire
-                this.checkNewFires();
-
                 break;
             case MessageContent.END_TURN:
                 if (msg.getSender().getLocalName().equals("firemenCoord")) {
-                    //finishedFiremanAgents.clear();
                     finishedFiremanAgents.addAll((List<AgentAction>) content.getValue());
                 } else {
-                    //finishedAmbulanceAgents.clear();
                     finishedAmbulanceAgents.addAll((List<AgentAction>) content.getValue());
                 }
                 // TODO: This is not reliable enough, look for another way
-                if (finishedFiremanAgents != null && finishedAmbulanceAgents != null) {
+                if (!finishedFiremanAgents.isEmpty() && !finishedAmbulanceAgents.isEmpty()) {
                     endTurn();
                 }
+                break;
+            case MessageContent.FIRMEN_CONTRACTNET:
+                //TODO: Notification of contract net winner, dunno if its important
                 break;
             default:
                 log("Unsupported message");
@@ -264,18 +259,6 @@ public class CoordinatorAgent extends ImasAgent {
             }
         } catch (UnreadableException ex) {
             Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    /**
-     * Check if there is anynew fire in the game
-     */
-    private void checkNewFires(){
-        //Check newFire game property to know if in this turn appeared a new fire and in which cell.
-        Cell newFire = this.game.getNewFire();
-        if(newFire!=null){
-            //ACLMessage 
-            sendProxy(this.firemenCoordinator);
         }
     }
     
@@ -315,15 +298,15 @@ public class CoordinatorAgent extends ImasAgent {
         send(gameinformRequest);
     }
 
-    public void endTurn() {
+    private void endTurn() {
         List<AgentAction> actions = new ArrayList<>();
         actions.addAll(this.finishedFiremanAgents);
         actions.addAll(this.finishedAmbulanceAgents);
         ACLMessage gameinformRequest = MessageCreator.createInform(centralAgent, MessageContent.END_TURN, actions);
-        send(gameinformRequest);
-        finishedFiremanAgents = null;
-        finishedAmbulanceAgents = null;
         errorLog("All actions collected and sent to CentralAgent...");
+        send(gameinformRequest);
+        finishedFiremanAgents.clear();
+        finishedAmbulanceAgents.clear();
     }
     
     public void sendProxy(AID reciever) {
@@ -331,6 +314,7 @@ public class CoordinatorAgent extends ImasAgent {
         //TODO: Sometimes it not crashes, but this codeline executes too fast, so some agents doesn't update its game yet...
         //TODO: Maybe we should make all lower level agents say back again the got gameinfo in order to start the whole process of ContractNets and Auctions with this codeline.
         ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIRMEN_CONTRACTNET, null);
+        errorLog("------< STARTING CONTRACT NET >------");
         send(contractNetProposal);
     }
 }

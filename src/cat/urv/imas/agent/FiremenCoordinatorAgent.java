@@ -151,7 +151,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     
     private void handleProxy(ACLMessage msg){
         log("New Fire: "+game.getNewFire().toString());
-        contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), firemenAgents);
+        contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(firemenAgents));
     }
     
     private void handleConfirm(ACLMessage msg) {
@@ -195,7 +195,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         switch(content.getKey()) {
             case MessageContent.SEND_GAME:
                 log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                finishedFiremanAgents = new ArrayList<>();
+                //cleaned twice!!
+                //finishedFiremanAgents = new ArrayList<>();
+                
                 setGame((GameSettings) content.getValue());
                 log("Game updated");
 
@@ -210,8 +212,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
             case MessageContent.END_TURN:
                 finishedFiremanAgents.add((AgentAction) content.getValue());
                 // TODO: This is not reliable enough, look for another way
-                if (finishedFiremanAgents.size() == firemenAgents.size()) {
-                    this.endTurn();
+                errorLog("Reciving actions... size is "+finishedFiremanAgents.size()+" / "+firemenAgents.size());
+                if (finishedFiremanAgents.size() == firemenAgents.size()){
+                    endTurn();
                 }
                 break;
         default:
@@ -224,7 +227,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         if (msg.getSender().getLocalName().startsWith("fireman")) {
             AID subscriber = msg.getSender();
             firemenAgents.add(subscriber);
-            log("added " + msg.getSender().getLocalName());
         }
         // If game information is set, send it to the subscriber
         if (getGame() != null) {
@@ -254,9 +256,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     
     public void endTurn() {
-        ACLMessage gameinformRequest = MessageCreator.createMessage(ACLMessage.INFORM, this.coordinatorAgent, MessageContent.END_TURN, this.finishedFiremanAgents);
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
-        finishedFiremanAgents = new ArrayList<>();
+        ACLMessage msg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, finishedFiremanAgents);
+        errorLog("Sending actions...");
+        send(msg);
+        finishedFiremanAgents.clear();
     }
 }

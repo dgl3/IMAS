@@ -108,7 +108,6 @@ public class FiremanAgent extends ImasAgent{
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
         creationNotificationMsg.addReceiver(this.firemanCoordinatorAgent);
         send(creationNotificationMsg);
-        System.out.println(getLocalName() + " sent subscription request.");
         extinguishCell = null;
     }
     
@@ -146,7 +145,6 @@ public class FiremanAgent extends ImasAgent{
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
                 Offer offer = (Offer) content.getValue();
-                log("OK! I go there! " + offer.getCell());
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
                 //TODO: set extinguish goal
@@ -171,38 +169,9 @@ public class FiremanAgent extends ImasAgent{
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
-
                 sendGameUpdateConfirmation(firemanCoordinatorAgent);
-
                 log("Game updated");
                 updatePosition();
-
-                // TODO: this is just a test for the movement, all of this will be changed:
-                /*
-                Cell cPosition = getCurrentPosition();
-                int[] nextPosition = new int[2];
-                nextPosition[0] = cPosition.getRow();
-                nextPosition[1] = cPosition.getCol() + 1;
-
-                Cell[][] map = getGame().getMap();
-                if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
-                    nextPosition[1] = cPosition.getCol() - 1;
-                }
-                */
-
-                if(game.getNewFire()==null){
-                    if(extinguishCell==null){
-                        //TODO: nextAction based on distribution
-                        dummyTask();
-                    }else{
-                        //Pending task (extinguish)...
-                        actionTask();
-                    }
-                }
-                //Dummy response for make it progress right now
-                //AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
-                //endTurn(nextAction);
-                //break;
             default:
                 log("Message Content not understood");
                 break;
@@ -215,7 +184,6 @@ public class FiremanAgent extends ImasAgent{
             case MessageContent.FIRMEN_CONTRACTNET:
                 Offer offer = (Offer)content.getValue();
                 int distanceBid = studyDistance(offer.getCell());
-                log("I replied");
                 offer.reply(this, distanceBid);
                 break;
         }
@@ -224,10 +192,8 @@ public class FiremanAgent extends ImasAgent{
     private int studyDistance(Cell buildingFire) {
         //study distance through danis code
         Graph graph = game.getGraph();
-        log("getting path...");
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
         if(path==null){
-            log("WARNING!! --> path is null");
             return -1;
         }else{
             return path.getDistance();
@@ -261,7 +227,6 @@ public class FiremanAgent extends ImasAgent{
         //AID agentID;
         int firemanNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
-        log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
     }
     
     public Cell getCurrentPosition() {
@@ -270,8 +235,8 @@ public class FiremanAgent extends ImasAgent{
     
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
-        send(actionInfo);
         errorLog("Sending action!");
+        send(actionInfo);
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     

@@ -10,10 +10,10 @@ import java.util.*;
 
 /**
  * Class to manage auctions.
- * Allows only one auction to be running at a time.
- * New auction will be stored in a queue and executed in order.
- *
- * Created by Philipp Oliver on 29/1/15.
+ * Allows only one contractNet to be running at a time.
+ New contractNet will be stored in a queue and executed in order.
+
+ Created by Philipp Oliver on 29/1/15.
  */
 public class ContractNetManager {
     private Agent contractor;
@@ -30,11 +30,10 @@ public class ContractNetManager {
     }
 
     public void setupNewContractNet(AID seller, Cell item, Collection<AID> participants){
-        System.out.println("########## Setup Contract Net ##########");
         contractNetIds++;
-        ContractNet auction = new ContractNet(contractNetIds, item, participants);
+        ContractNet contractNet = new ContractNet(contractNetIds, item, new LinkedList(participants));
         //ContractNet ney = new ContractNetz
-        pendingContractNets.add(auction);
+        pendingContractNets.add(contractNet);
 
         if( !contractNetInProgress ){
             startNextAuction();
@@ -48,24 +47,19 @@ public class ContractNetManager {
     }
 
     private void startContractNet(ContractNet currentAuction) {
-        System.out.println("########## Sending CFP's ##########");
         Collection<AID> participants = currentAuction.getOutstandingBidders();
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
         Offer offer = new Offer(contractor.getAID(), currentAuction.getID(), currentAuction.getItem());
-
         ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CFP, participants, messageType, offer);
-
         contractor.send(bidRequestMsg);
     }
 
     public void takeBid(AID sender, Bid bid) {
-        System.out.println("########## Received Bid ##########");
         if( bid.getAuctionID() == currentContractNet.getID() ) {
             currentContractNet.takeBid(sender, bid.getValue());
 
             if( currentContractNet.readyForEvaluation() ){
                 List<AID> winner = currentContractNet.getWinner();
-                System.out.println("Winner: "+winner);
                 //TODO: Maybe the case there is no winner because anyone bid for the ContractNet!!!
                 notifyWinnerLossers(winner);
                 notifySeller(winner.get(0));
@@ -82,7 +76,6 @@ public class ContractNetManager {
     }
 
     private void notifyWinnerLossers(List<AID> list) {
-        System.out.println("########### ANNOUNCING WINNER #############");
 
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
         Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
@@ -90,7 +83,6 @@ public class ContractNetManager {
         contractor.send(winNotification);
         
         list.remove(0);
-        System.out.println(list.toString());
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list, messageType, null);
         contractor.send(lostNotification);
     }
@@ -100,7 +92,6 @@ public class ContractNetManager {
             //&& currentContractNet.getWinner().equals(sender)
             && offer.getContractNetID() == currentContractNet.getID() )
         {
-            System.out.println("########### ANNOUNCING COMPLETED #############");
             currentContractNet = null;
             contractNetInProgress = false;
 

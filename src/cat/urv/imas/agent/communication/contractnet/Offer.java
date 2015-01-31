@@ -30,7 +30,6 @@ public class Offer implements java.io.Serializable {
     }
 
     public void reply(Agent sender, int bidValue){
-        System.out.println("########## ContractNet Fireman Replies ##########");
         Bid bid = new Bid(contractNetID, bidValue);
         ACLMessage bidMsg = MessageCreator.createPropose(contractor, MessageContent.FIRMEN_CONTRACTNET, bid);
         sender.send(bidMsg);
