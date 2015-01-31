@@ -28,10 +28,10 @@ public class AuctionManager {
         this.auctionInProgress = false;
     }
 
-    public void setupNewAuction(AID seller, Item item, HashSet<AID> participants){
+    public void setupNewAuction(AID seller, Item item, Collection<AID> participants){
         System.out.println("########## Setup Auction ##########");
         auctionIds++;
-        Auction auction = new Auction(auctionIds, seller, item, participants);
+        Auction auction = new Auction(auctionIds, seller, item, new HashSet<>(participants) );
         pendingAuctions.add(auction);
 
         if( !auctionInProgress ){

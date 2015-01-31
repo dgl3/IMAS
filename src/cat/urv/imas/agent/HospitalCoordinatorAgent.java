@@ -202,7 +202,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         Item item = new Item(new StreetCell(10, 10), 2);
         HashSet<AID> participants = new HashSet<AID>(hospitalAgents);
 
-        auctionManager.setupNewAuction(seller, item, participants);
+        auctionManager.setupNewAuction(seller, item, Collections.unmodifiableCollection(participants) );
     }
     
     private void handleSubscribe(ACLMessage msg) {
