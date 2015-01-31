@@ -179,7 +179,7 @@ public class CentralAgent extends ImasAgent {
         
         // 3. Load GUI
         try {
-            this.gui = new GraphicInterface(game);
+            this.gui = new GraphicInterface(this, game);
             gui.setVisible(true);
             log("GUI loaded");
         } catch (Exception e) {
@@ -297,25 +297,30 @@ public class CentralAgent extends ImasAgent {
         this.log("Press Enter for New Turn");
         String s = in.nextLine();
         this.log("NEW TURN");
-        
+
         this.game.advanceTurn();
-        
+
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
-        
+
         this.updateFires(modifiedFires);
-        
+
         this.updateAgentMovements(agentActions);
-        
+
         List<Integer> currentOccupancy = new ArrayList<>();
         for (Cell c : this.game.getAgentList().get(AgentType.HOSPITAL)) {
             currentOccupancy.add(((HospitalCell)c).useRatio());
         }
         this.statistics.setNewTurnHospitalOccupancy(currentOccupancy);
-        
+
         //this.gui.showGameMap(this.game.getMap());
         this.gui.updateGame();
         this.gui.printNewStatistics(this.statistics.getCurrentStatistics());
         this.newTurn();
+
+    }
+
+    public void nextTurn(){
+        System.out.println("PLEASE NEXT TURN!");
     }
 
     private void sendGame() {

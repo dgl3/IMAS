@@ -47,7 +47,7 @@ public class GraphTest {
         //(1,2) a (6,2), path should be equal to [(1,2),(2,2),(3,2),(4,2),(5,2),(6,2)]
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(6,2);
-        Path path = graph.bfs(initialPoint, finalPoint);
+        Path path = graph.bfs(initialPoint, finalPoint, 18);
         assertTrue(path.getDistance() == 6);
     }
     
@@ -56,7 +56,7 @@ public class GraphTest {
         /**(1,2) a (3,9), size path = 10  **/
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(3,9);
-        Path path = graph.bfs(initialPoint, finalPoint);
+        Path path = graph.bfs(initialPoint, finalPoint, 18);
         assertTrue(path.getDistance() == 10);
     }
     
@@ -65,7 +65,7 @@ public class GraphTest {
     public void testBFS3(){ //Should return null
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(15,9);
-        Path path = graph.bfs(initialPoint, finalPoint);
+        Path path = graph.bfs(initialPoint, finalPoint, 18);
         assertEquals(path,null);
     }
     

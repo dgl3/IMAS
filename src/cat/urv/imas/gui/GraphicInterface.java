@@ -17,6 +17,7 @@
  */
 package cat.urv.imas.gui;
 
+import cat.urv.imas.agent.CentralAgent;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import java.awt.*;
@@ -61,11 +62,17 @@ public class GraphicInterface extends JFrame {
     private JPanel jGamePanel = new JPanel();
 
     /**
+     * Reference to central agent so we can add graphical controls for it
+     */
+    private CentralAgent parent;
+
+    /**
      * Initializes GUI elements, including the game.
      *
      * @param game game settings to show.
      */
-    public GraphicInterface(GameSettings game) {
+    public GraphicInterface(CentralAgent parent, GameSettings game) {
+        this.parent = parent;
         jbInit(game.getTitle());
         showGameMap(game.getMap());
     }
@@ -136,6 +143,8 @@ public class GraphicInterface extends JFrame {
         // Tabbed panel
         this.getContentPane().add(jGameTabbedPane);
 
+        ControlWindow controlWindow = new ControlWindow("Control Panel", parent);
+        controlWindow.setVisible(true);
     }
 
     /**
