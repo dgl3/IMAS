@@ -21,6 +21,11 @@ public class Path implements Serializable{
         this.distance = path.size();
         this.path = path;
     }
+    
+    public Path(List<Node> path, int distance){
+        this.distance = distance;
+        this.path = path;
+    }
 
     public int getDistance() {
         return distance;

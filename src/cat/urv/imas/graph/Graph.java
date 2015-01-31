@@ -149,13 +149,13 @@ public class Graph implements Serializable{
         
         Queue<Node> FIFOqueue = new LinkedList<>(); //Using a LinkedList as Queue
         Node initialNode = this.nodes.get(initialPoint);
-        Node targesNode = this.nodes.get(targetPoint);
+        Node targetNode = this.nodes.get(targetPoint);
         
         List<Node> visited = new ArrayList<>();
 
         //Get neighbours
         for(Edge edge:edgesMap.get(initialNode)){
-            if(edge.getNode2().equals(targesNode)){
+            if(edge.getNode2().equals(targetNode)){
                 path.add(edge.getNode2());
                 Path optimumPath = new Path(path);
                 return optimumPath;
@@ -182,7 +182,7 @@ public class Graph implements Serializable{
            for(Node child: unvisitedChilds){
                 child.setPreviousNode(neighbour);
                 child.setDistance(neighbour.getDistance()+1);
-                if(child.equals(targesNode)){
+                if(child.equals(targetNode)){
                     path.add(child);
                     found = child;
                 }
@@ -286,13 +286,17 @@ public class Graph implements Serializable{
         List<Cell> adjacentCells = getAdjacentCells(target);
         Path optimumPath = null;
         for(Cell cell: adjacentCells){
-            Path path = bfs(init, cell, 18);
-            if(optimumPath == null){
-                optimumPath = path;
-            }else{
-                if(path.getDistance() < optimumPath.getDistance()){
+            if(!init.equals(cell)){
+                Path path = bfs(init, cell, 18);
+                if(optimumPath == null){
                     optimumPath = path;
-                }
+                }else{
+                    if(path.getDistance() < optimumPath.getDistance()){
+                        optimumPath = path;
+                    }
+                }                
+            }else{
+                optimumPath = new Path(null,0);
             }
         }
         return optimumPath;

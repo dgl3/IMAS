@@ -80,6 +80,14 @@ public class GraphTest {
     }
     
     @Test
+    public void strangeError2AffectingCells_2_18_and_3_17Test(){
+        Cell initialPoint = new StreetCell(2,18);
+        Cell finalPoint = new StreetCell(3,17);
+        Path path = graph.computeOptimumPath(initialPoint, finalPoint);
+        assertTrue(path != null);
+    }
+    
+    @Test
     public void testGetAdjacentCellsMethod(){
         //Should return only 1 adjacent cell        
         Cell targetCell = new BuildingCell(10,0,0);
