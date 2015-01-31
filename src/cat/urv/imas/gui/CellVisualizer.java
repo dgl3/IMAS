@@ -22,6 +22,7 @@ import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.GasStationCell;
 import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.map.StreetCell;
+import cat.urv.imas.onthology.InfoAgent;
 
 /**
  * Enabling draw each kind of cell.

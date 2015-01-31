@@ -17,14 +17,14 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.agent.communication.util.AIDUtil;
+import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.behaviour.central.InformBehaviour;
-import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
-import cat.urv.imas.map.CellType;
 import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -39,10 +39,7 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
-import jade.wrapper.AgentController;
-import jade.wrapper.ContainerController;
-import jade.wrapper.ControllerException;
-import jade.wrapper.StaleProxyException;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -418,13 +415,13 @@ public class CentralAgent extends ImasAgent {
                             BuildingCell BC = (BuildingCell)c;
                             if (!BC.isDestroyed()) {
                                 int taken = BC.take(action.actionParameter);
-                                int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                                int numAgent = AIDUtil.getLocalId(action.agentAID);
                                 this.game.updateAmbulanceCurrentLoad(numAgent, taken);
                             }
                         } else if (c instanceof HospitalCell) {
                             HospitalCell hc = (HospitalCell)c;
                             int signedIn = hc.signInPatients(action.actionParameter, this.game.getStepsToHealth());
-                            int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                            int numAgent = AIDUtil.getLocalId(action.agentAID);
                             
                             this.game.updateAmbulanceCurrentLoad(numAgent, -signedIn);
                         }
@@ -480,48 +477,49 @@ public class CentralAgent extends ImasAgent {
             }
         }
         
-        Map<AgentType, List<Cell>> content = new HashMap<>();
-        
+        Map<AgentType, List<KeyValue<AID, Cell>>> content = new HashMap<>();
+
         for (AgentAction action : actions) {
             Cell position = new StreetCell(action.nextPosition[0],action.nextPosition[1]);
-            
-            if (action.agentName.startsWith("fireman")) {
+            KeyValue<AID, Cell> keyValue = new KeyValue<>(action.agentAID, position);
+
+            if (action.agentAID.getLocalName().startsWith("fireman")) {
                 if (content.get(AgentType.FIREMAN) == null) {
-                    List<Cell> positions = new ArrayList<>();
-                    positions.add(position);
+                    List<KeyValue<AID, Cell>> positions = new ArrayList<>();
+                    positions.add(keyValue);
                     content.put(AgentType.FIREMAN, positions);
                 } else {
-                    List<Cell> positions = new ArrayList<>();
+                    List<KeyValue<AID, Cell>> positions = new ArrayList<>();
                     positions.addAll(content.get(AgentType.FIREMAN));
-                    positions.add(position);
+                    positions.add(keyValue);
                     content.put(AgentType.FIREMAN, positions);
                 }
-                int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                int numAgent = Integer.valueOf(action.agentAID.getLocalName().substring(action.agentAID.getLocalName().length() - 1));
                 this.game.getAgentList().get(AgentType.FIREMAN).set(numAgent, position);
             } else {
                 if (content.get(AgentType.AMBULANCE) == null) {
-                    List<Cell> positions = new ArrayList<>();
-                    positions.add(position);
+                    List<KeyValue<AID, Cell>> positions = new ArrayList<>();
+                    positions.add(keyValue);
                     content.put(AgentType.AMBULANCE, positions);
                 } else {
-                    List<Cell> positions = new ArrayList<>();
+                    List<KeyValue<AID, Cell>> positions = new ArrayList<>();
                     positions.addAll(content.get(AgentType.AMBULANCE));
-                    positions.add(position);
+                    positions.add(keyValue);
                     content.put(AgentType.AMBULANCE, positions);
                 }
-                int numAgent = Integer.valueOf(action.agentName.substring(action.agentName.length() - 1));
+                int numAgent = AIDUtil.getLocalId(action.agentAID);
                 this.game.getAgentList().get(AgentType.AMBULANCE).set(numAgent, position);
             }
         }
         
-        for (Map.Entry<AgentType, List<Cell>> entry : content.entrySet()) {
-            for (Cell c : entry.getValue()) {
-                StreetCell sc = (StreetCell)currentMap[c.getRow()][c.getCol()];
+        for (Map.Entry<AgentType, List<KeyValue<AID, Cell>>> entry : content.entrySet()) {
+            for (KeyValue<AID, Cell> c : entry.getValue()) {
+                StreetCell sc = (StreetCell)currentMap[c.getValue().getRow()][c.getValue().getCol()];
                 try {
                     if (sc.isThereAnAgent()) {
                         sc.removeAgent();
                     }
-                    sc.addAgent(new InfoAgent(entry.getKey()));
+                    sc.addAgent(new InfoAgent(entry.getKey(), c.getKey()));
                 } catch (Exception ex) {
                     Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
                 }

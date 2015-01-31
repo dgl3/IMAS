@@ -243,13 +243,13 @@ public class FiremanAgent extends ImasAgent{
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
         Cell nextCell =  path.getPath().get(0).getCell();
         int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
-        AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+        AgentAction nextAction = new AgentAction(getAID(), nextPosition);
         endTurn(nextAction);
     }
 
     private void dummyTask() {
         int nextPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
-        AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+        AgentAction nextAction = new AgentAction(getAID(), nextPosition);
         endTurn(nextAction);
     }
 }
