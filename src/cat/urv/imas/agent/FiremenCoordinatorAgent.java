@@ -24,11 +24,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,7 +53,12 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * Coordinator agent id.
      */
     // TODO: Change to map
-    private List<AID> firemenAgents;    
+    private List<AID> firemenAgents;
+
+    /**
+     * Set to keep track of who still needs to confirm that he has received the game update
+     */
+    private HashSet<AID> pendingGameUpdateConfirmations;
     
     /**
      * List of agents ready to end the turn
@@ -106,6 +107,8 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         finishedFiremanAgents = new ArrayList<>();
         contractor = new ContractNetManager(this);
         addBehaviour(newListenerBehaviour());
+
+        pendingGameUpdateConfirmations = new HashSet<>();
     }
 
     /**
@@ -157,6 +160,17 @@ public class FiremenCoordinatorAgent extends ImasAgent {
             case MessageContent.FIRMEN_CONTRACTNET:
                 contractor.confirmAction(msg.getSender(), (Offer) content.getValue());
                 break;
+            case MessageContent.SEND_GAME:
+                boolean wasRemoved = pendingGameUpdateConfirmations.remove(msg.getSender());
+                if ( !wasRemoved ) throw new IllegalStateException("Got game update confirmation from unknown AID");
+
+                // Propagate confirm message
+                if(pendingGameUpdateConfirmations.isEmpty()){
+                    ACLMessage gameUpdateConfirmMsg = MessageCreator.createConfirm(coordinatorAgent, MessageContent.SEND_GAME, null);
+                    send(gameUpdateConfirmMsg);
+                }
+
+                break;
             default:
                 log("Unsupported message");
                 break;
@@ -184,10 +198,14 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                 finishedFiremanAgents = new ArrayList<>();
                 setGame((GameSettings) content.getValue());
                 log("Game updated");
-                // When game information is updated, send it to all children
-                for (AID firemanAgent : firemenAgents) {
-                    sendGame(firemanAgent);
-                    }
+
+
+                // Send game to children
+                pendingGameUpdateConfirmations.addAll(firemenAgents);
+                ACLMessage gameInformRequest = MessageCreator.createMessage(ACLMessage.INFORM, firemenAgents, MessageContent.SEND_GAME, this.game);
+                send(gameInformRequest);
+
+
                 break;
             case MessageContent.END_TURN:
                 finishedFiremanAgents.add((AgentAction) content.getValue());
@@ -210,7 +228,9 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         }
         // If game information is set, send it to the subscriber
         if (getGame() != null) {
-            sendGame(msg.getSender());
+            pendingGameUpdateConfirmations.add(msg.getSender());
+            ACLMessage gameInformRequest = MessageCreator.createMessage(ACLMessage.INFORM, msg.getSender(), MessageContent.SEND_GAME, this.game);
+            send(gameInformRequest);
         }
     }
 
@@ -232,13 +252,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         return this.game;
     }
 
-    private void sendGame(AID agent) {
-        /* TODO: Define all the behaviours **/
-        ACLMessage gameinformRequest = MessageCreator.createMessage(ACLMessage.INFORM, agent, MessageContent.SEND_GAME, this.game);
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
-        send(gameinformRequest);
-    }
     
     public void endTurn() {
         ACLMessage gameinformRequest = MessageCreator.createMessage(ACLMessage.INFORM, this.coordinatorAgent, MessageContent.END_TURN, this.finishedFiremanAgents);

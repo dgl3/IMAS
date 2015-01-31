@@ -170,6 +170,9 @@ public class FiremanAgent extends ImasAgent{
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
+
+                sendGameUpdateConfirmation(firemanCoordinatorAgent);
+
                 log("Game updated");
                 updatePosition();
 

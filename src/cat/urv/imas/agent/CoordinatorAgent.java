@@ -36,10 +36,7 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,7 +75,12 @@ public class CoordinatorAgent extends ImasAgent {
      * List of agents ready to end the turn
      */
     private List<AgentAction> finishedAmbulanceAgents;
-    
+
+    /**
+     * Set to keep track of who still needs to confirm that he has received the game update
+     */
+    private HashSet<AID> pendingGameUpdateConfirmations;
+
     /**
      * Builds the coordinator agent.
      */
@@ -154,6 +156,8 @@ public class CoordinatorAgent extends ImasAgent {
         // a behaviour to send/receive actions
         */
         this.addBehaviour(newListenerBehaviour());
+
+        pendingGameUpdateConfirmations = new HashSet<>();
     }
     
     /**
@@ -191,8 +195,14 @@ public class CoordinatorAgent extends ImasAgent {
 
         switch(content.getKey()) {
             case MessageContent.SEND_GAME:
-                // TODO: Propagate to Central Agent?
-                log("### CONFIRMATIONS RECEIVED ###");
+                boolean wasRemoved = pendingGameUpdateConfirmations.remove(msg.getSender());
+                if ( !wasRemoved ) throw new IllegalStateException("Got game update confirmation from unknown AID");
+
+                // Propagate confirm message
+                if(pendingGameUpdateConfirmations.isEmpty()){
+                    sendProxy(firemenCoordinator);
+                }
+
                 break;
             default:
                 log("Message Content not understood");
@@ -208,17 +218,14 @@ public class CoordinatorAgent extends ImasAgent {
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
                 log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                try {
-                    //GameSettings gameSettings = (GameSettings) msg.getContentObject();
-                    GameSettings gameSettings = (GameSettings) content.getValue();
-                    setGame(gameSettings);
-                    log(gameSettings.getShortString());
-                    this.newTurn();
-                    //Check if there is any new fire
-                    this.checkNewFires();
-                } catch (Exception e) {
-                    errorLog("Incorrect content: " + e.toString());
-                }
+                GameSettings gameSettings = (GameSettings) content.getValue();
+                setGame(gameSettings);
+                log(gameSettings.getShortString());
+                this.newTurn();
+
+                //Check if there is any new fire
+                this.checkNewFires();
+
                 break;
             case MessageContent.END_TURN:
                 if (msg.getSender().getLocalName().equals("firemenCoord")) {
@@ -297,6 +304,11 @@ public class CoordinatorAgent extends ImasAgent {
         List<AID> recievers = new ArrayList();
         recievers.add(hospitalCoordinator);
         recievers.add(firemenCoordinator);
+
+        if ( !pendingGameUpdateConfirmations.isEmpty() ) throw new IllegalStateException("Starting new turn although not all game update confirmations have been received");
+        pendingGameUpdateConfirmations.add(hospitalCoordinator);
+        pendingGameUpdateConfirmations.add(firemenCoordinator);
+
         ACLMessage gameinformRequest = MessageCreator.createInform(recievers, MessageContent.SEND_GAME, game);
         send(gameinformRequest);
     }
@@ -315,7 +327,7 @@ public class CoordinatorAgent extends ImasAgent {
         //TODO: Send PROXY to firemen Coordinator but it crashes somehow...
         //TODO: Sometimes it not crashes, but this codeline executes too fast, so some agents doesn't update its game yet...
         //TODO: Maybe we should make all lower level agents say back again the got gameinfo in order to start the whole process of ContractNets and Auctions with this codeline.
-        //ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIRMEN_CONTRACTNET, null);
-        //send(contractNetProposal);
+        ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIRMEN_CONTRACTNET, null);
+        send(contractNetProposal);
     }
 }

@@ -42,10 +42,17 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     private AID coordinatorAgent;
     
     private List<AID> ambulanceAgents;
+
     private List<AID> hospitalAgents;
 
+    /**
+     * Ambulance / Hospital Auction manager
+     */
     private AuctionManager auctionManager;
 
+    /**
+     * Set to keep track of who still needs to confirm that he has received the game update
+     */
     private HashSet<AID> pendingGameUpdateConfirmations;
 
     /**
