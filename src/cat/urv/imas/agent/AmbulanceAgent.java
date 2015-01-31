@@ -25,6 +25,8 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import sun.plugin2.message.Message;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -227,7 +229,6 @@ public class AmbulanceAgent extends ImasAgent{
     public void updatePosition() {
         int ambulanceNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
         this.currentPosition = this.game.getAgentList().get(AgentType.AMBULANCE).get(ambulanceNumber);
-        log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
     }
     
     /**
@@ -235,7 +236,6 @@ public class AmbulanceAgent extends ImasAgent{
      */
     public void updateLoadingSpeed() {
         this.loadingSpeed = this.game.getAmbulanceLoadingSpeed();
-        log("Loading speed updated: " + this.loadingSpeed);
     }
     
     /**
@@ -243,26 +243,11 @@ public class AmbulanceAgent extends ImasAgent{
      */
     public void updateAmbulanceCapacity() {
         this.ambulanceCapacity = this.game.getPeoplePerAmbulance();
-        log("Capacity updated: " + this.ambulanceCapacity);
     }
     
     public void endTurn(AgentAction nextAction) {
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.hospitalCoordinatorAgent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            //gameinformRequest.setContent(MessageContent.SEND_GAME);
-            Map<String,AgentAction> content = new HashMap<>();
-            content.put(MessageContent.END_TURN, nextAction);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: " + MessageContent.END_TURN);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
+        ACLMessage msg = MessageCreator.createInform(hospitalCoordinatorAgent, MessageContent.END_TURN, nextAction);
+        errorLog("Ambulance has sent his next action to the hospitalCoordinator!");
+        send(msg);
     }
 }
