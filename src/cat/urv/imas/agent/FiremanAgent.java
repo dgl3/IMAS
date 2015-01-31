@@ -108,7 +108,6 @@ public class FiremanAgent extends ImasAgent{
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
         creationNotificationMsg.addReceiver(this.firemanCoordinatorAgent);
         send(creationNotificationMsg);
-        
         System.out.println(getLocalName() + " sent subscription request.");
         extinguishCell = null;
     }
@@ -167,93 +166,58 @@ public class FiremanAgent extends ImasAgent{
     }
 
     private void handleInform(ACLMessage msg) {
-        FiremanAgent agent = this;
-        Map<String,Object> contentObject;
-        
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.SEND_GAME:
-                    agent.setGame((GameSettings) contentObject.get(content));
-                    agent.log("Game updated");
-                    agent.updatePosition();
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.SEND_GAME:
+                setGame((GameSettings) content.getValue());
+                log("Game updated");
+                updatePosition();
 
-                    // TODO: this is just a test for the movement, all of this will be changed:
+                // TODO: this is just a test for the movement, all of this will be changed:
 
-                    Cell cPosition = agent.getCurrentPosition();
-                    int[] nextPosition = new int[2];
-                    nextPosition[0] = cPosition.getRow();
-                    nextPosition[1] = cPosition.getCol() + 1;
+                Cell cPosition = getCurrentPosition();
+                int[] nextPosition = new int[2];
+                nextPosition[0] = cPosition.getRow();
+                nextPosition[1] = cPosition.getCol() + 1;
 
-                    Cell[][] map = agent.getGame().getMap();
-                    if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
-                        nextPosition[1] = cPosition.getCol() - 1;
+                Cell[][] map = getGame().getMap();
+                if (!(map[nextPosition[0]][nextPosition[1]] instanceof StreetCell)) {
+                    nextPosition[1] = cPosition.getCol() - 1;
+                }
+
+
+                if(game.getNewFire()==null){
+                    if(extinguishCell==null){
+                        //TODO: nextAction based on distribution
+                    }else{
+                        //Pending task (extinguish)...
+                        actionTask();
                     }
-                    
-                    
-                    if(game.getNewFire()==null){
-                        if(extinguishCell==null){
-                            //TODO: nextAction based on distribution
-                        }else{
-                            //Pending task (extinguish)...
-                            //TODO: nextAction based on finishing the pending task
-                        }
-                    }
-                    //Dummy response for make it progress right now
-                    AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
-                    agent.endTurn(nextAction);
-                    break;
-                default:
-                    agent.log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                //Dummy response for make it progress right now
+                AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+                endTurn(nextAction);
+                break;
+            default:
+                log("Message Content not understood");
+                break;
         }
     }
     
     private void handleCFP(ACLMessage msg) {
-        FiremanAgent agent = this;
-        Map<String,Object> contentObject;
-        
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.PROPOSAL_CONTRACTNET:
-                    agent.log("Contract Net request recieved from agent " + msg.getSender().getLocalName());
-                    //TODO: Study if bid or not bid for the Contract Net...
-                    //1.Consider the contiguos street cells of the building with the new fire
-                    //Cell builtFire = this.game.getNewFire();
-                    
-                    //2.Possibilities: 1 street-cell (out-corner) 3 street-cells (aperture), 5 street-cells (in-corner)
-                    //3.Use middle street-cell to cumpute the RBF minimum path.
-                    //4.Based on the possible scenario substract (0, 1 or 2 respectively) to the path length (if negative number then 0).
-                    //5.Since the agents are forced to first do the action and then move, the minimum number
-                    //of cells should be 18 or less to arrive at 95% of building in fire. If it is the case
-                    //bid with the number of turns to arrive.
-                    
-                    break;
-                case MessageContent.FIRMEN_CONTRACTNET:
-                    
-                    Offer offer = (Offer)contentObject.get(content);
-                    int distanceBid = studyDistance(offer.getCell());
-                    log("I replied");
-                    offer.reply(this, distanceBid);
-                    break;
-            }
-                
-        } catch (UnreadableException ex) {
-            Logger.getLogger(FiremenCoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                Offer offer = (Offer)content.getValue();
+                int distanceBid = studyDistance(offer.getCell());
+                log("I replied");
+                offer.reply(this, distanceBid);
+                break;
         }
     }    
     
     private int studyDistance(Cell buildingFire) {
         //study distance through danis code
-        
         Graph graph = game.getGraph();
         log("getting path...");
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
@@ -304,11 +268,11 @@ public class FiremanAgent extends ImasAgent{
         send(actionInfo);
     }
 
-    private void actionTask() {
-        //extinguishCell b                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-        //Path path = 
-        //int nextPosition[] = 
-        //AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
-        //endTurn(nextAction);
+    private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
+        Cell nextCell =  path.getPath().get(0).getCell();
+        int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
+        AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+        endTurn(nextAction);
     }
 }
