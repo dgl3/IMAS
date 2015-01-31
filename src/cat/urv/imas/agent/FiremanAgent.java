@@ -152,6 +152,8 @@ public class FiremanAgent extends ImasAgent{
                 send(confirmation);
                 //TODO: set extinguish goal
                 extinguishCell = offer.getCell();
+                //Action related to added pending task...
+                actionTask();
                 break;
             default:
                 log("Unsupported message");
@@ -161,6 +163,7 @@ public class FiremanAgent extends ImasAgent{
     
     private void handleRejectProposal(ACLMessage msg) {
         //This agent was no selected for the contract net --> actions possible
+        //nextAction <-- movement related to distribution
     }
 
     private void handleInform(ACLMessage msg) {
@@ -189,12 +192,16 @@ public class FiremanAgent extends ImasAgent{
                         nextPosition[1] = cPosition.getCol() - 1;
                     }
                     
-                    if(game.getNewFire()==null){
-                        //TODO: nextAction based on distribution
-                    }else{
-                        //TODO: wait for contractNet, if ACCEPT-->action, if REJECT nextAction based on distribution
-                    }
                     
+                    if(game.getNewFire()==null){
+                        if(extinguishCell==null){
+                            //TODO: nextAction based on distribution
+                        }else{
+                            //Pending task (extinguish)...
+                            //TODO: nextAction based on finishing the pending task
+                        }
+                    }
+                    //Dummy response for make it progress right now
                     AgentAction nextAction = new AgentAction(agent.getLocalName(), nextPosition);
                     agent.endTurn(nextAction);
                     break;
@@ -295,5 +302,13 @@ public class FiremanAgent extends ImasAgent{
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
         send(actionInfo);
+    }
+
+    private void actionTask() {
+        //extinguishCell b                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+        //Path path = 
+        //int nextPosition[] = 
+        //AgentAction nextAction = new AgentAction(getLocalName(), nextPosition);
+        //endTurn(nextAction);
     }
 }
