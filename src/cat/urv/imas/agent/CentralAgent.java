@@ -19,6 +19,7 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
+import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.central.InformBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.graph.Graph;
@@ -321,23 +322,8 @@ public class CentralAgent extends ImasAgent {
     }
 
     private void sendGame() {
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.coordinatorAgent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            //gameinformRequest.setContent(MessageContent.SEND_GAME);
-            Map<String,GameSettings> content = new HashMap<>();
-            content.put(MessageContent.SEND_GAME, this.game);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: " + MessageContent.SEND_GAME);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
+        ACLMessage gameinformRequest = MessageCreator.createInform(coordinatorAgent, MessageContent.SEND_GAME, game);
+        send(gameinformRequest);
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -363,25 +349,16 @@ public class CentralAgent extends ImasAgent {
      * Handle new incoming INFORM message
      */
     private void handleInform(ACLMessage msg) {
-        CentralAgent agent = this;
-        Map<String,Object> contentObject;
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            
-            switch(content) {
-                case MessageContent.END_TURN:
-                    List<AgentAction> finishedAgents = new ArrayList<>();
-                    finishedAgents.addAll((List<AgentAction>) contentObject.get(content));
-                    //List<AID> agents = (List<AID>) msg.getContentObject();
-                    this.checkMovementCollisions(finishedAgents);
-                    break;
-                default:
-                    agent.log("Message Content not understood");
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.END_TURN:
+                List<AgentAction> finishedAgents = new ArrayList<>();
+                finishedAgents.addAll((List<AgentAction>) content.getValue());
+                checkMovementCollisions(finishedAgents);
+                break;
+            default:
+                log("Message Content not understood");
+                break;
         }
     }
     

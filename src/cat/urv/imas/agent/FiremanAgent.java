@@ -242,11 +242,22 @@ public class FiremanAgent extends ImasAgent{
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
-        Cell nextCell =  path.getPath().get(0).getCell();
-        int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
-        AgentAction nextAction = new AgentAction(getAID(), nextPosition);
-        endTurn(nextAction);
-        errorLog("Moving...");
+        //TODO: consider case of path of distance 0 (agent is already there)
+        if(path.getDistance()==0){
+            //actioning
+            int nextPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
+            AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+            endTurn(nextAction);
+            errorLog("Extinguishing...");
+            //TODO: consider also moving since the world-norms dictate agents can action+movement
+        }else{
+            //moving
+            Cell nextCell =  path.getPath().get(0).getCell();
+            int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
+            AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+            endTurn(nextAction);
+            errorLog("Moving...");
+        }
     }
 
     private void dummyTask() {
