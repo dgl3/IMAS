@@ -43,12 +43,7 @@ import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -108,8 +103,9 @@ public class CentralAgent extends ImasAgent {
     private ControlWindow controllerWindow;
     
     /**
-     * 
+     * Indicates if the game is running by itself
      */
+    private boolean autoPlay;
 
     /**
      * Builds the Central agent.
@@ -161,7 +157,6 @@ public class CentralAgent extends ImasAgent {
      */
     @Override
     protected void setup() {
-        this.RNG = new Random((int)this.game.getSeed());
         
         /* ** Very Important Line (VIL) ************************************* */
         this.setEnabledO2ACommunication(true, 1);
@@ -189,6 +184,8 @@ public class CentralAgent extends ImasAgent {
         Graph graph = new Graph(this.game);
         this.game.updateGraph(graph);
         log("Initial configuration settings loaded");
+        
+        this.RNG = new Random((int)this.game.getSeed());
         
         
         // 3. Load GUI
@@ -257,53 +254,47 @@ public class CentralAgent extends ImasAgent {
         this.addBehaviour(newListenerBehaviour());
 
         readyForNextTurn = true;
+        autoPlay = false;
+
         this.newTurn();
-    }
-    
-    public void updateGUI() {
-        System.out.println("CENTRAL AGENT:" + this.game.get(2, 2).toString());
-        this.gui.updateGame();
     }
     
     /**
      * Method to send the necessary messages to start a new turn and to wait 
      * for the end turn message from the children agents
      */
-    private void newTurn() {
-        this.turn += 1;
-        this.readyForNextTurn = false;
-        if( controllerWindow != null ){
-            controllerWindow.setReadyForNewTurn(false);
-        }
+    public void newTurn() {
+        if( readyForNextTurn == true ){
+            this.turn += 1;
+            this.readyForNextTurn = false;
+            if( controllerWindow != null ){
+                controllerWindow.setReadyForNewTurn(false);
+            }
 
-        // Central agent actively sends game info at the start of each turn
-        
-        // TODO: generate new fires acording to probability
-        if (true) {
-            Cell fire = this.generateFire();
-            
-            this.game.setNewFire(fire);
-            
-            this.statistics.newFire(fire, this.turn);
-        } else {
-            this.game.setNewFire(null);
+            // TODO: generate new fires according to probability
+            if (true) {
+                Cell fire = this.generateFire();
+
+                this.game.setNewFire(fire);
+
+                this.statistics.newFire(fire, this.turn);
+            } else {
+                this.game.setNewFire(null);
+            }
+
+            this.sendGame();
+        }else{
+            errorLog("Not ready for next turn!");
         }
-        
-        this.sendGame();
-        
     }
     
     /**
      * Method for the central agent to check for collisions on any of the agents
      * capable of moving
      */
-    private void checkMovementCollisions(List<AgentAction> agentActions) {
-        //Map<String,Cell> currentPosition = new HashMap<>();
-        //for (Cell c :)
-        
-        
-        
-        this.endTurn(agentActions);
+
+    private void checkMovementCollisions(Collection<AgentAction> agentActions) {
+        // TODO: this will be a dummy method for now
     }
 
     private void readyForNextTurn() {
@@ -312,13 +303,22 @@ public class CentralAgent extends ImasAgent {
         if( controllerWindow != null ){
             controllerWindow.setReadyForNewTurn(true);
         }
+
+        if( autoPlay ){
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            newTurn();
+        }
     }
 
     /**
      * Method for the central agent to finish the current turn. It updates
      * the map with the turns movement and starts a new turn
      */
-    private void endTurn(List<AgentAction> agentActions) {
+    private void endTurn(Collection<AgentAction> agentActions) {
         this.game.advanceTurn();
 
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
@@ -333,21 +333,10 @@ public class CentralAgent extends ImasAgent {
         }
         this.statistics.setNewTurnHospitalOccupancy(currentOccupancy);
 
-        //this.gui.showGameMap(this.game.getMap());
         this.gui.updateGame();
         this.gui.printNewStatistics(this.statistics.getCurrentStatistics());
 
         readyForNextTurn();
-        //this.newTurn();
-
-    }
-
-    public void nextTurn(){
-        if( readyForNextTurn ){
-            newTurn();
-        }else{
-            errorLog("Not ready for next turn!");
-        }
     }
 
     private void sendGame() {
@@ -370,7 +359,7 @@ public class CentralAgent extends ImasAgent {
                     }
                 } 
                 block();
-            };
+            }
         };
     }
     
@@ -381,10 +370,11 @@ public class CentralAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.END_TURN:
-                List<AgentAction> finishedAgents = new ArrayList<>();
-                finishedAgents.addAll((List<AgentAction>) content.getValue());
+
+                Collection<AgentAction> finishedAgents = Collections.unmodifiableCollection((List<AgentAction>)content.getValue());
                 movePrivateVehicles();
                 checkMovementCollisions(finishedAgents);
+                endTurn(finishedAgents);
                 break;
             default:
                 log("Message Content not understood");
@@ -408,7 +398,7 @@ public class CentralAgent extends ImasAgent {
         }
     }
     
-    private List<Cell> performAgentActions(List<AgentAction> actions) {
+    private List<Cell> performAgentActions(Collection<AgentAction> actions) {
         Cell[][] currentMap = this.game.getMap();
         List<Cell> modifiedCells = new ArrayList<>();
         
@@ -472,7 +462,7 @@ public class CentralAgent extends ImasAgent {
         }
     }
     
-    private void updateAgentMovements(List<AgentAction> actions) {
+    private void updateAgentMovements(Collection<AgentAction> actions) {
         Cell[][] currentMap = this.game.getMap();
         
         for (Cell[] cl : currentMap) {
@@ -547,8 +537,17 @@ public class CentralAgent extends ImasAgent {
     public void setControllerWindow(ControlWindow controllerWindow) {
         this.controllerWindow = controllerWindow;
     }
-    
+
     public int generateRandomNumber(int bound) {
         return this.RNG.nextInt(bound);
+    }
+
+    public void setAutoPlay(boolean autoPlay) {
+        this.autoPlay = autoPlay;
+        newTurn();
+    }
+
+    public boolean isAutoPlay() {
+        return autoPlay;
     }
 }
