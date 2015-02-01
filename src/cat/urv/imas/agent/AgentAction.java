@@ -29,6 +29,12 @@ public class AgentAction implements java.io.Serializable {
 
         this.extraActions = false;
     }
+
+    public void changeNextPosition(Cell nextPosition) {
+        this.nextPosition = new int[2];
+        this.nextPosition[0] = nextPosition.getRow();
+        this.nextPosition[1] = nextPosition.getCol();
+    }
     
     public void setAction(Cell actionPosition, int actionParameter) {
         this.extraActions = true;
