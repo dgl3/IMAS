@@ -13,8 +13,8 @@ import jade.core.AID;
 public class AgentAction implements java.io.Serializable {
     
     public AID agentAID;
-    
-    public int nextPosition[];
+
+    public int nextPosition[]; // 0=Row, 1=Col
     
     public boolean extraActions;
     

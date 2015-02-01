@@ -5,7 +5,6 @@
  */
 package cat.urv.imas.agent;
 
-import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
@@ -15,12 +14,8 @@ import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
-import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -29,17 +24,6 @@ import jade.lang.acl.ACLMessage;
  */
 public class FiremanAgent extends IMASVehicleAgent{
 
-    
-    /**
-     * Goal (extinguish) building in Fire cell.
-     */
-    private Cell extinguishCell;
-    
-    /**
-     * Fireman-Coordinator agent id.
-     */
-    private AID firemanCoordinatorAgent;
-    
     public FiremanAgent() {
         super(AgentType.FIREMAN);
     }
@@ -49,16 +33,12 @@ public class FiremanAgent extends IMASVehicleAgent{
         registerToDF();
         
         ServiceDescription searchCriterion = new ServiceDescription();
-        //searchCriterion.setType(AgentType.COORDINATOR.toString());
-        //this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
-        
         searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
-        this.firemanCoordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
-        
+        setParent(UtilsAgents.searchAgent(this, searchCriterion));
+
         notifyFiremanCoordinatorAgentOfCreation();
         
         addBehaviour( newListenerBehaviour() );
-        
     }
 
     /**
@@ -67,9 +47,9 @@ public class FiremanAgent extends IMASVehicleAgent{
      */
     private void notifyFiremanCoordinatorAgentOfCreation() {
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
-        creationNotificationMsg.addReceiver(this.firemanCoordinatorAgent);
+        creationNotificationMsg.addReceiver(getParent());
         send(creationNotificationMsg);
-        extinguishCell = null;
+        setTargetCell( null );
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -97,7 +77,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                     }
                 }   
                 block();
-            };
+            }
         };
     }
     
@@ -109,7 +89,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
                 //TODO: set extinguish goal
-                extinguishCell = offer.getCell();
+                setTargetCell(offer.getCell());
                 //Action related to added pending task...
                 actionTask();
                 break;
@@ -125,7 +105,7 @@ public class FiremanAgent extends IMASVehicleAgent{
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                if(extinguishCell==null){
+                if(getTargetCell()==null){
                     dummyTask();
                 }else{
                     actionTask();
@@ -142,11 +122,10 @@ public class FiremanAgent extends IMASVehicleAgent{
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
-                sendGameUpdateConfirmation(firemanCoordinatorAgent);
-                log("Game updated");
+                sendGameUpdateConfirmation(getParent());
                 updatePosition();
                 if(getGame().getNewFire()==null){
-                    if(extinguishCell!=null){
+                    if(getTargetCell()!=null){
                         actionTask();
                     }else{
                         dummyTask();
@@ -165,7 +144,7 @@ public class FiremanAgent extends IMASVehicleAgent{
             case MessageContent.FIRMEN_CONTRACTNET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
-                if(extinguishCell==null){
+                if(getTargetCell()==null){
                     distanceBid = studyDistance(offer.getCell());
                 }
                 offer.reply(this, distanceBid);
@@ -180,9 +159,7 @@ public class FiremanAgent extends IMASVehicleAgent{
     private int studyDistance(Cell buildingFire) {
         //study distance through graph
         Graph graph = getGame().getGraph();
-        log("Studying path... CurrentPosition: "+getCurrentPosition().toString()+" BuilldingOnFire: "+buildingFire.toString());
         Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire);
-        log("Path studied!");
         if(path==null){
             return -1;
         }else{
@@ -190,25 +167,17 @@ public class FiremanAgent extends IMASVehicleAgent{
         }
     }
 
-    public void endTurn(AgentAction nextAction) {
-        ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
-        send(actionInfo);
-    }
-
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), extinguishCell);
+        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), getTargetCell());
         if(path.getDistance()==0){//ACTION
             AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
-            nextAction.setAction(extinguishCell, 1);
+            nextAction.setAction(getTargetCell(), 1);
             endTurn(nextAction);
-            errorLog("Extinguishing...");
-            int row = extinguishCell.getRow();
-            int col = extinguishCell.getCol();
+            int row = getTargetCell().getRow();
+            int col = getTargetCell().getCol();
             int burned = ((BuildingCell)getGame().get(row, col)).getBurnedRatio();
-            errorLog("Cell: ["+((BuildingCell)extinguishCell).getRow()+"]["+((BuildingCell)extinguishCell).getCol()+"] of type ("+((BuildingCell)extinguishCell).getCellType().name()+")Burned Ratio: "+burned);
             if(burned<10){
-                errorLog("I'M DONE OF EXTINGUISHING!!!");
-                extinguishCell = null;
+                setTargetCell(null);
                 //TODO: consider also moving since the world-norms dictate agents can action+movement
                 //Here it is supposse that agent will do his last extinguish action and have a free movement...
                 //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
@@ -216,7 +185,6 @@ public class FiremanAgent extends IMASVehicleAgent{
         }else{//MOVING
             AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
             endTurn(nextAction);
-            errorLog("Moving...");
         }
     }
 

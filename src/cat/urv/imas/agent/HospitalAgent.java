@@ -7,6 +7,7 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.Offer;
+import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.map.Cell;
@@ -148,7 +149,6 @@ public class HospitalAgent extends ImasAgent{
         switch( content.getKey() ) {
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
-                log("Game updated");
                 updatePosition();
                 updateRecoveryTime();
                 updateMaxCapacity();
@@ -184,18 +184,16 @@ public class HospitalAgent extends ImasAgent{
      * Updates the new current position from the game settings
      */
     public void updatePosition() {
-        int hospitalNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
+        int hospitalNumber = AIDUtil.getLocalId( getAID() );
         this.currentPosition = this.game.getAgentList().get(AgentType.HOSPITAL).get(hospitalNumber);
-        log("Position updated: " + this.currentPosition.getRow() + "," + this.currentPosition.getCol() + "");
     }
     
     /**
      * Updates the maximum capacity of the hospital from the game settings
      */
     public void updateMaxCapacity() {
-        int hospitalNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
+        int hospitalNumber = AIDUtil.getLocalId(getAID());
         this.hospitalMaxCapacity = this.game.getHospitalCapacities()[hospitalNumber];
-        log("Maximum capacity set at: " + this.hospitalMaxCapacity);
     }
     
     /**
@@ -203,6 +201,5 @@ public class HospitalAgent extends ImasAgent{
      */
     public void updateRecoveryTime() {
         this.recoveryTime = this.game.getStepsToHealth();
-        log("Recovery time updated: " + this.recoveryTime);
     }
 }

@@ -12,7 +12,7 @@ import java.util.Random;
  *
  * Not Really an agent
  */
-public class PrivateVehicleAgent {
+public class PrivateVehicle {
     /**
      * Private vehicle current position
      */
@@ -38,7 +38,7 @@ public class PrivateVehicleAgent {
      */
     private GameSettings game;
     
-    PrivateVehicleAgent(String name, Cell currentPosition, Random RNG, GameSettings game) {
+    PrivateVehicle(String name, Cell currentPosition, Random RNG, GameSettings game) {
         this.localName = name;
         this.currentPosition = currentPosition;
         this.previousPosition = currentPosition;

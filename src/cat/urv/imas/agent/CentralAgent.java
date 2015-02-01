@@ -20,7 +20,6 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.behaviour.central.InformBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.gui.ControlWindow;
@@ -37,12 +36,9 @@ import cat.urv.imas.statistics.FireStatistics;
 import cat.urv.imas.statistics.GameStatistics;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -117,7 +113,7 @@ public class CentralAgent extends ImasAgent {
     /**
      * List of private vehicles
      */
-    private List<PrivateVehicleAgent> privateVehicles;
+    private List<PrivateVehicle> privateVehicles;
 
     /**
      * A message is shown in the log area of the GUI, as well as in the 
@@ -201,7 +197,7 @@ public class CentralAgent extends ImasAgent {
                     break;
                 case "PRIVATE_VEHICLE":  
                     for (int i=0;i<entry.getValue().size();i++) {
-                        this.privateVehicles.add(new PrivateVehicleAgent("private" + i, entry.getValue().get(i), this.RNG, this.game));
+                        this.privateVehicles.add(new PrivateVehicle("private" + i, entry.getValue().get(i), this.RNG, this.game));
                     }
                     break;
                 case "FIREMAN":
@@ -506,7 +502,7 @@ public class CentralAgent extends ImasAgent {
         
         List<Cell> privateVehiclesMovements = new ArrayList<>();
         
-        for (PrivateVehicleAgent pv : this.privateVehicles) {
+        for (PrivateVehicle pv : this.privateVehicles) {
             privateVehiclesMovements.add(pv.makeNewMovement(currentMap));
         }
         

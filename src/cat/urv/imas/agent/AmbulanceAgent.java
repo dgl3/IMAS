@@ -42,10 +42,6 @@ public class AmbulanceAgent extends IMASVehicleAgent {
      */
     private Cell rescueCell;
 
-    /**
-     * Coordinator agent id.
-     */
-    private AID hospitalCoordinatorAgent;
     
     public AmbulanceAgent() {
         super(AgentType.AMBULANCE);
@@ -58,8 +54,8 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         ServiceDescription searchCriterion = new ServiceDescription();
 
         searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
-        this.hospitalCoordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
-        
+        setParent(UtilsAgents.searchAgent(this, searchCriterion));
+
         notifyHospitalCoordinatorAgentOfCreation();
         
         addBehaviour( newListenerBehaviour() );
@@ -67,7 +63,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     
     private void notifyHospitalCoordinatorAgentOfCreation() {
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
-        creationNotificationMsg.addReceiver(this.hospitalCoordinatorAgent);
+        creationNotificationMsg.addReceiver(getParent());
         send(creationNotificationMsg);
 
         System.out.println(getLocalName() + " sent subscription request.");
@@ -159,9 +155,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private int studyDistance(Cell buildingFire) {
         //study distance through graph
         Graph graph = getGame().getGraph();
-        log("Studying path... CurrentPosition: "+getCurrentPosition().toString()+" BuilldingOnFire: "+buildingFire.toString());
         Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire);
-        log("Path studied!");
         if(path==null){
             return -1;
         }else{
@@ -180,7 +174,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 break;
             case MessageContent.SEND_GAME:
                 manageSendGame((GameSettings) content.getValue());
-                sendGameUpdateConfirmation(hospitalCoordinatorAgent);
+                sendGameUpdateConfirmation(getParent());
                 performNextMove();
                 break;
             default:
@@ -215,7 +209,6 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
     private void manageSendGame(GameSettings gameSettings) {
         setGame(gameSettings);
-        log("Game updated");
         updatePosition();
         updateLoadingSpeed();
         updateAmbulanceCapacity();
@@ -234,13 +227,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     public void updateAmbulanceCapacity() {
         this.ambulanceCapacity = getGame().getPeoplePerAmbulance();
     }
-    
-    public void endTurn(AgentAction nextAction) {
-        ACLMessage msg = MessageCreator.createInform(hospitalCoordinatorAgent, MessageContent.END_TURN, nextAction);
-        errorLog("Ambulance has sent his next action to the hospitalCoordinator!");
-        send(msg);
-    }
-    
+
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), rescueCell);
         if(path.getDistance()==0){//ACTION

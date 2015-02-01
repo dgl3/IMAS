@@ -43,9 +43,9 @@ import java.util.logging.Logger;
 public class IMASVehicleAgent extends ImasAgent {
 
     /**
-     * Current agent position
+     * Last action sent to the parent
      */
-    private Cell lastPosition;
+    private AgentAction lastAction;
 
     /**
      * Current agent position
@@ -63,6 +63,11 @@ public class IMASVehicleAgent extends ImasAgent {
     private Cell targetCell;
 
     /**
+     * Agent this one reports to
+     */
+    private AID parent;
+
+    /**
      * Creates the agent.
      *
      * @param type type of agent to set.
@@ -71,17 +76,32 @@ public class IMASVehicleAgent extends ImasAgent {
         super(type);
     }
 
+    public void endTurn(AgentAction nextAction) {
+        if( inCollision() ){
+            AgentType agentType = getVehicleTypeOfCollision();
+            errorLog("GET OUT OF MY WAY!");
+            errorLog("Colliding with: " + agentType);
+
+
+            ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, nextAction);
+            send(msg);
+        }else {
+            lastAction = nextAction;
+            ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, nextAction);
+            send(msg);
+        }
+    }
+
+    private AgentType getVehicleTypeOfCollision() {
+        return AgentType.PRIVATE_VEHICLE;
+    }
+
     /**
      * Updates the new current position from the game settings
      */
     public void updatePosition() {
         int ambulanceNumber = AIDUtil.getLocalId(this.getAID());
-        setLastPosition( getCurrentPosition() );
         setCurrentPosition(getGame().getAgentList().get(getType()).get(ambulanceNumber));
-
-        if( currentPosition.equals(lastPosition) ){
-            System.err.println("GET OUT OF MY WAY!!!");
-        }
     }
 
     public Cell getCurrentPosition() {
@@ -108,11 +128,22 @@ public class IMASVehicleAgent extends ImasAgent {
         this.targetCell = targetCell;
     }
 
-    public Cell getLastPosition() {
-        return lastPosition;
+    public AID getParent() {
+        return parent;
     }
 
-    public void setLastPosition(Cell lastPosition) {
-        this.lastPosition = lastPosition;
+    public void setParent(AID parent) {
+        this.parent = parent;
+    }
+
+    private boolean inCollision(){
+        if(lastAction == null || lastAction.actionPosition == null || currentPosition == null) return false;
+
+        if( lastAction.actionPosition[0] == currentPosition.getRow()
+            && lastAction.actionPosition[1] == currentPosition.getCol() ){
+            return false;
+        }else {
+            return true;
+        }
     }
 }
