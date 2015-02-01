@@ -288,13 +288,15 @@ public class Graph implements Serializable{
         for(Cell cell: adjacentCells){
             if(!init.equals(cell)){
                 Path path = bfs(init, cell, 18);
-                if(optimumPath == null){
-                    optimumPath = path;
-                }else{
-                    if(path.getDistance() < optimumPath.getDistance()){
+                if (path != null){//No path with distance < 18
+                    if(optimumPath == null){
                         optimumPath = path;
-                    }
-                }                
+                    }else{
+                        if(path.getDistance() < optimumPath.getDistance()){
+                            optimumPath = path;
+                        }
+                    }        
+                }
             }else{
                 optimumPath = new Path(null,0);
             }

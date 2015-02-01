@@ -88,6 +88,22 @@ public class GraphTest {
     }
     
     @Test
+    public void strangeError3AffectingCells_14_17_and_16_11Test(){
+        Cell initialPoint = new StreetCell(14,17);
+        Cell finalPoint = new StreetCell(16,11);
+        Path path = graph.computeOptimumPath(initialPoint, finalPoint);
+        assertTrue(path == null);        
+    }
+    @Test
+    public void strangeError4AffectingCells_1_7_and_16_11Test(){
+        Cell initialPoint = new StreetCell(1,7);
+        Cell finalPoint = new StreetCell(16,11);
+        Path path = graph.computeOptimumPath(initialPoint, finalPoint);
+        assertTrue(path != null);   
+    }
+
+    
+    @Test
     public void testGetAdjacentCellsMethod(){
         //Should return only 1 adjacent cell        
         Cell targetCell = new BuildingCell(10,0,0);
