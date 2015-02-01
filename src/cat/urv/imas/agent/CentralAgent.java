@@ -106,6 +106,10 @@ public class CentralAgent extends ImasAgent {
      * GUI Controller for the central agent
      */
     private ControlWindow controllerWindow;
+    
+    /**
+     * 
+     */
 
     /**
      * Builds the Central agent.
@@ -157,6 +161,7 @@ public class CentralAgent extends ImasAgent {
      */
     @Override
     protected void setup() {
+        this.RNG = new Random((int)this.game.getSeed());
         
         /* ** Very Important Line (VIL) ************************************* */
         this.setEnabledO2ACommunication(true, 1);
@@ -246,7 +251,6 @@ public class CentralAgent extends ImasAgent {
         */
         this.in = new Scanner(System.in);
         this.activeFires = new ArrayList<>();
-        this.RNG = new Random((int)this.game.getSeed());
         
         this.statistics = new GameStatistics();
         
@@ -294,7 +298,11 @@ public class CentralAgent extends ImasAgent {
      * capable of moving
      */
     private void checkMovementCollisions(List<AgentAction> agentActions) {
-        // TODO: this will be a dummy method for now
+        //Map<String,Cell> currentPosition = new HashMap<>();
+        //for (Cell c :)
+        
+        
+        
         this.endTurn(agentActions);
     }
 
@@ -375,12 +383,19 @@ public class CentralAgent extends ImasAgent {
             case MessageContent.END_TURN:
                 List<AgentAction> finishedAgents = new ArrayList<>();
                 finishedAgents.addAll((List<AgentAction>) content.getValue());
+                movePrivateVehicles();
                 checkMovementCollisions(finishedAgents);
                 break;
             default:
                 log("Message Content not understood");
                 break;
         }
+    }
+    
+    private void movePrivateVehicles() {
+        Cell[][] currentMap = this.game.getMap();
+        
+        this.game.getAgentList().get(AgentType.PRIVATE_VEHICLE);
     }
     
     private Cell generateFire() {
@@ -531,5 +546,9 @@ public class CentralAgent extends ImasAgent {
 
     public void setControllerWindow(ControlWindow controllerWindow) {
         this.controllerWindow = controllerWindow;
+    }
+    
+    public int generateRandomNumber(int bound) {
+        return this.RNG.nextInt(bound);
     }
 }
