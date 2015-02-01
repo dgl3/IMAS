@@ -180,9 +180,6 @@ public class CoordinatorAgent extends ImasAgent {
                         case ACLMessage.CONFIRM:
                             handleConfirm(msg);
                             break;
-                        case ACLMessage.REJECT_PROPOSAL:
-                            handleRejectProposal(msg);
-                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -229,36 +226,14 @@ public class CoordinatorAgent extends ImasAgent {
                 } else {
                     finishedAmbulanceAgents.addAll((List<AgentAction>) content.getValue());
                 }
-                // TODO: This is not reliable enough, look for another way
+
                 if (!finishedFiremanAgents.isEmpty() && !finishedAmbulanceAgents.isEmpty()) {
                     endTurn();
                 }
                 break;
-            case MessageContent.FIRMEN_CONTRACTNET:
-                //TODO: Notification of contract net winner, dunno if its important
-                break;
             default:
                 log("Unsupported message");
                 break;
-        }
-    }
-    
-    /**
-     * Handle new incoming REJECT_PROPOSAL message
-     */
-    private void handleRejectProposal(ACLMessage msg) {
-        CoordinatorAgent agent = this;
-        Map<String,Object> contentObject;
-        try {
-            contentObject = (Map<String,Object>) msg.getContentObject();
-            String content = contentObject.keySet().iterator().next();
-            switch(content) {
-                case MessageContent.SEND_GAME://TODO: What kind of content will have reject proposal from fireman coordinator
-                    // send proposal
-                    break;
-            }
-        } catch (UnreadableException ex) {
-            Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
