@@ -22,6 +22,10 @@ import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 
@@ -38,7 +42,7 @@ public class ImasAgent extends Agent {
     /**
      * Type of this agent.
      */
-    protected AgentType type;
+    private AgentType type;
     
     /**
      * Agents' owner.
@@ -114,5 +118,35 @@ public class ImasAgent extends Agent {
     protected void sendGameUpdateConfirmation(AID parent) {
         ACLMessage gameUpdateConfirmationMsg = MessageCreator.createConfirm(parent, MessageContent.SEND_GAME, null);
         send(gameUpdateConfirmationMsg);
+    }
+
+    /**
+     * Setup which all agents have to perform
+     */
+    protected void registerToDF() {
+        /* ** Very Important Line (VIL) ***************************************/
+        this.setEnabledO2ACommunication(true, 1);
+        /* ********************************************************************/
+
+        // Register the agent to the DF
+        ServiceDescription sd1 = new ServiceDescription();
+        sd1.setType(type.toString());
+        sd1.setName(getLocalName());
+        sd1.setOwnership(OWNER);
+
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.addServices(sd1);
+        dfd.setName(getAID());
+        try {
+            DFService.register(this, dfd);
+            log("Registered to the DF");
+        } catch (FIPAException e) {
+            System.err.println(getLocalName() + " registration with DF was not successful. Reason: " + e.getMessage());
+            doDelete();
+        }
+    }
+
+    public void setType(AgentType type) {
+        this.type = type;
     }
 }

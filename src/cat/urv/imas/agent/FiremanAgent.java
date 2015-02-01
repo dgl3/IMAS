@@ -56,26 +56,7 @@ public class FiremanAgent extends ImasAgent{
     
     @Override
     protected void setup() {
-        /* ** Very Important Line (VIL) ***************************************/
-        this.setEnabledO2ACommunication(true, 1);
-        /* ********************************************************************/
-
-        // Register the agent to the DF
-        ServiceDescription sd1 = new ServiceDescription();
-        sd1.setType(AgentType.FIREMAN.toString());
-        sd1.setName(getLocalName());
-        sd1.setOwnership(OWNER);
-        
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.addServices(sd1);
-        dfd.setName(getAID());
-        try {
-            DFService.register(this, dfd);
-            log("Registered to the DF");
-        } catch (FIPAException e) {
-            System.err.println(getLocalName() + " registration with DF unsucceeded. Reason: " + e.getMessage());
-            doDelete();
-        }
+        registerToDF();
         
         ServiceDescription searchCriterion = new ServiceDescription();
         //searchCriterion.setType(AgentType.COORDINATOR.toString());
