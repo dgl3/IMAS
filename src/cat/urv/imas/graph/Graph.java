@@ -359,13 +359,17 @@ public class Graph implements Serializable{
         List<Cell> adjacentCells = getAdjacentCells(target);
         Path optimumPath = null;
         for(Cell cell: adjacentCells){
-            Path path = bfs(init, cell, Integer.MAX_VALUE);
-            if(optimumPath == null){
-                optimumPath = path;
-            }else{
-                if(path.getDistance() < optimumPath.getDistance()){
+            if(!init.equals(cell)){
+                Path path = bfs(init, cell, Integer.MAX_VALUE);
+                if(optimumPath == null){
                     optimumPath = path;
-                }
+                }else{
+                    if(path.getDistance() < optimumPath.getDistance()){
+                        optimumPath = path;
+                    }
+                }                            
+            }else{
+                optimumPath = new Path(null,0);                
             }
         }
         return optimumPath;

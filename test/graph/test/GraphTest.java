@@ -33,7 +33,7 @@ public class GraphTest {
     }
     
     @Test
-    public void testGetNodes(){
+    public void getNodesTest(){
         /**
          * StreetCell (2,2) has 4 neighbours
          */
@@ -43,7 +43,7 @@ public class GraphTest {
     }
     
     @Test
-    public void testBFS1(){
+    public void BFS1Test(){
         //(1,2) a (6,2), path should be equal to [(1,2),(2,2),(3,2),(4,2),(5,2),(6,2)]
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(6,2);
@@ -52,7 +52,7 @@ public class GraphTest {
     }
     
     @Test
-    public void testBFS2(){
+    public void BFS2Test(){
         /**(1,2) a (3,9), size path = 10  **/
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(3,9);
@@ -62,7 +62,7 @@ public class GraphTest {
     
     
     @Test
-    public void testBFS3(){ //Should return null
+    public void BFS3Test(){ //Should return null
         Cell initialPoint = new StreetCell(1,2);
         Cell finalPoint = new StreetCell(15,9);
         Path path = graph.bfs(initialPoint, finalPoint, 18);
@@ -104,7 +104,7 @@ public class GraphTest {
 
     
     @Test
-    public void testGetAdjacentCellsMethod(){
+    public void getAdjacentCellsMethodTest(){
         //Should return only 1 adjacent cell        
         Cell targetCell = new BuildingCell(10,0,0);
         List<Cell> adjacentCells = graph.getAdjacentCells(targetCell);
@@ -128,12 +128,23 @@ public class GraphTest {
     }
     
     @Test
-    public void testComputeOptimumPathMethod(){
+    public void computeOptimumPathMethodTest(){
         Cell initialPoint = new StreetCell(1,2);
         Cell targetCell = new BuildingCell(10,3,3);
         Path path = graph.computeOptimumPath(initialPoint, targetCell);
         assertTrue(path.getDistance() == 1);
+    }
+    
+    @Test
+    public void computeOptimumPathWithRestrictionsMethodTest(){
+        Cell initialPoint = new StreetCell(1,1);
+        Cell targetCell = new BuildingCell(0,5,3);
+        Cell restrictedCell = new StreetCell(1,2);
+        Path path = graph.computeOptimumPathWithRestrictions(initialPoint, targetCell, restrictedCell);
+        assertNotNull(path);
+        assertTrue(!path.getPath().contains(new Node(restrictedCell)));
 
+        
     }
 
 }
