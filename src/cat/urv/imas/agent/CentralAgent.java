@@ -101,6 +101,10 @@ public class CentralAgent extends ImasAgent {
      * GUI Controller for the central agent
      */
     private ControlWindow controllerWindow;
+    
+    /**
+     * Indicates if the game is running by itself
+     */
     private boolean autoPlay;
 
     /**
@@ -181,6 +185,8 @@ public class CentralAgent extends ImasAgent {
         this.game.updateGraph(graph);
         log("Initial configuration settings loaded");
         
+        this.RNG = new Random((int)this.game.getSeed());
+        
         
         // 3. Load GUI
         try {
@@ -242,7 +248,6 @@ public class CentralAgent extends ImasAgent {
         */
         this.in = new Scanner(System.in);
         this.activeFires = new ArrayList<>();
-        this.RNG = new Random((int)this.game.getSeed());
         
         this.statistics = new GameStatistics();
         
@@ -287,6 +292,7 @@ public class CentralAgent extends ImasAgent {
      * Method for the central agent to check for collisions on any of the agents
      * capable of moving
      */
+
     private void checkMovementCollisions(Collection<AgentAction> agentActions) {
         // TODO: this will be a dummy method for now
     }
@@ -364,7 +370,9 @@ public class CentralAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.END_TURN:
+
                 Collection<AgentAction> finishedAgents = Collections.unmodifiableCollection((List<AgentAction>)content.getValue());
+                movePrivateVehicles();
                 checkMovementCollisions(finishedAgents);
                 endTurn(finishedAgents);
                 break;
@@ -372,6 +380,12 @@ public class CentralAgent extends ImasAgent {
                 log("Message Content not understood");
                 break;
         }
+    }
+    
+    private void movePrivateVehicles() {
+        Cell[][] currentMap = this.game.getMap();
+        
+        this.game.getAgentList().get(AgentType.PRIVATE_VEHICLE);
     }
     
     private Cell generateFire() {
@@ -524,6 +538,10 @@ public class CentralAgent extends ImasAgent {
         this.controllerWindow = controllerWindow;
     }
 
+    public int generateRandomNumber(int bound) {
+        return this.RNG.nextInt(bound);
+    }
+
     public void setAutoPlay(boolean autoPlay) {
         this.autoPlay = autoPlay;
         newTurn();
@@ -531,5 +549,9 @@ public class CentralAgent extends ImasAgent {
 
     public boolean isAutoPlay() {
         return autoPlay;
+    }
+
+    public boolean isReadyForNextTurn() {
+        return readyForNextTurn;
     }
 }

@@ -22,6 +22,7 @@ import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.HospitalCell;
+import cat.urv.imas.map.StreetCell;
 import java.util.ArrayList;
 import static java.util.Collections.list;
 import java.util.List;
@@ -373,5 +374,26 @@ public class GameSettings implements java.io.Serializable {
             HospitalCell hc = (HospitalCell)c;
             hc.newTurn();
         }
+    }
+    
+    public Boolean isEmptyStreet(Cell street) {
+        if (street instanceof StreetCell) {
+            for (Cell c : this.agentList.get(AgentType.AMBULANCE)) {
+                if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+                    return false;
+                }
+            }
+            for (Cell c : this.agentList.get(AgentType.FIREMAN)) {
+                if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+                    return false;
+                }
+            }
+            for (Cell c : this.agentList.get(AgentType.PRIVATE_VEHICLE)) {
+                if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
