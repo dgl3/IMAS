@@ -154,7 +154,7 @@ public class FiremanAgent extends ImasAgent{
                 actionTask();
                 break;
             default:
-                log("Unsupported message");
+                log("Accept Proposal Message Content not understood");
                 break;
         }
     }
@@ -187,8 +187,9 @@ public class FiremanAgent extends ImasAgent{
                         dummyTask();
                     }
                 }
+                break;
             default:
-                log("Message Content not understood");
+                log("Inform Message Content not understood: " + content.getKey());
                 break;
         }
     }
@@ -204,12 +205,19 @@ public class FiremanAgent extends ImasAgent{
                 }
                 offer.reply(this, distanceBid);
                 break;
+            default:
+                log("CFP Message Content not understood");
+                break;
+                
         }
     }    
     
     private int studyDistance(Cell buildingFire) {
         //study distance through graph
         Graph graph = game.getGraph();
+        if(graph==null){
+            errorLog("Graph is null!!!!!");
+        }
         log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
         log("Path studied!");
@@ -268,7 +276,8 @@ public class FiremanAgent extends ImasAgent{
             nextAction.setAction(actionPosition, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
-            if(((BuildingCell)extinguishCell).getBurnedRatio()==5){
+            if(((BuildingCell)extinguishCell).getBurnedRatio()<10){
+                errorLog("I'M DONE OF EXTINGUISHING!!!");
                 extinguishCell = null;
                 //TODO: consider also moving since the world-norms dictate agents can action+movement
                 //Here it is supposse that agent will do his last extinguish action and have a free movement...

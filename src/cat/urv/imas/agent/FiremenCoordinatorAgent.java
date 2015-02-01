@@ -174,7 +174,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                log("Bid recieved from agent "+msg.getSender().getName());
                 contractor.takeBid(msg.getSender(), (Bid) content.getValue());
                 break;
             default:
@@ -206,7 +205,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
             case MessageContent.END_TURN:
                 finishedFiremanAgents.add((AgentAction) content.getValue());
                 // TODO: This is not reliable enough, look for another way
-                errorLog("Reciving actions... size is "+finishedFiremanAgents.size()+" / "+firemenAgents.size());
                 if (finishedFiremanAgents.size() == firemenAgents.size()){
                     endTurn();
                 }
@@ -225,7 +223,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         // If game information is set, send it to the subscriber
         if (getGame() != null) {
             pendingGameUpdateConfirmations.add(msg.getSender());
-            ACLMessage gameInformRequest = MessageCreator.createMessage(ACLMessage.INFORM, msg.getSender(), MessageContent.SEND_GAME, this.game);
+            ACLMessage gameInformRequest = MessageCreator.createInform(msg.getSender(), MessageContent.SEND_GAME, this.game);
             send(gameInformRequest);
         }
     }
