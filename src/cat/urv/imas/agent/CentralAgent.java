@@ -550,4 +550,8 @@ public class CentralAgent extends ImasAgent {
     public boolean isAutoPlay() {
         return autoPlay;
     }
+
+    public boolean isReadyForNextTurn() {
+        return readyForNextTurn;
+    }
 }

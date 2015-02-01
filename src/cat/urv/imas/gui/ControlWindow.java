@@ -37,6 +37,7 @@ public class ControlWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (centralAgent.isAutoPlay()) {
                     autoPlayBtn.setText("Play");
+                    autoPlayBtn.setEnabled(centralAgent.isReadyForNextTurn());
                     centralAgent.setAutoPlay(false);
                 } else {
                     autoPlayBtn.setText("Pause");
