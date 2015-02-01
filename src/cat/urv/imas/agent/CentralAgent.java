@@ -681,7 +681,6 @@ public class CentralAgent extends ImasAgent {
                     sc.removeAgent();
                 }
                 sc.addAgent(new InfoAgent(AgentType.PRIVATE_VEHICLE, null));
-                log("BBBBBBBBBBBBBBBBBBBBBBBBBBBB");
                 this.privateVehicles.get(i).updateCurrentPosition(c);
                 // TODO
             } catch (Exception ex) {
