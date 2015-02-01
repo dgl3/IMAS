@@ -159,9 +159,20 @@ public class AmbulanceAgent extends ImasAgent{
                 sendGameUpdateConfirmation(hospitalCoordinatorAgent);
 
                 if( targetCell != null ) {
+
                     Path path = game.getGraph().computeOptimumPathUnconstrained(currentPosition, targetCell);
-                    AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath() );
-                    endTurn(agentAction);
+                    if (path.getDistance() > 0){
+                        // Move towards the hospital
+                        AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath());
+                        endTurn(agentAction);
+                    }else{
+                        // Drop Injured People
+                        AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
+
+                        int currentLoad = game.getAmbulanceCurrentLoad( AIDUtil.getLocalId(getAID()) );
+                        agentAction.setAction(targetCell, currentLoad);
+                        endTurn(agentAction);
+                    }
                 }else{
                     // Move to itself --> No move..
                     AgentAction nextAction = new AgentAction(this.getAID(), getCurrentPosition());

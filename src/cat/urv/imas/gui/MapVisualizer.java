@@ -211,7 +211,13 @@ public class MapVisualizer extends JPanel implements CellVisualizer {
 
     @Override
     public void drawBuilding(BuildingCell cell) {
-        drawCell(Color.CYAN.darker(), Color.DARK_GRAY);
+        if(cell.getBurnedRatio() == 0) {
+            drawCell(Color.CYAN.darker(), Color.DARK_GRAY);
+        }else if (cell.getBurnedRatio() >= 100){
+            drawCell(Color.DARK_GRAY.darker(), Color.DARK_GRAY);
+        }else{
+            drawCell(Color.ORANGE.darker(), Color.DARK_GRAY);
+        }
         drawString(cell.getMapMessage(), Color.WHITE, dx - 40, dy);
     }
 
