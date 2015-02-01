@@ -17,7 +17,7 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.agent.communication.contractnet.Offer;
+import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.coordinator.InformBehaviour;
@@ -234,7 +234,7 @@ public class CoordinatorAgent extends ImasAgent {
             case MessageContent.FIRMEN_CONTRACTNET:
                 if(content.getValue()==null){
                     //TODO: Say HospitalCoordinator to start ContractNet
-                    log("Starting ContractNet with ambulances...");
+                    sendProxy(hospitalCoordinator);
                 }else{
                     log("Firemen ContractNet successful!!!");
                 }

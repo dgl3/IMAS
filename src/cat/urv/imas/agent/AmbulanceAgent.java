@@ -6,12 +6,15 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.ambulance.InformBehaviour;
+import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Path;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -51,6 +54,11 @@ public class AmbulanceAgent extends ImasAgent{
      * Ambulance position
      */
     private Cell currentPosition;
+    
+    /**
+     * Goal (rescue people from) building in Fire cell.
+     */
+    private Cell rescueCell;
     
     /**
      * Game settings in use.
@@ -111,7 +119,7 @@ public class AmbulanceAgent extends ImasAgent{
         send(creationNotificationMsg);
 
         System.out.println(getLocalName() + " sent subscription request.");
-
+        rescueCell = null;
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -127,6 +135,12 @@ public class AmbulanceAgent extends ImasAgent{
                         case ACLMessage.INFORM:
                             handleInform(msg);
                             break;
+                        case ACLMessage.ACCEPT_PROPOSAL:
+                            handleAcceptProposal(msg);
+                            break;
+                        case ACLMessage.REJECT_PROPOSAL:
+                            handleRejectProposal(msg);
+                            break;
                         default:
                             log("Unsupported message received.");
                     }
@@ -135,11 +149,72 @@ public class AmbulanceAgent extends ImasAgent{
             };
         };
     }
+    
+    private void handleAcceptProposal(ACLMessage msg) {
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                ContractOffer offer = (ContractOffer) content.getValue();
+                ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
+                send(confirmation);
+                //TODO: set extinguish goal
+                rescueCell = offer.getCell();
+                //Action related to added pending task...
+                actionTask();
+                break;
+            default:
+                log("Accept Proposal Message Content not understood");
+                break;
+        }
+    }
+    
+    private void handleRejectProposal(ACLMessage msg) {
+        //This agent was no selected for the contract net --> actions possible
+        //nextAction <-- movement related to distribution
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                if(rescueCell==null){
+                    dummyTask();
+                }else{
+                    actionTask();
+                }
+                break;
+        }
+        //TODO: If there is a new fire I wait for the CFP and there agent will not bid if
+        //it can arrive or if he has an action, so here (when it is reject by the contractor)
+        //is dicriminating about which case was the reason to not bid.
+    }
 
     private void handleCFP(ACLMessage msg) {
         // TODO: For testing call this to let ambulance initiate auction.
-        ACLMessage proxy = MessageCreator.createProxy(hospitalCoordinatorAgent, MessageContent.AMBULANCE_AUCTION, null);
-        send(proxy);
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.AMBULANCES_CONTRACTNET:
+                ContractOffer offer = (ContractOffer)content.getValue();
+                int distanceBid = -1;
+                if(rescueCell==null){
+                    distanceBid = studyDistance(offer.getCell());
+                }
+                offer.reply(this, distanceBid);
+                break;
+            default:
+                log("CFP Message Content not understood");
+                break;
+        }
+    }
+    
+    private int studyDistance(Cell buildingFire) {
+        //study distance through graph
+        Graph graph = game.getGraph();
+        log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
+        Path path = graph.computeOptimumPath(currentPosition, buildingFire);
+        log("Path studied!");
+        if(path==null){
+            return -1;
+        }else{
+            return path.getDistance();
+        }
     }
 
     private void handleInform(ACLMessage msg) {
@@ -244,4 +319,35 @@ public class AmbulanceAgent extends ImasAgent{
         errorLog("Ambulance has sent his next action to the hospitalCoordinator!");
         send(msg);
     }
+    
+    private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        Path path = game.getGraph().computeOptimumPath(currentPosition, rescueCell);
+        if(path.getDistance()==0){//ACTION
+            AgentAction nextAction = new AgentAction(getAID(), currentPosition);
+            nextAction.setAction(rescueCell, 1);
+            endTurn(nextAction);
+            errorLog("Extinguishing...");
+            int row = rescueCell.getRow();
+            int col = rescueCell.getCol();
+            int burned = ((BuildingCell)game.get(row, col)).getBurnedRatio();
+            errorLog("Cell: ["+((BuildingCell)rescueCell).getRow()+"]["+((BuildingCell)rescueCell).getCol()+"] of type ("+((BuildingCell)rescueCell).getCellType().name()+")Burned Ratio: "+burned);
+            if(burned<10){
+                errorLog("I'M DONE OF EXTINGUISHING!!!");
+                rescueCell = null;
+                //TODO: consider also moving since the world-norms dictate agents can action+movement
+                //Here it is supposse that agent will do his last extinguish action and have a free movement...
+                //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
+            }
+        }else{//MOVING
+            AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+            endTurn(nextAction);
+            errorLog("Moving...");
+        }
+    }
+
+    private void dummyTask() {
+        AgentAction nextAction = new AgentAction(getAID(), currentPosition);
+        endTurn(nextAction);
+    }
+    
 }

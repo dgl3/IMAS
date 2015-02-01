@@ -59,7 +59,7 @@ public class MessageContent {
     public static final String REJECT_CONTRACTNET = "Reject Contract Net";
     
     /**
-     * Message sent to reject the proposal of starting a contract net
+     * Message related to Firemen ContractNet
      */
     public static final String FIRMEN_CONTRACTNET = "Firemen Contract Net";
     
@@ -72,5 +72,11 @@ public class MessageContent {
      * Message sent for bidding into the ContractNet
      */
     public static final String BID_CONTRACTNET = "Proposal Contract Net";
+    
+    /**
+     * Message related to Ambulances ContractNet
+     */
+    public static final String AMBULANCES_CONTRACTNET = "Ambulance Contract Net";
+    
 
 }

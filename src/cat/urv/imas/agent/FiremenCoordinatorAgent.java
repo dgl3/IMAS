@@ -5,9 +5,9 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.agent.communication.contractnet.Bid;
+import cat.urv.imas.agent.communication.contractnet.ContractBid;
 import cat.urv.imas.agent.communication.contractnet.ContractNetManager;
-import cat.urv.imas.agent.communication.contractnet.Offer;
+import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.onthology.GameSettings;
@@ -143,15 +143,23 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     }
     
     private void handleProxy(ACLMessage msg){
-        log("New Fire: "+game.getNewFire().toString());
-        contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(firemenAgents));
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                log("New Fire: "+game.getNewFire().toString());
+                contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(firemenAgents));
+                break;
+            default:
+                log("Unsupported message");
+                break;
+        }
     }
     
     private void handleConfirm(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                contractor.confirmAction(msg.getSender(), (Offer) content.getValue());
+                contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
                 break;
             case MessageContent.SEND_GAME:
                 boolean wasRemoved = pendingGameUpdateConfirmations.remove(msg.getSender());
@@ -174,7 +182,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                contractor.takeBid(msg.getSender(), (Bid) content.getValue());
+                contractor.takeBid(msg.getSender(), (ContractBid) content.getValue());
                 break;
             default:
                 log("Unsupported message");

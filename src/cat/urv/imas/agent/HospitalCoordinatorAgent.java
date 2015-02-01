@@ -9,9 +9,11 @@ import cat.urv.imas.agent.communication.auction.Bid;
 import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.auction.AuctionManager;
 import cat.urv.imas.agent.communication.auction.Offer;
+import cat.urv.imas.agent.communication.contractnet.ContractNetManager;
+import cat.urv.imas.agent.communication.contractnet.ContractBid;
+import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.behaviour.hospitalCoordinator.InformBehaviour;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -21,8 +23,6 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
-
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -45,6 +45,11 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
     private List<AID> hospitalAgents;
 
+    /**
+     * Class responsible of ContractNet management
+     */
+    private ContractNetManager contractor;
+    
     /**
      * Ambulance / Hospital Auction manager
      */
@@ -106,6 +111,8 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         finishedAmbulanceAgents = new ArrayList<>();
 
         auctionManager = new AuctionManager(this);
+        
+        contractor = new ContractNetManager(this);
 
         pendingGameUpdateConfirmations = new HashSet<>();
 
@@ -145,10 +152,13 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     }
 
     private void handleConfirm(ACLMessage msg) {
-        KeyValue<String, Offer> content = getMessageContent(msg);
+        KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
+            case MessageContent.AMBULANCES_CONTRACTNET:
+                contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
+                break;
             case MessageContent.AMBULANCE_AUCTION:
-                Offer offer = content.getValue();
+                Offer offer = (Offer) content.getValue();
                 auctionManager.confirmAction(msg.getSender(), offer);
                 break;
             case MessageContent.SEND_GAME:
@@ -174,6 +184,10 @@ public class HospitalCoordinatorAgent extends ImasAgent {
             case MessageContent.AMBULANCE_AUCTION:
                 handleStartHospitalAuction(msg.getSender());
                 break;
+            case MessageContent.AMBULANCES_CONTRACTNET:
+                log("New Fire(ambulances): "+game.getNewFire().toString());
+                contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(ambulanceAgents));
+                break;
             default:
                 log("Message Content not understood");
                 break;
@@ -181,11 +195,14 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     }
 
     private void handleProposal(ACLMessage msg) {
-        KeyValue<String, Bid> content = getMessageContent(msg);
+        KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
-                Bid bid = content.getValue();
+                Bid bid = (Bid) content.getValue();
                 auctionManager.takeBid(msg.getSender(), bid);
+                break;
+            case MessageContent.AMBULANCES_CONTRACTNET:
+                contractor.takeBid(msg.getSender(), (ContractBid) content.getValue());
                 break;
             default:
                 log("Message Content not understood");
@@ -291,7 +308,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     
     public void endTurn() {
         ACLMessage endTurnMsg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, finishedAmbulanceAgents);
-        this.finishedAmbulanceAgents = new ArrayList<>();
+        finishedAmbulanceAgents.clear();
         send(endTurnMsg);
     }
 }

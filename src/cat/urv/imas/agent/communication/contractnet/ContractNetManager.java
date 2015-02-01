@@ -50,12 +50,12 @@ public class ContractNetManager {
     private void startContractNet(ContractNet currentContractNet) {
         Collection<AID> participants = currentContractNet.getOutstandingBidders();
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
-        Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
+        ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
         ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CFP, participants, messageType, offer);
         contractor.send(bidRequestMsg);
     }
 
-    public void takeBid(AID sender, Bid bid) {
+    public void takeBid(AID sender, ContractBid bid) {
         if( bid.getAuctionID() == currentContractNet.getID() ) {
             currentContractNet.takeBid(sender, bid.getValue());
 
@@ -87,7 +87,7 @@ public class ContractNetManager {
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list.get(ContractNet.LOOSER), messageType, null);
         contractor.send(lostNotification);
         if(!list.get(ContractNet.WINNER).isEmpty()){
-            Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
+            ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
             ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(ContractNet.WINNER).get(0), messageType, offer);
             contractor.send(winNotification);
         }else{
@@ -95,7 +95,7 @@ public class ContractNetManager {
         }
     }
 
-    public void confirmAction(AID sender, Offer offer){
+    public void confirmAction(AID sender, ContractOffer offer){
         if( currentContractNet.readyForEvaluation()
             && currentContractNet.getWinner().get(ContractNet.WINNER).get(0).equals(sender)
             && offer.getContractNetID() == currentContractNet.getID() )

@@ -6,7 +6,7 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
-import cat.urv.imas.agent.communication.contractnet.Offer;
+import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.graph.Graph;
@@ -134,7 +134,7 @@ public class FiremanAgent extends ImasAgent{
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                Offer offer = (Offer) content.getValue();
+                ContractOffer offer = (ContractOffer) content.getValue();
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
                 //TODO: set extinguish goal
@@ -151,10 +151,15 @@ public class FiremanAgent extends ImasAgent{
     private void handleRejectProposal(ACLMessage msg) {
         //This agent was no selected for the contract net --> actions possible
         //nextAction <-- movement related to distribution
-        if(extinguishCell==null){
-            dummyTask();
-        }else{
-            actionTask();
+        KeyValue<String, Object> content = getMessageContent(msg);
+        switch(content.getKey()){
+            case MessageContent.FIRMEN_CONTRACTNET:
+                if(extinguishCell==null){
+                    dummyTask();
+                }else{
+                    actionTask();
+                }
+                break;
         }
         //TODO: If there is a new fire I wait for the CFP and there agent will not bid if
         //it can arrive or if he has an action, so here (when it is reject by the contractor)
@@ -187,7 +192,7 @@ public class FiremanAgent extends ImasAgent{
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                Offer offer = (Offer)content.getValue();
+                ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
                 if(extinguishCell==null){
                     distanceBid = studyDistance(offer.getCell());
