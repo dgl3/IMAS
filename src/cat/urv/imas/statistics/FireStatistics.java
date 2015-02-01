@@ -57,6 +57,8 @@ public class FireStatistics {
     }
     
     public void updateBurnedRatio(int burnedRatio, int turn, int peopleInBuilding) {
+        System.out.println("BURNED");
+        System.out.println(""+burnedRatio);
         if (this.burnPercentage > burnedRatio) {
             this.burnPercentage = burnedRatio;
         }
