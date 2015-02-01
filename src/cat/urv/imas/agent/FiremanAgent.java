@@ -27,18 +27,8 @@ import jade.lang.acl.ACLMessage;
  *
  * @author Joan Mari
  */
-public class FiremanAgent extends ImasAgent{
-    
-    
-    /**
-     * Hospital position
-     */
-    private Cell currentPosition;
-    
-    /**
-     * Game settings in use.
-     */
-    private GameSettings game;
+public class FiremanAgent extends IMASVehicleAgent{
+
     
     /**
      * Goal (extinguish) building in Fire cell.
@@ -155,7 +145,7 @@ public class FiremanAgent extends ImasAgent{
                 sendGameUpdateConfirmation(firemanCoordinatorAgent);
                 log("Game updated");
                 updatePosition();
-                if(game.getNewFire()==null){
+                if(getGame().getNewFire()==null){
                     if(extinguishCell!=null){
                         actionTask();
                     }else{
@@ -189,9 +179,9 @@ public class FiremanAgent extends ImasAgent{
     
     private int studyDistance(Cell buildingFire) {
         //study distance through graph
-        Graph graph = game.getGraph();
-        log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
-        Path path = graph.computeOptimumPath(currentPosition, buildingFire);
+        Graph graph = getGame().getGraph();
+        log("Studying path... CurrentPosition: "+getCurrentPosition().toString()+" BuilldingOnFire: "+buildingFire.toString());
+        Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire);
         log("Path studied!");
         if(path==null){
             return -1;
@@ -199,51 +189,22 @@ public class FiremanAgent extends ImasAgent{
             return path.getDistance();
         }
     }
-    
-    
-    
-    /**
-     * Update the game settings.
-     *
-     * @param game current game settings.
-     */
-    public void setGame(GameSettings game) {
-        this.game = game;
-    }
 
-    /**
-     * Gets the current game settings.
-     *
-     * @return the current game settings.
-     */
-    public GameSettings getGame() {
-        return this.game;
-    }
-    
-    /**
-     * Updates the new current position from the game settings
-     */
-    public void updatePosition() {
-        //AID agentID;
-        int firemanNumber = Integer.valueOf(this.getLocalName().substring(this.getLocalName().length() - 1));
-        this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
-    }
-    
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
         send(actionInfo);
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
+        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), extinguishCell);
         if(path.getDistance()==0){//ACTION
-            AgentAction nextAction = new AgentAction(getAID(), currentPosition);
+            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             nextAction.setAction(extinguishCell, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
             int row = extinguishCell.getRow();
             int col = extinguishCell.getCol();
-            int burned = ((BuildingCell)game.get(row, col)).getBurnedRatio();
+            int burned = ((BuildingCell)getGame().get(row, col)).getBurnedRatio();
             errorLog("Cell: ["+((BuildingCell)extinguishCell).getRow()+"]["+((BuildingCell)extinguishCell).getCol()+"] of type ("+((BuildingCell)extinguishCell).getCellType().name()+")Burned Ratio: "+burned);
             if(burned<10){
                 errorLog("I'M DONE OF EXTINGUISHING!!!");
@@ -260,7 +221,7 @@ public class FiremanAgent extends ImasAgent{
     }
 
     private void dummyTask() {
-        AgentAction nextAction = new AgentAction(getAID(), currentPosition);
+        AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
         endTurn(nextAction);
     }
 }
