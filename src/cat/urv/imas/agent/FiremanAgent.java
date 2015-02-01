@@ -215,10 +215,10 @@ public class FiremanAgent extends ImasAgent{
     private int studyDistance(Cell buildingFire) {
         //study distance through graph
         Graph graph = game.getGraph();
+        log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
         if(graph==null){
             errorLog("Graph is null!!!!!");
         }
-        log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
         log("Path studied!");
         if(path==null){
@@ -268,8 +268,7 @@ public class FiremanAgent extends ImasAgent{
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
-        if(path.getDistance()==0){
-            //actioning
+        if(path.getDistance()==0){//ACTION
             int actualPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
             int actionPosition[] = {extinguishCell.getRow(),extinguishCell.getCol()};
             AgentAction nextAction = new AgentAction(getAID(), actualPosition);
@@ -283,8 +282,7 @@ public class FiremanAgent extends ImasAgent{
                 //Here it is supposse that agent will do his last extinguish action and have a free movement...
                 //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
             }
-        }else{
-            //moving
+        }else{//MOVING
             Cell nextCell =  path.getPath().get(0).getCell();
             int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
             AgentAction nextAction = new AgentAction(getAID(), nextPosition);
