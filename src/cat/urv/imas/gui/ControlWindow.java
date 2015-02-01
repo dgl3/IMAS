@@ -14,6 +14,7 @@ import java.awt.event.KeyEvent;
 public class ControlWindow extends JFrame {
     private final CentralAgent centralAgent;
     private final JButton nextStepBtn;
+    private final JButton autoPlayBtn;
 
     public ControlWindow(String title, CentralAgent parent) throws HeadlessException {
         super(title);
@@ -26,21 +27,28 @@ public class ControlWindow extends JFrame {
         nextStepBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                centralAgent.nextTurn();
+                centralAgent.newTurn();
             }
         });
-        nextStepBtn.setMnemonic(KeyEvent.VK_N);
 
-        JButton quitBtn = new JButton("Quit");
-        quitBtn.addActionListener(new ActionListener() {
+        autoPlayBtn = new JButton("Play");
+        autoPlayBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.exit(0);
+                if (centralAgent.isAutoPlay()) {
+                    autoPlayBtn.setText("Play");
+                    centralAgent.setAutoPlay(false);
+                } else {
+                    autoPlayBtn.setText("Pause");
+                    centralAgent.setAutoPlay(true);
+                }
+
             }
         });
 
+
         this.add(nextStepBtn);
-        //this.add(quitBtn);
+        this.add(autoPlayBtn);
 
         this.getRootPane().setDefaultButton(nextStepBtn);
         nextStepBtn.requestFocusInWindow();
@@ -49,5 +57,9 @@ public class ControlWindow extends JFrame {
 
     public void setReadyForNewTurn(boolean readyForNewTurn) {
         nextStepBtn.setEnabled(readyForNewTurn);
+
+        if( autoPlayBtn.getText().equals("Play") ){
+            autoPlayBtn.setEnabled(readyForNewTurn);
+        }
     }
 }
