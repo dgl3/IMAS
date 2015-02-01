@@ -257,10 +257,6 @@ public class FiremanAgent extends ImasAgent{
         this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
     }
     
-    public Cell getCurrentPosition() {
-        return this.currentPosition;
-    }
-    
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
         send(actionInfo);
@@ -269,11 +265,8 @@ public class FiremanAgent extends ImasAgent{
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
         if(path.getDistance()==0){
-            //actioning
-            int actualPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
-            int actionPosition[] = {extinguishCell.getRow(),extinguishCell.getCol()};
-            AgentAction nextAction = new AgentAction(getAID(), actualPosition);
-            nextAction.setAction(actionPosition, 1);
+            AgentAction nextAction = new AgentAction(getAID(), currentPosition);
+            nextAction.setAction(extinguishCell, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
             if(((BuildingCell)extinguishCell).getBurnedRatio()<10){
@@ -285,17 +278,14 @@ public class FiremanAgent extends ImasAgent{
             }
         }else{
             //moving
-            Cell nextCell =  path.getPath().get(0).getCell();
-            int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
-            AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+            AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
             endTurn(nextAction);
             errorLog("Moving...");
         }
     }
 
     private void dummyTask() {
-        int nextPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
-        AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+        AgentAction nextAction = new AgentAction(getAID(), currentPosition);
         endTurn(nextAction);
     }
 }

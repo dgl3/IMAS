@@ -6,6 +6,8 @@
 
 package cat.urv.imas.graph;
 
+import cat.urv.imas.map.Cell;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -35,6 +37,9 @@ public class Path implements Serializable{
         return path;
     }
 
+    public Cell getNextCellInPath(){
+        return path.get(0).getCell();
+    }
     public void setDistance(int distance) {
         this.distance = distance;
     }
