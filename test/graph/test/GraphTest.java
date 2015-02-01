@@ -83,7 +83,7 @@ public class GraphTest {
     public void strangeError2AffectingCells_2_18_and_3_17Test(){
         Cell initialPoint = new StreetCell(2,18);
         Cell finalPoint = new StreetCell(3,17);
-        Path path = graph.computeOptimumPath(initialPoint, finalPoint);
+        Path path = graph.computeOptimumPath(initialPoint, finalPoint,18);
         assertTrue(path != null);
     }
     
@@ -91,14 +91,14 @@ public class GraphTest {
     public void strangeError3AffectingCells_14_17_and_16_11Test(){
         Cell initialPoint = new StreetCell(14,17);
         Cell finalPoint = new StreetCell(16,11);
-        Path path = graph.computeOptimumPath(initialPoint, finalPoint);
+        Path path = graph.computeOptimumPath(initialPoint, finalPoint,18);
         assertTrue(path == null);        
     }
     @Test
     public void strangeError4AffectingCells_1_7_and_16_11Test(){
         Cell initialPoint = new StreetCell(1,7);
         Cell finalPoint = new StreetCell(16,11);
-        Path path = graph.computeOptimumPath(initialPoint, finalPoint);
+        Path path = graph.computeOptimumPath(initialPoint, finalPoint,18);
         assertTrue(path != null);   
     }
 
@@ -131,7 +131,7 @@ public class GraphTest {
     public void computeOptimumPathMethodTest(){
         Cell initialPoint = new StreetCell(1,2);
         Cell targetCell = new BuildingCell(10,3,3);
-        Path path = graph.computeOptimumPath(initialPoint, targetCell);
+        Path path = graph.computeOptimumPath(initialPoint, targetCell,18);
         assertTrue(path.getDistance() == 1);
     }
     

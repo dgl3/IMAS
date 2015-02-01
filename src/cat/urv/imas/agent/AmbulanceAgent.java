@@ -155,7 +155,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private int studyDistance(Cell buildingFire) {
         //study distance through graph
         Graph graph = getGame().getGraph();
-        Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire);
+        Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire,18);
         if(path==null){
             return -1;
         }else{
@@ -169,8 +169,8 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
                 AID targetHospital = (AID)content.getValue();
-                if( getTargetCell() != null ) throw new IllegalStateException("Can't send ambulance. Ambulance has already another target.");
-                setTargetCell( getGame().getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital)) );
+                if( !getTargetCell().isEmpty() ) throw new IllegalStateException("Can't send ambulance. Ambulance has already another target.");
+                addTargetCell( getGame().getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital)) );
                 break;
             case MessageContent.SEND_GAME:
                 manageSendGame((GameSettings) content.getValue());
@@ -185,9 +185,9 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     }
 
     private void performNextMove() {
-        if( getTargetCell() != null ) {
+        if( !getTargetCell().isEmpty() ) {
 
-            Path path = getGame().getGraph().computeOptimumPathUnconstrained(getCurrentPosition(), getTargetCell());
+            Path path = getGame().getGraph().computeOptimumPathUnconstrained(getCurrentPosition(), getCurrentTargetCell());
             if (path.getDistance() > 0){
                 // Move towards the hospital
                 AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath());
@@ -197,7 +197,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
 
                 int currentLoad = getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getAID()));
-                agentAction.setAction(getTargetCell(), currentLoad);
+                agentAction.setAction(getCurrentTargetCell(), currentLoad);
                 endTurn(agentAction);
             }
         }else{
@@ -229,7 +229,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), rescueCell);
+        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), rescueCell, 18);
         if(path.getDistance()==0){//ACTION
             AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             nextAction.setAction(rescueCell, 1);

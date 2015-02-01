@@ -31,6 +31,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -60,7 +62,7 @@ public class IMASVehicleAgent extends ImasAgent {
     /**
      * The cell the agent wants to move to.
      */
-    private Cell targetCell;
+    private List<Cell> targetCell;
 
     /**
      * Agent this one reports to
@@ -74,6 +76,7 @@ public class IMASVehicleAgent extends ImasAgent {
      */
     public IMASVehicleAgent(AgentType type) {
         super(type);
+        targetCell = new ArrayList<>();
     }
 
     public void endTurn(AgentAction nextAction) {
@@ -120,12 +123,23 @@ public class IMASVehicleAgent extends ImasAgent {
         this.game = game;
     }
 
-    public Cell getTargetCell() {
+    public List<Cell> getTargetCell() {
         return targetCell;
     }
-
-    public void setTargetCell(Cell targetCell) {
-        this.targetCell = targetCell;
+    
+    public void addTargetCell(Cell cell){
+        targetCell.add(cell);
+    }
+    
+    public void pollCurrentTargetCell(){
+        if(!targetCell.isEmpty()){
+            targetCell.remove(0);
+        }
+    }
+    
+    public Cell getCurrentTargetCell(){
+        Cell cell = targetCell.get(0);
+        return game.get(cell.getRow(), cell.getCol());
     }
 
     public AID getParent() {

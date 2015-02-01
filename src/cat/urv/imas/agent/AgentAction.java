@@ -48,6 +48,11 @@ public class AgentAction implements java.io.Serializable {
         return this.extraActions;
     }
     
+    public void setPosition(Cell nextPosition){
+        this.nextPosition[0] = nextPosition.getRow();
+        this.nextPosition[1] = nextPosition.getCol();
+    }
+    
     public AgentType getAgentType() {
         if (this.agentAID.getLocalName().startsWith("fire")) {
             return AgentType.FIREMAN;
