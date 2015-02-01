@@ -13,6 +13,7 @@ import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.fireman.InformBehaviour;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Path;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -267,16 +268,11 @@ public class FiremanAgent extends ImasAgent{
             nextAction.setAction(actionPosition, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
-            if(game.getFireList()==null){
-                //TODO: game.getFireList() is null for some reason at turn 3!!!!
-                errorLog("ERROR: game.getFireList() is null !!!");
-            }else{
-                if(game.getFireList().get(extinguishCell)==5){
-                    extinguishCell = null;
-                    //TODO: consider also moving since the world-norms dictate agents can action+movement
-                    //Here it is supposse that agent will do his last extinguish action and have a free movement...
-                    //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
-                }
+            if(((BuildingCell)extinguishCell).getBurnedRatio()==5){
+                extinguishCell = null;
+                //TODO: consider also moving since the world-norms dictate agents can action+movement
+                //Here it is supposse that agent will do his last extinguish action and have a free movement...
+                //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
             }
         }else{
             //moving
