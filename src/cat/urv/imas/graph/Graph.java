@@ -325,12 +325,12 @@ public class Graph implements Serializable{
      * @param target Cell of the building in fire or hospital
      * @return Agent's optimum path from the init position to the desired target.
      */
-    public Path computeOptimumPath(Cell init, Cell target){
+    public Path computeOptimumPath(Cell init, Cell target, int maxDist){
         List<Cell> adjacentCells = getAdjacentCells(target);
         Path optimumPath = null;
         for(Cell cell: adjacentCells){
             if(!init.equals(cell)){
-                Path path = bfs(init, cell, 18);
+                Path path = bfs(init, cell, maxDist);
                 if (path != null){//No path with distance < 18
                     if(optimumPath == null){
                         optimumPath = path;
