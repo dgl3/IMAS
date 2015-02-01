@@ -290,24 +290,8 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
     
     public void endTurn() {
-        ACLMessage gameinformRequest = new ACLMessage(ACLMessage.INFORM);
-        gameinformRequest.clearAllReceiver();
-        gameinformRequest.addReceiver(this.coordinatorAgent);
-        gameinformRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        log("Inform message to agent");
-        try {
-            //gameinformRequest.setContent(MessageContent.SEND_GAME);
-            Map<String,List<AgentAction>> content = new HashMap<>();
-            content.put(MessageContent.END_TURN, this.finishedAmbulanceAgents);
-            gameinformRequest.setContentObject((Serializable) content);
-            log("Inform message content: " + MessageContent.END_TURN);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        InformBehaviour gameInformBehaviour = new InformBehaviour(this, gameinformRequest);
-        this.addBehaviour(gameInformBehaviour);
-        
+        ACLMessage endTurnMsg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, finishedAmbulanceAgents);
         this.finishedAmbulanceAgents = new ArrayList<>();
+        send(endTurnMsg);
     }
 }
