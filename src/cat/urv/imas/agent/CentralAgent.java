@@ -250,11 +250,13 @@ public class CentralAgent extends ImasAgent {
      */
     public void newTurn() {
         if( readyForNextTurn == true ){
-            this.turn += 1;
-            this.readyForNextTurn = false;
+            turn += 1;
+            readyForNextTurn = false;
             if( controllerWindow != null ){
                 controllerWindow.setReadyForNewTurn(false);
             }
+
+            log("\n\n------------------ Turn No: " + turn + " ------------------\n");
 
             // TODO: generate new fires according to probability
             if (true) {
@@ -433,8 +435,6 @@ public class CentralAgent extends ImasAgent {
         this.game.advanceTurn();
         
         Cell[][] map = this.game.getMap();
-        //log("HHHHHHEEEEEERRRRRREEEEEE");
-        //log(((StreetCell)map[1][11]).getAgent().getType().toString());
         
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
 

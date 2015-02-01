@@ -14,11 +14,9 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+
 import java.util.*;
 
 /**
@@ -95,7 +93,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         return new CyclicBehaviour(this) {
             @Override
             public void action() {
-                log("INFORM MESSAGE RECEIVED");
                 ACLMessage msg;
                 while ((msg = receive()) != null) {
                     switch (msg.getPerformative()){
@@ -127,7 +124,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
-                log("New Fire: "+game.getNewFire().toString());
                 contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(firemenAgents));
                 break;
             default:
@@ -176,14 +172,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
             case MessageContent.SEND_GAME:
-                log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-                //cleaned twice!!
-                //finishedFiremanAgents = new ArrayList<>();
-                
                 setGame((GameSettings) content.getValue());
-                log("Game updated");
-
-
                 // Send game to children
                 pendingGameUpdateConfirmations.addAll(firemenAgents);
                 ACLMessage gameInformRequest = MessageCreator.createMessage(ACLMessage.INFORM, firemenAgents, MessageContent.SEND_GAME, this.game);

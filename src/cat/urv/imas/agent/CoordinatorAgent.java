@@ -197,7 +197,7 @@ public class CoordinatorAgent extends ImasAgent {
                 log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
                 GameSettings gameSettings = (GameSettings) content.getValue();
                 setGame(gameSettings);
-                log(gameSettings.getShortString());
+                //log(gameSettings.getShortString());
                 this.newTurn();
                 break;
             case MessageContent.END_TURN:
