@@ -23,6 +23,7 @@ import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.behaviour.central.InformBehaviour;
 import cat.urv.imas.constants.AgentNames;
 import cat.urv.imas.graph.Graph;
+import cat.urv.imas.gui.ControlWindow;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
@@ -95,6 +96,16 @@ public class CentralAgent extends ImasAgent {
      * Random Number Generator
      */
     private Random RNG;
+
+    /**
+     * Indicates wether the central agent is ready for the next turn
+     */
+    private boolean readyForNextTurn;
+
+    /**
+     * GUI Controller for the central agent
+     */
+    private ControlWindow controllerWindow;
 
     /**
      * Builds the Central agent.
@@ -240,6 +251,8 @@ public class CentralAgent extends ImasAgent {
         this.statistics = new GameStatistics();
         
         this.addBehaviour(newListenerBehaviour());
+
+        readyForNextTurn = true;
         this.newTurn();
     }
     
@@ -254,6 +267,11 @@ public class CentralAgent extends ImasAgent {
      */
     private void newTurn() {
         this.turn += 1;
+        this.readyForNextTurn = false;
+        if( controllerWindow != null ){
+            controllerWindow.setReadyForNewTurn(false);
+        }
+
         // Central agent actively sends game info at the start of each turn
         
         // TODO: generate new fires acording to probability
@@ -279,23 +297,20 @@ public class CentralAgent extends ImasAgent {
         // TODO: this will be a dummy method for now
         this.endTurn(agentActions);
     }
-    
+
+    private void readyForNextTurn() {
+        this.readyForNextTurn = true;
+
+        if( controllerWindow != null ){
+            controllerWindow.setReadyForNewTurn(true);
+        }
+    }
+
     /**
      * Method for the central agent to finish the current turn. It updates
      * the map with the turns movement and starts a new turn
      */
     private void endTurn(List<AgentAction> agentActions) {
-        
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        this.log("Press Enter for New Turn");
-        String s = in.nextLine();
-        this.log("NEW TURN");
-
         this.game.advanceTurn();
 
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
@@ -313,12 +328,18 @@ public class CentralAgent extends ImasAgent {
         //this.gui.showGameMap(this.game.getMap());
         this.gui.updateGame();
         this.gui.printNewStatistics(this.statistics.getCurrentStatistics());
-        this.newTurn();
+
+        readyForNextTurn();
+        //this.newTurn();
 
     }
 
     public void nextTurn(){
-        System.out.println("PLEASE NEXT TURN!");
+        if( readyForNextTurn ){
+            newTurn();
+        }else{
+            errorLog("Not ready for next turn!");
+        }
     }
 
     private void sendGame() {
@@ -502,5 +523,13 @@ public class CentralAgent extends ImasAgent {
                 }
             }
         }
+    }
+
+    public ControlWindow getControllerWindow() {
+        return controllerWindow;
+    }
+
+    public void setControllerWindow(ControlWindow controllerWindow) {
+        this.controllerWindow = controllerWindow;
     }
 }
