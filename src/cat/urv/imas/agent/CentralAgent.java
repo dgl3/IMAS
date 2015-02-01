@@ -329,9 +329,63 @@ public class CentralAgent extends ImasAgent {
                     if (pva.get(i).getRow() == agent.nextPosition[0] &&
                             pva.get(i).getCol() == agent.nextPosition[1]) {
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
+                        if (agent.agentAID.getLocalName().startsWith("fire")) {
+                            agent.changeNextPosition(this.game.getAgentList().get(AgentType.FIREMAN).
+                                    get(AIDUtil.getLocalId(agent.agentAID)));
+                        } else {
+                            agent.changeNextPosition(this.game.getAgentList().get(AgentType.AMBULANCE).
+                                    get(AIDUtil.getLocalId(agent.agentAID)));
+                        }
                         thereAreChanges = true;
                     }
                 }
+            }
+            for (AgentAction a : agentActions) {
+                
+                Cell cPos;
+                if (a.agentAID.getLocalName().startsWith("fire")) {
+                    cPos = this.game.getAgentList().get(AgentType.FIREMAN).
+                            get(AIDUtil.getLocalId(a.agentAID));
+                } else {
+                    cPos = this.game.getAgentList().get(AgentType.AMBULANCE).
+                            get(AIDUtil.getLocalId(a.agentAID));
+                }
+                
+                for (int j=0; j<pva.size(); j++) {
+                    if (a.nextPosition[0] == this.privateVehicles.get(j).getCurrentPosition().getRow() && 
+                            a.nextPosition[1] == this.privateVehicles.get(j).getCurrentPosition().getCol() &&
+                            cPos.getRow() == pva.get(j).getRow() &&
+                            cPos.getRow() == pva.get(j).getCol()) {
+                        pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
+                        a.changeNextPosition(cPos);
+                        thereAreChanges = true;
+                    }
+                }
+                for (AgentAction agent: agentActions) {
+                    if (a != agent) {
+                        Cell cPos2;
+                        if (agent.agentAID.getLocalName().startsWith("fire")) {
+                            cPos2 = this.game.getAgentList().get(AgentType.FIREMAN).
+                                    get(AIDUtil.getLocalId(agent.agentAID));
+                        } else {
+                            cPos2 = this.game.getAgentList().get(AgentType.AMBULANCE).
+                                    get(AIDUtil.getLocalId(agent.agentAID));
+                        }
+                        
+                        if (a.nextPosition[0] == cPos2.getRow() &&
+                                a.nextPosition[1] == cPos2.getCol() &&
+                                cPos.getRow() == agent.nextPosition[0] &&
+                                cPos.getCol() == agent.nextPosition[1]) {
+                            a.changeNextPosition(cPos);
+                            agent.changeNextPosition(cPos2);
+                            thereAreChanges = true;
+                        }
+                    }
+                }
+            }
+            // Two agents cross each other
+            if (thereAreChanges) {
+                log("THERE HAS BEEN A COLISION BITCH");
             }
         }
     }
@@ -359,7 +413,7 @@ public class CentralAgent extends ImasAgent {
      */
     private void endTurn(Collection<AgentAction> agentActions) {
         this.game.advanceTurn();
-
+        
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
 
         this.updateFires(modifiedFires);
