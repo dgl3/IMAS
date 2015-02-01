@@ -6,16 +6,13 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
-import cat.urv.imas.agent.communication.contractnet.Bid;
 import cat.urv.imas.agent.communication.contractnet.Offer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.behaviour.fireman.InformBehaviour;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
-import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
@@ -24,15 +21,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
-import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -216,9 +205,6 @@ public class FiremanAgent extends ImasAgent{
         //study distance through graph
         Graph graph = game.getGraph();
         log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
-        if(graph==null){
-            errorLog("Graph is null!!!!!");
-        }
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
         log("Path studied!");
         if(path==null){
@@ -269,7 +255,11 @@ public class FiremanAgent extends ImasAgent{
             nextAction.setAction(extinguishCell, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
-            if(((BuildingCell)extinguishCell).getBurnedRatio()<10){
+            int row = extinguishCell.getRow();
+            int col = extinguishCell.getCol();
+            int burned = ((BuildingCell)game.get(row, col)).getBurnedRatio();
+            errorLog("Cell: ["+((BuildingCell)extinguishCell).getRow()+"]["+((BuildingCell)extinguishCell).getCol()+"] of type ("+((BuildingCell)extinguishCell).getCellType().name()+")Burned Ratio: "+burned);
+            if(burned<10){
                 errorLog("I'M DONE OF EXTINGUISHING!!!");
                 extinguishCell = null;
                 //TODO: consider also moving since the world-norms dictate agents can action+movement
