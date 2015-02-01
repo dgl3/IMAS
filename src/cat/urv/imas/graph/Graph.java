@@ -363,6 +363,9 @@ public class Graph implements Serializable{
             if(optimumPath == null){
                 optimumPath = path;
             }else{
+                if( path == null)  System.err.println("Path null");
+                if( optimumPath == null)  System.err.println("PptimumPath null");
+
                 if(path.getDistance() < optimumPath.getDistance()){
                     optimumPath = path;
                 }
