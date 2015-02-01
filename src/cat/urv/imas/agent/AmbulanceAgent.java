@@ -160,16 +160,11 @@ public class AmbulanceAgent extends ImasAgent{
 
                 if( targetCell != null ) {
                     Path path = game.getGraph().computeOptimumPathUnconstrained(currentPosition, targetCell);
-                    Cell nextCell = path.getPath().get(0).getCell();
-                    int nextPosition[] = {nextCell.getRow(), nextCell.getCol()};
-
-                    AgentAction agentAction = new AgentAction(this.getAID(), nextPosition);
+                    AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath() );
                     endTurn(agentAction);
                 }else{
                     // Move to itself --> No move..
-                    Cell cPosition = getCurrentPosition();
-                    int nextPosition[] = {cPosition.getRow(), cPosition.getCol()};
-                    AgentAction nextAction = new AgentAction(this.getAID(), nextPosition);
+                    AgentAction nextAction = new AgentAction(this.getAID(), getCurrentPosition());
                     endTurn(nextAction);
                 }
 

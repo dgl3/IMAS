@@ -6,6 +6,7 @@
 
 package cat.urv.imas.agent;
 
+import cat.urv.imas.map.Cell;
 import jade.core.AID;
 
 
@@ -20,16 +21,27 @@ public class AgentAction implements java.io.Serializable {
     public int actionPosition[];
     public int actionParameter;
     
-    public AgentAction(AID agentName, int nextPosition[]) {
+    public AgentAction(AID agentName, Cell nextPosition) {
         this.agentAID = agentName;
-        this.nextPosition = nextPosition;
+        this.nextPosition = new int[2];
+        this.nextPosition[0] = nextPosition.getRow();
+        this.nextPosition[1] = nextPosition.getCol();
+
         this.extraActions = false;
     }
+
+    public void changeNextPosition(Cell nextPosition) {
+        this.nextPosition = new int[2];
+        this.nextPosition[0] = nextPosition.getRow();
+        this.nextPosition[1] = nextPosition.getCol();
+    }
     
-    public void setAction(int actionPosition[], int actionParameter) {
+    public void setAction(Cell actionPosition, int actionParameter) {
         this.extraActions = true;
-        this.actionPosition = actionPosition;
         this.actionParameter = actionParameter;
+        this.actionPosition = new int[2];
+        this.actionPosition[0] = actionPosition.getRow();
+        this.actionPosition[1] = actionPosition.getCol();
     }
     
     public Boolean hasAction() {

@@ -154,7 +154,7 @@ public class FiremanAgent extends ImasAgent{
                 actionTask();
                 break;
             default:
-                log("Unsupported message");
+                log("Accept Proposal Message Content not understood");
                 break;
         }
     }
@@ -187,8 +187,9 @@ public class FiremanAgent extends ImasAgent{
                         dummyTask();
                     }
                 }
+                break;
             default:
-                log("Message Content not understood");
+                log("Inform Message Content not understood: " + content.getKey());
                 break;
         }
     }
@@ -204,6 +205,10 @@ public class FiremanAgent extends ImasAgent{
                 }
                 offer.reply(this, distanceBid);
                 break;
+            default:
+                log("CFP Message Content not understood");
+                break;
+                
         }
     }    
     
@@ -211,6 +216,9 @@ public class FiremanAgent extends ImasAgent{
         //study distance through graph
         Graph graph = game.getGraph();
         log("Studying path... CurrentPosition: "+currentPosition.toString()+" BuilldingOnFire: "+buildingFire.toString());
+        if(graph==null){
+            errorLog("Graph is null!!!!!");
+        }
         Path path = graph.computeOptimumPath(currentPosition, buildingFire);
         log("Path studied!");
         if(path==null){
@@ -249,10 +257,6 @@ public class FiremanAgent extends ImasAgent{
         this.currentPosition = this.game.getAgentList().get(AgentType.FIREMAN).get(firemanNumber);
     }
     
-    public Cell getCurrentPosition() {
-        return this.currentPosition;
-    }
-    
     public void endTurn(AgentAction nextAction) {
         ACLMessage actionInfo = MessageCreator.createInform(firemanCoordinatorAgent, MessageContent.END_TURN, nextAction);
         send(actionInfo);
@@ -260,33 +264,27 @@ public class FiremanAgent extends ImasAgent{
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = game.getGraph().computeOptimumPath(currentPosition, extinguishCell);
-        if(path.getDistance()==0){
-            //actioning
-            int actualPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
-            int actionPosition[] = {extinguishCell.getRow(),extinguishCell.getCol()};
-            AgentAction nextAction = new AgentAction(getAID(), actualPosition);
-            nextAction.setAction(actionPosition, 1);
+        if(path.getDistance()==0){//ACTION
+            AgentAction nextAction = new AgentAction(getAID(), currentPosition);
+            nextAction.setAction(extinguishCell, 1);
             endTurn(nextAction);
             errorLog("Extinguishing...");
-            if(((BuildingCell)extinguishCell).getBurnedRatio()==5){
+            if(((BuildingCell)extinguishCell).getBurnedRatio()<10){
+                errorLog("I'M DONE OF EXTINGUISHING!!!");
                 extinguishCell = null;
                 //TODO: consider also moving since the world-norms dictate agents can action+movement
                 //Here it is supposse that agent will do his last extinguish action and have a free movement...
                 //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
             }
-        }else{
-            //moving
-            Cell nextCell =  path.getPath().get(0).getCell();
-            int nextPosition[] = {nextCell.getRow(),nextCell.getCol()};
-            AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+        }else{//MOVING
+            AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
             endTurn(nextAction);
             errorLog("Moving...");
         }
     }
 
     private void dummyTask() {
-        int nextPosition[] = {currentPosition.getRow(),currentPosition.getCol()};
-        AgentAction nextAction = new AgentAction(getAID(), nextPosition);
+        AgentAction nextAction = new AgentAction(getAID(), currentPosition);
         endTurn(nextAction);
     }
 }
