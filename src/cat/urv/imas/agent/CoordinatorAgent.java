@@ -231,6 +231,14 @@ public class CoordinatorAgent extends ImasAgent {
                     endTurn();
                 }
                 break;
+            case MessageContent.FIRMEN_CONTRACTNET:
+                if(content.getValue()==null){
+                    //TODO: Say HospitalCoordinator to start ContractNet
+                    log("Starting ContractNet with ambulances...");
+                }else{
+                    log("Firemen ContractNet successful!!!");
+                }
+                break;
             default:
                 log("Unsupported message");
                 break;

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class keeps track of the bidders and their bids.
@@ -21,6 +22,8 @@ public class ContractNet {
     private Collection<AID> outstandingBidders;
     private HashMap<AID, Integer> bids;
     private AID winner;
+    public static final int WINNER = 0;
+    public static final int LOOSER = 1;
 
 
     public ContractNet(int id, Cell item, Collection<AID> outstandingBidders) {
@@ -55,8 +58,7 @@ public class ContractNet {
         return id;
     }
 
-    public List<AID> getWinner(){
-        List<AID> winnerList = new ArrayList<>();
+    public Map<Integer,List<AID>> getWinner(){
         if ( !readyForEvaluation() ){
             throw new IllegalStateException("Winner can not be queried. Not all bidders have replied.");
         }
@@ -72,14 +74,21 @@ public class ContractNet {
             }
         }
         
-        winnerList.add(winner);
+        Map<Integer,List<AID>> list = new HashMap<>();
+        List<AID> winnerList = new ArrayList<>();
+        List<AID> looserList = new ArrayList<>();
+        if(winner!=null){
+            winnerList.add(winner);
+        }
+        list.put(WINNER, winnerList);
+        list.put(LOOSER, looserList);
         for (AID bidder : bids.keySet()){
             if(bidder!=winner){
-                winnerList.add(bidder);
+                looserList.add(bidder);
             }
         }
-
-        return winnerList;
+       
+        return list;
     }
 
     public AID getSeller() {

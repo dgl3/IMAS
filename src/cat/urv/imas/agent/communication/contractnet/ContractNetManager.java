@@ -35,6 +35,8 @@ public class ContractNetManager {
         pendingContractNets.add(contractNet);
         if( !contractNetInProgress ){
             startNextAuction();
+        }else{
+            System.out.println("Another ContractNet is already in progress!!!!");
         }
     }
 
@@ -58,10 +60,15 @@ public class ContractNetManager {
             currentContractNet.takeBid(sender, bid.getValue());
 
             if( currentContractNet.readyForEvaluation() ){
-                List<AID> winner = currentContractNet.getWinner();
-                //TODO: Maybe the case there is no winner because anyone bid for the ContractNet!!!
-                notifyWinnerLossers(winner);
-                notifySeller(winner.get(0));
+                Map<Integer,List<AID>> list = currentContractNet.getWinner();
+                //TODO: Maybe the case there is no winner because none bid for the ContractNet!!!
+                
+                if(list.get(ContractNet.WINNER).isEmpty()){
+                    notifySeller(null);
+                }else{
+                    notifySeller(list.get(ContractNet.WINNER).get(0));
+                }
+                notifyWinnerLossers(list);
             }
         }else{
             throw new IllegalStateException("Received Bid for non-existing, or pending ContractNet.");
@@ -74,31 +81,36 @@ public class ContractNetManager {
         contractor.send(msg);
     }
 
-    private void notifyWinnerLossers(List<AID> list) {
+    private void notifyWinnerLossers(Map<Integer,List<AID>> list){
 
         String messageType = MessageContent.FIRMEN_CONTRACTNET;
-        Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
-        ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(0), messageType, offer);
-        contractor.send(winNotification);
-        
-        list.remove(0);
-        ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list, messageType, null);
+        ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list.get(ContractNet.LOOSER), messageType, null);
         contractor.send(lostNotification);
+        if(!list.get(ContractNet.WINNER).isEmpty()){
+            Offer offer = new Offer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
+            ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(ContractNet.WINNER).get(0), messageType, offer);
+            contractor.send(winNotification);
+        }else{
+            closeContractNet();
+        }
     }
 
-    public void confirmAction(AID sender, Offer offer) {
+    public void confirmAction(AID sender, Offer offer){
         if( currentContractNet.readyForEvaluation()
-            //&& currentContractNet.getWinner().equals(sender)
+            && currentContractNet.getWinner().get(ContractNet.WINNER).get(0).equals(sender)
             && offer.getContractNetID() == currentContractNet.getID() )
         {
-            currentContractNet = null;
-            contractNetInProgress = false;
-
-            if( !pendingContractNets.isEmpty() ) {
-                startNextAuction();
-            }
+            closeContractNet();
         }else{
-            throw new IllegalStateException("Received illegal contractNet confirmation from agent aid " + sender + " for auction id " + offer.getContractNetID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
+            throw new IllegalStateException("Received illegal contractNet confirmation from agent aid " + sender.getLocalName() + " for contractNet id " + offer.getContractNetID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner().get(ContractNet.WINNER).get(0).getLocalName() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
+        }
+    }
+    
+    private void closeContractNet() {
+        currentContractNet = null;
+        contractNetInProgress = false;
+        if( !pendingContractNets.isEmpty() ) {
+            startNextAuction();
         }
     }
 }
