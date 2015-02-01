@@ -64,6 +64,8 @@ public class FireStatistics {
             this.isBurned = true;
             this.finishingTurn = turn;
             this.casualties = peopleInBuilding;
+        } else if (burnedRatio <= 0) {
+            this.finishingTurn = turn;
         }
     }
     

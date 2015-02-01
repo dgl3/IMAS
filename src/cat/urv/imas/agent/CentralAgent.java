@@ -329,9 +329,104 @@ public class CentralAgent extends ImasAgent {
                     if (pva.get(i).getRow() == agent.nextPosition[0] &&
                             pva.get(i).getCol() == agent.nextPosition[1]) {
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
+                        if (agent.agentAID.getLocalName().startsWith("fire")) {
+                            agent.changeNextPosition(this.game.getAgentList().get(AgentType.FIREMAN).
+                                    get(AIDUtil.getLocalId(agent.agentAID)));
+                        } else {
+                            agent.changeNextPosition(this.game.getAgentList().get(AgentType.AMBULANCE).
+                                    get(AIDUtil.getLocalId(agent.agentAID)));
+                        }
                         thereAreChanges = true;
                     }
                 }
+            }
+            for (AgentAction a : agentActions) {
+                Cell cPos;
+                if (a.agentAID.getLocalName().startsWith("fire")) {
+                    cPos = this.game.getAgentList().get(AgentType.FIREMAN).
+                            get(AIDUtil.getLocalId(a.agentAID));
+                } else {
+                    cPos = this.game.getAgentList().get(AgentType.AMBULANCE).
+                            get(AIDUtil.getLocalId(a.agentAID));
+                }
+                for (AgentAction agent : agentActions) {
+                    if (a != agent) {
+                        Cell cPos2;
+                        if (agent.agentAID.getLocalName().startsWith("fire")) {
+                            cPos2 = this.game.getAgentList().get(AgentType.FIREMAN).
+                                    get(AIDUtil.getLocalId(agent.agentAID));
+                        } else {
+                            cPos2 = this.game.getAgentList().get(AgentType.AMBULANCE).
+                                    get(AIDUtil.getLocalId(agent.agentAID));
+                        }
+                        
+                        if (a.nextPosition[0] == agent.nextPosition[0] &&
+                                a.nextPosition[1] == agent.nextPosition[1]) {
+                            a.changeNextPosition(cPos);
+                            agent.changeNextPosition(cPos2);
+                            thereAreChanges = true;
+                        }
+                    }
+                }
+            }
+            // Two agents cross each other
+            for (int i=0; i<pva.size(); i++) {
+                for (int j=0; j<pva.size(); j++) {
+                    if (i != j && this.privateVehicles.get(i).getCurrentPosition().getRow() == pva.get(j).getRow() &&
+                            this.privateVehicles.get(i).getCurrentPosition().getCol() == pva.get(j).getCol() &&
+                            pva.get(i).getRow() == this.privateVehicles.get(j).getCurrentPosition().getRow() &&
+                            pva.get(i).getCol() == this.privateVehicles.get(j).getCurrentPosition().getRow()) {
+                        pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
+                        pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
+                        thereAreChanges = true;
+                    }
+                }
+            }
+            for (AgentAction a : agentActions) {
+                
+                Cell cPos;
+                if (a.agentAID.getLocalName().startsWith("fire")) {
+                    cPos = this.game.getAgentList().get(AgentType.FIREMAN).
+                            get(AIDUtil.getLocalId(a.agentAID));
+                } else {
+                    cPos = this.game.getAgentList().get(AgentType.AMBULANCE).
+                            get(AIDUtil.getLocalId(a.agentAID));
+                }
+                
+                for (int j=0; j<pva.size(); j++) {
+                    if (a.nextPosition[0] == this.privateVehicles.get(j).getCurrentPosition().getRow() && 
+                            a.nextPosition[1] == this.privateVehicles.get(j).getCurrentPosition().getCol() &&
+                            cPos.getRow() == pva.get(j).getRow() &&
+                            cPos.getRow() == pva.get(j).getCol()) {
+                        pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
+                        a.changeNextPosition(cPos);
+                        thereAreChanges = true;
+                    }
+                }
+                for (AgentAction agent: agentActions) {
+                    if (a != agent) {
+                        Cell cPos2;
+                        if (agent.agentAID.getLocalName().startsWith("fire")) {
+                            cPos2 = this.game.getAgentList().get(AgentType.FIREMAN).
+                                    get(AIDUtil.getLocalId(agent.agentAID));
+                        } else {
+                            cPos2 = this.game.getAgentList().get(AgentType.AMBULANCE).
+                                    get(AIDUtil.getLocalId(agent.agentAID));
+                        }
+                        
+                        if (a.nextPosition[0] == cPos2.getRow() &&
+                                a.nextPosition[1] == cPos2.getCol() &&
+                                cPos.getRow() == agent.nextPosition[0] &&
+                                cPos.getCol() == agent.nextPosition[1]) {
+                            a.changeNextPosition(cPos);
+                            agent.changeNextPosition(cPos2);
+                            thereAreChanges = true;
+                        }
+                    }
+                }
+            }
+            if (thereAreChanges) {
+                log("THERE HAS BEEN A COLISION BITCH");
             }
         }
     }
@@ -357,14 +452,18 @@ public class CentralAgent extends ImasAgent {
      * Method for the central agent to finish the current turn. It updates
      * the map with the turns movement and starts a new turn
      */
-    private void endTurn(Collection<AgentAction> agentActions) {
+    private void endTurn(Collection<AgentAction> agentActions, List<Cell> pva) {
         this.game.advanceTurn();
-
+        
+        Cell[][] map = this.game.getMap();
+        //log("HHHHHHEEEEEERRRRRREEEEEE");
+        //log(((StreetCell)map[1][11]).getAgent().getType().toString());
+        
         List<Cell> modifiedFires = this.performAgentActions(agentActions);
 
         this.updateFires(modifiedFires);
 
-        this.updateAgentMovements(agentActions);
+        this.updateAgentMovements(agentActions, pva);
 
         List<Integer> currentOccupancy = new ArrayList<>();
         for (Cell c : this.game.getAgentList().get(AgentType.HOSPITAL)) {
@@ -413,7 +512,7 @@ public class CentralAgent extends ImasAgent {
                 Collection<AgentAction> finishedAgents = Collections.unmodifiableCollection((List<AgentAction>)content.getValue());
                 List<Cell> pva = movePrivateVehicles();
                 checkMovementCollisions(finishedAgents, pva);
-                endTurn(finishedAgents);
+                endTurn(finishedAgents, pva);
                 break;
             default:
                 log("Message Content not understood");
@@ -507,7 +606,7 @@ public class CentralAgent extends ImasAgent {
         }
     }
     
-    private void updateAgentMovements(Collection<AgentAction> actions) {
+    private void updateAgentMovements(Collection<AgentAction> actions, List<Cell> pva) {
         Cell[][] currentMap = this.game.getMap();
         
         for (Cell[] cl : currentMap) {
@@ -571,6 +670,21 @@ public class CentralAgent extends ImasAgent {
                 } catch (Exception ex) {
                     Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            }
+        }
+        int i=-1;
+        for (Cell c : pva) {
+            i += 1;
+            StreetCell sc = (StreetCell)currentMap[c.getRow()][c.getCol()];
+            try {
+                if (sc.isThereAnAgent()) {
+                    sc.removeAgent();
+                }
+                sc.addAgent(new InfoAgent(AgentType.PRIVATE_VEHICLE, null));
+                this.privateVehicles.get(i).updateCurrentPosition(c);
+                // TODO
+            } catch (Exception ex) {
+                Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
