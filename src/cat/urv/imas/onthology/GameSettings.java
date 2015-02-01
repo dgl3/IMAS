@@ -377,23 +377,28 @@ public class GameSettings implements java.io.Serializable {
     }
     
     public Boolean isEmptyStreet(Cell street) {
-        if (street instanceof StreetCell) {
-            for (Cell c : this.agentList.get(AgentType.AMBULANCE)) {
-                if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
-                    return false;
-                }
-            }
-            for (Cell c : this.agentList.get(AgentType.FIREMAN)) {
-                if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
-                    return false;
-                }
-            }
-            for (Cell c : this.agentList.get(AgentType.PRIVATE_VEHICLE)) {
-                if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
-                    return false;
-                }
-            }
+        /*if (street instanceof StreetCell) {
+        for (Cell c : this.agentList.get(AgentType.AMBULANCE)) {
+        if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+        return false;
         }
-        return true;
+        }
+        for (Cell c : this.agentList.get(AgentType.FIREMAN)) {
+        if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+        return false;
+        }
+        }
+        for (Cell c : this.agentList.get(AgentType.PRIVATE_VEHICLE)) {
+        if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+        return false;
+        }
+        }
+        for (Cell c : this.agentList.get(AgentType.AMBULANCE)) {
+        if (street.getRow() == c.getRow() && street.getCol() == c.getCol()) {
+        return false;
+        }
+        }
+        }*/ 
+        return (street instanceof StreetCell);
     }
 }

@@ -113,6 +113,11 @@ public class CentralAgent extends ImasAgent {
     public CentralAgent() {
         super(AgentType.CENTRAL);
     }
+    
+    /**
+     * List of private vehicles
+     */
+    private List<PrivateVehicleAgent> privateVehicles;
 
     /**
      * A message is shown in the log area of the GUI, as well as in the 
@@ -204,7 +209,7 @@ public class CentralAgent extends ImasAgent {
         UtilsAgents.createAgent(cc, "firemenCoord", "cat.urv.imas.agent.FiremenCoordinatorAgent", null);
         
         Map<AgentType, List<Cell>> agentList = this.game.getAgentList();
-        
+        this.privateVehicles = new ArrayList<>();
         for (Map.Entry<AgentType, List<Cell>> entry : agentList.entrySet()) {
             log(entry.getKey().toString() +" -> " + entry.getValue().size());
             switch (entry.getKey().toString()) {
@@ -213,8 +218,11 @@ public class CentralAgent extends ImasAgent {
                         UtilsAgents.createAgent(cc, AgentNames.hospital + i, "cat.urv.imas.agent.HospitalAgent", null);
                     }
                     break;
-                /*case "PRIVATE_VEHICLE":  
-                        break;*/
+                case "PRIVATE_VEHICLE":  
+                    for (int i=0;i<entry.getValue().size();i++) {
+                        this.privateVehicles.add(new PrivateVehicleAgent("private" + i, entry.getValue().get(i), this.RNG, this.game));
+                    }
+                    break;
                 case "FIREMAN":
                     for (int i=0;i<entry.getValue().size();i++) {
                         UtilsAgents.createAgent(cc, AgentNames.fireman + i, "cat.urv.imas.agent.FiremanAgent", null);
@@ -293,8 +301,39 @@ public class CentralAgent extends ImasAgent {
      * capable of moving
      */
 
-    private void checkMovementCollisions(Collection<AgentAction> agentActions) {
-        // TODO: this will be a dummy method for now
+    private void checkMovementCollisions(Collection<AgentAction> agentActions, List<Cell> pva) {
+        /*List<Boolean> agentCanPerformMovement = new ArrayList<>();
+        for (AgentAction aa : agentActions) {
+            agentCanPerformMovement.add(true);
+        }
+        List<Boolean> privateCanPerformMovement = new ArrayList<>();
+        for (Cell c : pva) {
+            privateCanPerformMovement.add(true);
+        }*/
+        
+        Boolean thereAreChanges = true;
+        
+        while (thereAreChanges) {
+            thereAreChanges = false;
+            // Two agents want to go to the same cell
+            for (int i=0; i<pva.size(); i++) {
+                for (int j=0; j<pva.size(); j++) {
+                    if (i != j && pva.get(i).getRow() == pva.get(j).getRow() &&
+                            pva.get(i).getCol() == pva.get(j).getCol()) {
+                        pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
+                        pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
+                        thereAreChanges = true;
+                    }
+                }
+                for (AgentAction agent: agentActions) {
+                    if (pva.get(i).getRow() == agent.nextPosition[0] &&
+                            pva.get(i).getCol() == agent.nextPosition[1]) {
+                        pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
+                        thereAreChanges = true;
+                    }
+                }
+            }
+        }
     }
 
     private void readyForNextTurn() {
@@ -372,8 +411,8 @@ public class CentralAgent extends ImasAgent {
             case MessageContent.END_TURN:
 
                 Collection<AgentAction> finishedAgents = Collections.unmodifiableCollection((List<AgentAction>)content.getValue());
-                movePrivateVehicles();
-                checkMovementCollisions(finishedAgents);
+                List<Cell> pva = movePrivateVehicles();
+                checkMovementCollisions(finishedAgents, pva);
                 endTurn(finishedAgents);
                 break;
             default:
@@ -382,10 +421,16 @@ public class CentralAgent extends ImasAgent {
         }
     }
     
-    private void movePrivateVehicles() {
+    private List<Cell> movePrivateVehicles() {
         Cell[][] currentMap = this.game.getMap();
         
-        this.game.getAgentList().get(AgentType.PRIVATE_VEHICLE);
+        List<Cell> privateVehiclesMovements = new ArrayList<>();
+        
+        for (PrivateVehicleAgent pv : this.privateVehicles) {
+            privateVehiclesMovements.add(pv.makeNewMovement(currentMap));
+        }
+        
+        return privateVehiclesMovements;
     }
     
     private Cell generateFire() {

@@ -38,7 +38,7 @@ public class PrivateVehicleAgent {
      */
     private GameSettings game;
     
-    public PrivateVehicleAgent(String name, Cell currentPosition, Random RNG, GameSettings game) {
+    PrivateVehicleAgent(String name, Cell currentPosition, Random RNG, GameSettings game) {
         this.localName = name;
         this.currentPosition = currentPosition;
         this.previousPosition = currentPosition;
@@ -47,7 +47,12 @@ public class PrivateVehicleAgent {
     }
     
     public void updateCurrentPosition(Cell currentPosition) {
+        this.previousPosition = this.currentPosition;
         this.currentPosition = currentPosition;
+    }
+    
+    public Cell getCurrentPosition() {
+        return this.currentPosition;
     }
     
     public Cell makeNewMovement(Cell[][] map) {
