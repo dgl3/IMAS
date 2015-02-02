@@ -2,7 +2,6 @@ package cat.urv.imas.agent.communication.contractnet;
 
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.map.Cell;
-import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
@@ -17,31 +16,33 @@ import java.util.*;
  */
 public class ContractNetManager {
     private Agent contractor;
+    private String kindMessage;
     private Integer contractNetIds;
     private Queue<ContractNet> pendingContractNets;
     private ContractNet currentContractNet;
     private boolean contractNetInProgress;
 
-    public ContractNetManager(Agent contractor){
+    public ContractNetManager(Agent contractor, String kindMessage){
         contractNetIds = 0;
         this.contractor = contractor;
+        this.kindMessage = kindMessage;
         this.pendingContractNets = new LinkedList<>();
         this.contractNetInProgress = false;
     }
 
     public void setupNewContractNet(AID seller, Cell item, Collection<AID> participants){
         contractNetIds++;
-        ContractNet contractNet = new ContractNet(contractNetIds, item, new LinkedList(participants));
+        ContractNet contractNet = new ContractNet(contractNetIds, seller, item, new LinkedList(participants));
         pendingContractNets.add(contractNet);
         if( !contractNetInProgress ){
-            startNextAuction();
+            startNextContractNet();
         }else{
             System.out.println("Another ContractNet is already in progress!!!!");
         }
     }
 
-    private void startNextAuction(){
-        System.out.println("STARTING NEW CONTRACTNET");
+    private void startNextContractNet(){
+        System.out.println("STARTING NEW FIREMEN_CONTRACT_NET");
         currentContractNet = pendingContractNets.poll();
         contractNetInProgress = true;
         startContractNet(currentContractNet);
@@ -49,7 +50,7 @@ public class ContractNetManager {
 
     private void startContractNet(ContractNet currentContractNet) {
         Collection<AID> participants = currentContractNet.getOutstandingBidders();
-        String messageType = MessageContent.FIRMEN_CONTRACTNET;
+        String messageType = kindMessage;
         ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
         ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CFP, participants, messageType, offer);
         contractor.send(bidRequestMsg);
@@ -77,13 +78,13 @@ public class ContractNetManager {
     }
 
     private void notifySeller(AID winner) {
-        ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), MessageContent.FIRMEN_CONTRACTNET, winner);
+        ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), this.kindMessage, winner);
         contractor.send(msg);
     }
 
     private void notifyWinnerLossers(Map<Integer,List<AID>> list){
 
-        String messageType = MessageContent.FIRMEN_CONTRACTNET;
+        String messageType = kindMessage;
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list.get(ContractNet.LOOSER), messageType, null);
         contractor.send(lostNotification);
         if(!list.get(ContractNet.WINNER).isEmpty()){
@@ -110,7 +111,7 @@ public class ContractNetManager {
         currentContractNet = null;
         contractNetInProgress = false;
         if( !pendingContractNets.isEmpty() ) {
-            startNextAuction();
+            startNextContractNet();
         }
     }
 }

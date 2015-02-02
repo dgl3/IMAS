@@ -26,9 +26,10 @@ public class ContractNet {
     public static final int LOOSER = 1;
 
 
-    public ContractNet(int id, Cell item, Collection<AID> outstandingBidders) {
+    public ContractNet(int id, AID seller, Cell item, Collection<AID> outstandingBidders) {
         this.id = id;
         this.item = item;
+        this.seller = seller;
         this.outstandingBidders = outstandingBidders;
         this.bids = new HashMap<>();
     }

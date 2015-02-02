@@ -130,7 +130,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     private void handleProxy(ACLMessage msg){
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(firemenAgents));
                 break;
             default:
@@ -142,7 +142,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     private void handleConfirm(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
                 break;
             case MessageContent.ACTION_AREAS:
@@ -174,7 +174,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     private void handlePropose(ACLMessage msg){
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 contractor.takeBid(msg.getSender(), (ContractBid) content.getValue());
                 break;
             default:

@@ -9,7 +9,6 @@ import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.graph.Graph;
-import cat.urv.imas.graph.GraphUtils;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
@@ -19,7 +18,7 @@ import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
-import java.util.List;
+
 import java.util.Map;
 
 /**
@@ -89,7 +88,7 @@ public class FiremanAgent extends IMASVehicleAgent{
     private void handleAcceptProposal(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer) content.getValue();
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
@@ -109,7 +108,7 @@ public class FiremanAgent extends IMASVehicleAgent{
         //nextAction <-- movement related to distribution
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 if(getTargetCell().isEmpty()){
                     //distributionTask(null);
                     dummyTask();
@@ -192,7 +191,7 @@ public class FiremanAgent extends IMASVehicleAgent{
     private void handleCFP(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
                 if(getTargetCell().isEmpty()){
@@ -280,6 +279,8 @@ public class FiremanAgent extends IMASVehicleAgent{
                 endTurn(nextAction);
             }
         }else{
+            pollCurrentTargetCell();
+
             AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             endTurn(nextAction);
         }
