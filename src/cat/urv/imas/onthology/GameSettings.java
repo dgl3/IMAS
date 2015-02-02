@@ -356,7 +356,7 @@ public class GameSettings implements java.io.Serializable {
         int[] aCapacities = new int[nAmbulances];
 
         for (int i=0; i<aCapacities.length; i++) {
-            aCapacities[i] = 2;
+            aCapacities[i] = 0;
         }
         
         this.ambulanceCurrentLoad = aCapacities;

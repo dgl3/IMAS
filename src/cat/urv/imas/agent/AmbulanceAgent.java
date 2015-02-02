@@ -6,7 +6,7 @@
 package cat.urv.imas.agent;
 
 
-import cat.urv.imas.agent.communication.contractnet.ContractOffer;
+import cat.urv.imas.agent.communication.ambcontractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
@@ -106,7 +106,9 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
                 //TODO: set extinguish goal
-                rescueCell = offer.getCell();
+                
+                addTargetCell(offer.getCell());
+                
                 //Action related to added pending task...
                 actionTask();
                 break;
@@ -122,7 +124,8 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.AMBULANCE_CONTRACT_NET:
-                if(rescueCell==null){
+                if(getTargetCell().isEmpty()){
+                    //distributionTask(null);
                     dummyTask();
                 }else{
                     actionTask();
@@ -141,10 +144,29 @@ public class AmbulanceAgent extends IMASVehicleAgent {
             case MessageContent.AMBULANCE_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
-                if(rescueCell==null){
-                    distanceBid = studyDistance(offer.getCell());
+                if(getTargetCell().isEmpty()){
+                    distanceBid = studyDistance(offer.getCell(), 18, Boolean.FALSE);
                 }
-                offer.reply(this, distanceBid);
+                
+                int people = 0;
+                if(distanceBid!=-1){
+                    if (distanceBid<17){
+                        people = getGame().getPeoplePerAmbulance();
+                    }else{
+                        people = 19-distanceBid;
+                    }
+                }
+                
+                int currentLoad = getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getLocalName()));
+                int max = getGame().getPeoplePerAmbulance();
+                int maxBasedOnLoad = max-currentLoad;
+                int peopleICanRescue = Math.min(people, maxBasedOnLoad);
+                
+                if ( peopleICanRescue > 0 ){
+                    offer.reply(this, peopleICanRescue ); // Because the smaller number will be winner
+                }else{
+                    offer.reply(this, -1);
+                }
                 break;
             default:
                 log("CFP Message Content not understood");
@@ -152,10 +174,21 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         }
     }
     
-    private int studyDistance(Cell buildingFire) {
+    private int studyDistance(Cell buildingFire, int maxDist, Boolean future) {
         //study distance through graph
-        Graph graph = getGame().getGraph();
-        Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire,18);
+
+        Path path = null;
+        if(future){
+            Path auxPath = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+            path = computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size() - 1).getCell(), buildingFire, maxDist);
+        }else{
+            if ( buildingFire == null ) System.err.println("#################### NULL FIRE");
+            if (this.getLocalName().equals("fireman2")) {
+                log("This is the fireman 2");
+            }
+            path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
+        }
+
         if(path==null){
             return -1;
         }else{
@@ -229,34 +262,50 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), rescueCell, 18);
+        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
+        if(path != null) {
+            if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
+                int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
+                AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
 
-        if(path.getDistance()==0){//ACTION
-            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
-            nextAction.setAction(rescueCell, 1);
-            endTurn(nextAction);
-            errorLog("Extinguishing...");
-            int row = rescueCell.getRow();
-            int col = rescueCell.getCol();
-            int burned = ((BuildingCell)getGame().get(row, col)).getBurnedRatio();
-            errorLog("Cell: ["+((BuildingCell)rescueCell).getRow()+"]["+((BuildingCell)rescueCell).getCol()+"] of type ("+((BuildingCell)rescueCell).getCellType().name()+")Burned Ratio: "+burned);
-            if(burned<10){
-                errorLog("I'M DONE OF EXTINGUISHING!!!");
-                rescueCell = null;
-                //TODO: consider also moving since the world-norms dictate agents can action+movement
-                //Here it is supposse that agent will do his last extinguish action and have a free movement...
-                //It should be considered that if the extinguishCell==5% then he is like free for the ContractNet
+                if (burned > getGame().getFireSpeed() && burned < 100) {
+                    //action+stay
+                    nextAction.setAction(getCurrentTargetCell(), 1);
+                } else {
+                    Cell actualCell = getCurrentTargetCell();
+                    pollCurrentTargetCell();
+                    nextAction.setAction(actualCell, 1);
+                    //POSSIBLE MOVEMENT
+                    if (getTargetCell().isEmpty()) {
+                        //position should be based on distribution...
+                        //TODO: It never finish doing something!!!!
+                        //distributionTask(nextAction);
+                    } else {
+                        // movement based on path...
+                        //if path.distance == 0 then dont move
+                        computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+                        if (path.getDistance() != 0) {
+                            nextAction.setPosition(path.getNextCellInPath());
+                        }
+                    }
+                }
+                endTurn(nextAction);
+
+            } else {//MOVING
+                AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+                endTurn(nextAction);
             }
-        }else{//MOVING
-            AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+        }else{
+            pollCurrentTargetCell();
+
+            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             endTurn(nextAction);
-            errorLog("Moving...");
         }
     }
 
     private void dummyTask() {
-        AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
-        endTurn(nextAction);
+        AgentAction action = new AgentAction(getAID(), getCurrentPosition());
+        endTurn(action);
     }
     
 }
