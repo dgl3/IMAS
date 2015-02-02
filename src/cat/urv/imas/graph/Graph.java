@@ -17,7 +17,7 @@ import java.util.Queue;
  *
  * @author dgl3
  */
-public class Graph implements Serializable{
+public class Graph implements Serializable, Cloneable{
     private GameSettings settings;
     
     private Map<Cell,Node> nodes; // Map of nodes
@@ -451,5 +451,12 @@ public class Graph implements Serializable{
         }            
         return adjacentCells;
     }    
+    
+    //Deep copy - Hope it will work
+    public Object clone() {
+        Graph graph = new Graph(this.settings);      
+	return graph;
+  }
+
 
 }
