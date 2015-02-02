@@ -433,7 +433,7 @@ public class GameSettings implements java.io.Serializable {
             
             for (Iterator<String> iterator = collisions.iterator(); iterator.hasNext();) {
                 String string = iterator.next();
-                if (string.isEmpty()) {
+                if (string.equals(agentName)) {
                     iterator.remove();
                 }
             }
