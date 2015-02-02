@@ -32,10 +32,16 @@ public class GameStatistics {
      */
     private int[] hospitalCapacities;
     
+    /**
+     * Number of people brought to hospitals
+     */
+    private int peopleBroghtToHospitals;
+    
     public GameStatistics(int[] maxHospitalCapacities) {
         this.fires = new ArrayList<>();
         this.occupancy = new ArrayList<>();
         this.hospitalCapacities = maxHospitalCapacities;
+        this.peopleBroghtToHospitals = 0;
     }
     
     public void newFire(Cell building, int startingTurn) {
@@ -80,6 +86,10 @@ public class GameStatistics {
     
     public void updatePeopleInRisk(float pir) {
         this.peopleInRisk = pir;
+    }
+    
+    public void addPeopleToHospitals(int people) {
+        this.peopleBroghtToHospitals += people;
     }
     
     public String getCurrentStatistics() {
@@ -128,12 +138,13 @@ public class GameStatistics {
         }
         
         String currentStatistics = "Total Fires: " + totalFires + "\n"
-                + "Fires Put Down: " + putDownFires + "\n"
-                + "Burned Buildings: " + burntBuildings + "\n"
+                + "Fires Put Down: " + 100*(float)putDownFires/(float)totalFires + " %\n"
+                + "Burned Buildings: " + 100*(float)burntBuildings/(float)totalFires + " %\n"
+                + "Active Fires: " + 100*(float)numberActiveFires/(float)totalFires + " %\n"
                 + "Avarage Burned Ration when Fireman arrived: " + avarageMaxBurnRatio + "\n"
-                + "Active Fires: " + numberActiveFires + "\n"
                 + "Number of Casualties: " + casualties + "\n"
                 + "People in risk: " + 100*this.peopleInRisk + " %\n"
+                + "Number People brought to Hospitals: " + this.peopleBroghtToHospitals + "\n"
                 + hospitalOccupancy;
         
         return currentStatistics;

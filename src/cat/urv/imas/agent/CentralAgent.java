@@ -577,7 +577,7 @@ public class CentralAgent extends ImasAgent {
                             int signedIn = hc.signInPatients(Math.min(this.game.getAmbulanceCurrentLoad(numAgent), this.game.getAmbulanceLoadingSpeed()),
                                     this.game.getStepsToHealth());
                             
-                            
+                            this.statistics.addPeopleToHospitals(signedIn);
                             this.game.updateAmbulanceCurrentLoad(numAgent, -signedIn);
                         }
                         break;
