@@ -418,9 +418,6 @@ public class CentralAgent extends ImasAgent {
                     }
                 }
             }
-            if (thereAreChanges) {
-                log("THERE HAS BEEN A COLISION BITCH");
-            }
         }
         
         this.game.addColisions(colisions);
