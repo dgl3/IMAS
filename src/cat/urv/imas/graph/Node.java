@@ -25,6 +25,7 @@ public class Node implements Serializable{
 
     private int distance = 0;
     private Node previousNode;
+    private int numActionArea = 0;
     /**
      * Node class constructor. Initialization.
      * @param cell Position of the node in the map
@@ -117,6 +118,15 @@ public class Node implements Serializable{
     public void setCell(Cell cell) {
         this.cell = cell;
     }
+
+    public int getNumActionArea() {
+        return numActionArea;
+    }
+
+    public void setNumActionArea(int numActionArea) {
+        this.numActionArea = numActionArea;
+    }
+    
     
     
 }
