@@ -22,14 +22,20 @@ import static org.junit.Assert.*;
  * 
  */
 public class GraphTest {
-    
+    private GameSettings game;
     private Graph graph;
+    
+    private GameSettings gameEval;
+    private Graph graphEval;
     
 
     @Before 
     public void initialize() {
-        GameSettings game = InitialGameSettings.load("game.settings");
+        game = InitialGameSettings.load("game.settings");
         graph = new Graph(game);
+        
+        gameEval = InitialGameSettings.load("game2.settings");
+        graphEval = new Graph(gameEval);
     }
     
     @Test
@@ -142,9 +148,15 @@ public class GraphTest {
         Cell restrictedCell = new StreetCell(1,2);
         Path path = graph.computeOptimumPathWithRestrictions(initialPoint, targetCell, restrictedCell);
         assertNotNull(path);
-        assertTrue(!path.getPath().contains(new Node(restrictedCell)));
-
-        
+        assertTrue(!path.getPath().contains(new Node(restrictedCell)));   
     }
+    
+    @Test
+    public void initGameSettings2(){
+        assertTrue(this.gameEval != null);
+        assertTrue(this.graphEval != null);
+    }
+    
+    
 
 }
