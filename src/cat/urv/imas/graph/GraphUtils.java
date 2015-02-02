@@ -79,13 +79,20 @@ public class GraphUtils {
         return joinGraph;
     }
     
-    public int distributionValue(Graph graph){
+    public int sumGraphValues(Graph graph){
         int value = 0;
         for(Node node: graph.getNodes().values()){
             value += node.getNumActionArea();
         }
         return value;
            
+    }
+    
+    public int distributionValue(Graph graph, List<Graph> graphList){
+        graphList.add(graph);
+        Graph joinGraph = this.joinGraphs(graphList);
+        
+        return sumGraphValues(joinGraph);
     }
     
 }
