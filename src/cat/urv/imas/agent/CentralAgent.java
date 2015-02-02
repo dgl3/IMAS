@@ -443,7 +443,7 @@ public class CentralAgent extends ImasAgent {
 
         if( autoPlay ){
             try {
-                Thread.sleep(50);
+                Thread.sleep(0);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

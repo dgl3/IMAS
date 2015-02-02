@@ -245,27 +245,11 @@ public class FiremanAgent extends IMASVehicleAgent{
         }
     }
 
-    private void actionTask() {
-
-        Cell newTargetCell = (BuildingCell) getCurrentTargetCell();
-
-        // Handle buildings which where burned because we could not reach in time.
-        int burned = ((BuildingCell)newTargetCell).getBurnedRatio();
-        if ( burned == 100 ){
-            pollCurrentTargetCell();
-            if( getTargetCell().isEmpty() ){
-                newTargetCell = getCurrentPosition();
-            }else {
-                newTargetCell = getCurrentTargetCell();
-            }
-        }
-
-        Path path = computeOptimumPath(getCurrentPosition(), newTargetCell, 18);
-
-
+    private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
         if(path != null) {
             if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
-
+                int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
                 AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
 
                 if (burned > getGame().getFireSpeed() && burned < 100) {
@@ -292,12 +276,12 @@ public class FiremanAgent extends IMASVehicleAgent{
                 endTurn(nextAction);
 
             } else {//MOVING
-                //pollCurrentTargetCell(); // path was null because the avoiding a vehicle caused the building to be out of range. Assign new target. Notify Coord??
-
                 AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
                 endTurn(nextAction);
             }
         }else{
+            pollCurrentTargetCell();
+
             AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             endTurn(nextAction);
         }
