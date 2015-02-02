@@ -161,8 +161,7 @@ public class CentralAgent extends ImasAgent {
         registerToDF();
 
         // 2. Load game settings.
-        this.game = InitialGameSettings.load("game.settings");
-        log("YEAH!");
+        this.game = InitialGameSettings.load("game2.settings");
         this.game.initializeAmbulanceCapacities();
         Graph graph = new Graph(this.game);
         this.game.updateGraph(graph);
