@@ -47,23 +47,27 @@ public class GameSettings implements java.io.Serializable {
     /**
      * Seed for random numbers.
      */
-    private float seed = 0.0f;
+    private float seed;
+    //private float seed = 0.0f;
     /**
      * List of number of beds per hospital. Therefore, a value "{10, 10, 10}"
      * means there will be 3 hospitals with 10 beds each. The number of beds
      * means hospital capacity in number of people in the hospital at the same
      * simulation step.
      */
-    private int[] hospitalCapacities = {10, 10, 10};
+    private int[] hospitalCapacities;
+    //private int[] hospitalCapacities = {10, 10, 10};
     /**
      * Number of steps a person needs to be in the hospital to health, before
      * the person leaves the hospital.
      */
-    private int stepsToHealth = 3;
+    private int stepsToHealth;
+    //private int stepsToHealth = 3;
     /**
      * Capacity of ambulances, in number of people.
      */
-    private int peoplePerAmbulance = 3;
+    private int peoplePerAmbulance;
+    //private int peoplePerAmbulance = 3;
     /**
      * Number of people inside each ambulance
      */
@@ -71,7 +75,8 @@ public class GameSettings implements java.io.Serializable {
     /**
      * Number of people loaded into an ambulance per simulation step.
      */
-    private int ambulanceLoadingSpeed = 1;
+    private int ambulanceLoadingSpeed;
+    //private int ambulanceLoadingSpeed = 1;
     /**
      * Map graph
      */
@@ -81,7 +86,8 @@ public class GameSettings implements java.io.Serializable {
      * has to be applied when there are firemen surrounding the fire, at a total
      * ratio of: {number of surrounding firemen} * {- fireSpeed}.
      */
-    private int fireSpeed = 5;
+    private int fireSpeed;
+    //private int fireSpeed = 5;
     /**
      * Number of gas stations. This is the optional part of the practice.
      * Develop it when you are sure the whole mandatory part is perfect.
@@ -90,7 +96,8 @@ public class GameSettings implements java.io.Serializable {
     /**
      * Total number of simulation steps.
      */
-    private int simulationSteps = 100;
+    private int simulationSteps;
+    //private int simulationSteps = 100;
     /**
      * City map.
      */
