@@ -7,13 +7,14 @@ package cat.urv.imas.agent;
 
 
 import cat.urv.imas.agent.communication.ambcontractnet.ContractOffer;
+import cat.urv.imas.agent.communication.auction.Item;
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
@@ -26,23 +27,7 @@ import jade.lang.acl.ACLMessage;
  * @author Joan Mari
  */
 public class AmbulanceAgent extends IMASVehicleAgent {
-    
-    /**
-     * Ambulance loading speed
-     */
-    private int loadingSpeed;
-    
-    /**
-     * Ambulance capacity
-     */
-    private int ambulanceCapacity;
 
-    /**
-     * Goal (rescue people from) building in Fire cell.
-     */
-    private Cell rescueCell;
-
-    
     public AmbulanceAgent() {
         super(AgentType.AMBULANCE);
     }
@@ -65,9 +50,6 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
         creationNotificationMsg.addReceiver(getParent());
         send(creationNotificationMsg);
-
-        System.out.println(getLocalName() + " sent subscription request.");
-        rescueCell = null;
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -105,12 +87,10 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 ContractOffer offer = (ContractOffer) content.getValue();
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
-                //TODO: set extinguish goal
-                
+
                 addTargetCell(offer.getCell());
-                
-                //Action related to added pending task...
-                actionTask();
+                performNextMove();
+                //actionTask();
                 break;
             default:
                 log("Accept Proposal Message Content not understood");
@@ -202,11 +182,13 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
                 AID targetHospital = (AID)content.getValue();
-                if( !getTargetCell().isEmpty() ) throw new IllegalStateException("Can't send ambulance. Ambulance has already another target.");
                 addTargetCell( getGame().getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital)) );
+                performNextMove();
                 break;
             case MessageContent.SEND_GAME:
                 manageSendGame((GameSettings) content.getValue());
+                if( AIDUtil.getLocalId(getLocalName()) == 1) System.err.println(getCurrentLoad());
+
                 sendGameUpdateConfirmation(getParent());
                 performNextMove();
                 break;
@@ -226,12 +208,15 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath());
                 endTurn(agentAction);
             }else{
-                // Drop Injured People
-                AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
 
-                int currentLoad = getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getAID()));
-                agentAction.setAction(getCurrentTargetCell(), currentLoad);
-                endTurn(agentAction);
+                if (getCurrentTargetCell() instanceof HospitalCell) {
+                    dropInjuredPeople();
+                }else if( getCurrentTargetCell() instanceof BuildingCell ){
+                    pickUpPeople();
+                }else{
+                    throw new IllegalArgumentException("Target is an unknown cell.");
+                }
+
             }
         }else{
             // Move to itself --> No move..
@@ -240,29 +225,41 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         }
     }
 
+    private void pickUpPeople() {
+
+        if( getCurrentLoad() == getMaxLoad() ){
+            pollCurrentTargetCell();
+
+            ACLMessage msg = MessageCreator.createProxy(getParent(), MessageContent.AMBULANCE_AUCTION, new Item(getCurrentPosition(), getCurrentLoad()));
+            send(msg);
+            // Don't perform action. Once auction ends, it will perform the corresponding action.
+        }else {
+            AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
+            agentAction.setAction(getCurrentTargetCell(), 1);
+            endTurn(agentAction);
+        }
+    }
+
+    private void dropInjuredPeople() {
+        if(getCurrentLoad() == 0){
+            pollCurrentTargetCell();
+            dummyTask();
+        }else {
+            AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
+
+            int currentLoad = getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getAID()));
+            agentAction.setAction(getCurrentTargetCell(), currentLoad);
+            endTurn(agentAction);
+        }
+    }
+
     private void manageSendGame(GameSettings gameSettings) {
         setGame(gameSettings);
         updatePosition();
-        updateLoadingSpeed();
-        updateAmbulanceCapacity();
-    }
-
-    /**
-     * Updates the loading speed of the ambulance from the game settings
-     */
-    public void updateLoadingSpeed() {
-        this.loadingSpeed = getGame().getAmbulanceLoadingSpeed();
-    }
-    
-    /**
-     * Updates the ambulance capacity from the game settings
-     */
-    public void updateAmbulanceCapacity() {
-        this.ambulanceCapacity = getGame().getPeoplePerAmbulance();
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
+        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
         if(path != null) {
             if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
                 int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
@@ -306,6 +303,14 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private void dummyTask() {
         AgentAction action = new AgentAction(getAID(), getCurrentPosition());
         endTurn(action);
+    }
+
+    private int getCurrentLoad(){
+        return getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getLocalName()));
+    }
+
+    private int getMaxLoad(){
+        return getGame().getPeoplePerAmbulance();
     }
     
 }

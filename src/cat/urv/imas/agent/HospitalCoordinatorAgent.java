@@ -124,7 +124,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                             handleConfirm(msg);
                             break;
                         default:
-                            log("Unsupported message received.");
+                            log("Unsupported message received." + msg.getPerformative() );
                     }
                 }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
@@ -164,7 +164,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
-                handleStartHospitalAuction(msg.getSender());
+                handleStartHospitalAuction(msg.getSender(), (Item)content.getValue());
                 break;
             case MessageContent.AMBULANCE_CONTRACT_NET:
                 log("New Fire(ambulances): "+game.getNewFire().toString());
@@ -196,9 +196,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
      * This method starts an auction to assign a hospital to a ambulance.
      * @param seller
      */
-    private void handleStartHospitalAuction(AID seller) {
-        // Dummy. To be replaced by real ambulance details.
-        Item item = new Item(new StreetCell(10, 10), 2);
+    private void handleStartHospitalAuction(AID seller, Item item) {
         HashSet<AID> participants = new HashSet<AID>(hospitalAgents);
 
         auctionManager.setupNewAuction(seller, item, Collections.unmodifiableCollection(participants) );

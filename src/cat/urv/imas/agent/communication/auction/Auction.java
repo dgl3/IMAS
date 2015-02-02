@@ -59,11 +59,11 @@ public class Auction {
         }
 
         if( this.winner == null ) {
-            Float highestBid = Float.NEGATIVE_INFINITY;
+            Float highestBid = Float.MAX_VALUE;
             for (AID bidder : bids.keySet()) {
 
                 Float bid = bids.get(bidder);
-                if (bid > highestBid) {
+                if (bid < highestBid) {
                     highestBid = bid;
                     this.winner = bidder;
                 }
