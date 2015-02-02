@@ -23,13 +23,19 @@ public class GameStatistics {
     private List<List<Integer>> occupancy;
     
     /**
-     * 
+     * Percentage of people in risk due to fires
      */
     private float peopleInRisk;
     
-    public GameStatistics() {
+    /**
+     * Hospìtal total capacities
+     */
+    private int[] hospitalCapacities;
+    
+    public GameStatistics(int[] maxHospitalCapacities) {
         this.fires = new ArrayList<>();
         this.occupancy = new ArrayList<>();
+        this.hospitalCapacities = maxHospitalCapacities;
     }
     
     public void newFire(Cell building, int startingTurn) {
@@ -106,12 +112,12 @@ public class GameStatistics {
             Arrays.fill(ho,0);
             for (List<Integer> li : this.occupancy) {
                 for (int i=0; i<nHospitals; i++) {
-                    ho[i] += li.get(i);
+                    ho[i] += li.get(i) / this.hospitalCapacities[i];
                 }
             }
             
             for (int i=0; i<nHospitals; i++) {
-                hospitalOccupancy = hospitalOccupancy.concat("Avarage Ocuppancy of hospital " + i + ": " + ho[i]/this.occupancy.size() + "\n");
+                hospitalOccupancy = hospitalOccupancy.concat("Avarage Ocuppancy of hospital " + i + ": " + ho[i]/this.occupancy.size() + " %\n");
             }
         }
         
@@ -127,7 +133,7 @@ public class GameStatistics {
                 + "Avarage Burned Ration when Fireman arrived: " + avarageMaxBurnRatio + "\n"
                 + "Active Fires: " + numberActiveFires + "\n"
                 + "Number of Casualties: " + casualties + "\n"
-                + "People in risk: " + this.peopleInRisk + "\n"
+                + "People in risk: " + 100*this.peopleInRisk + " %\n"
                 + hospitalOccupancy;
         
         return currentStatistics;

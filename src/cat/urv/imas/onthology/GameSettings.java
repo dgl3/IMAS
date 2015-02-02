@@ -425,21 +425,26 @@ public class GameSettings implements java.io.Serializable {
     }
     
     public List<String> getColisionsByName(String agentName) {
-        List<String> collisions = new ArrayList<>();
-        
-        if (this.collisionsList.containsKey(agentName)) {
-            Cell c = this.collisionsList.get(agentName);
-            collisions = this.getColisionsByCell(c);
-            
-            for (Iterator<String> iterator = collisions.iterator(); iterator.hasNext();) {
-                String string = iterator.next();
-                if (string.equals(agentName)) {
-                    iterator.remove();
+        if (this.collisionsList != null) {
+
+            List<String> collisions = new ArrayList<>();
+
+            if (this.collisionsList.containsKey(agentName)) {
+                Cell c = this.collisionsList.get(agentName);
+                collisions = this.getColisionsByCell(c);
+
+                for (Iterator<String> iterator = collisions.iterator(); iterator.hasNext();) {
+                    String string = iterator.next();
+                    if (string.equals(agentName)) {
+                        iterator.remove();
+                    }
                 }
             }
+
+            return collisions;
+        } else {
+            return new ArrayList<>();
         }
-        
-        return collisions;
     }
     
     public void addColisions(Map<String,Cell> colisions) {

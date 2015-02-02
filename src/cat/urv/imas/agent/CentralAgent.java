@@ -234,7 +234,7 @@ public class CentralAgent extends ImasAgent {
         this.in = new Scanner(System.in);
         this.activeFires = new ArrayList<>();
         
-        this.statistics = new GameStatistics();
+        this.statistics = new GameStatistics(this.game.getHospitalCapacities());
         
         this.addBehaviour(newListenerBehaviour());
 
