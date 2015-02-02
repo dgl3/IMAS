@@ -129,7 +129,6 @@ public class FiremanAgent extends IMASVehicleAgent{
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
                 updatePosition();
-
                 //setListOtherGraphs((Map<AID,Graph>)content.getValue());
                 // confirm
                 sendGameUpdateConfirmation(getParent());
@@ -152,10 +151,10 @@ public class FiremanAgent extends IMASVehicleAgent{
                     if(numActions==0){
                         clonedGraph = GraphUtils.actionArea(graph, getCurrentPosition(), 18);
                     }else if(numActions==1){
-                        int turnsExtinguish = 18-((((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/5)-1);
+                        int turnsExtinguish = 18-((((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/getGame().getFireSpeed())-1);
                         clonedGraph = GraphUtils.actionArea(graph, getCurrentPosition(), turnsExtinguish);
                     }else{
-                        int turnsExtinguish = (((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/5)-1;
+                        int turnsExtinguish = (((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/getGame().getFireSpeed())-1;
                         Path path = graph.computeOptimumPath(getCurrentPosition(), getTargetCell().get(1), turnsExtinguish);
                         int turnsDist = path.getDistance();
                         clonedGraph = GraphUtils.actionArea(graph, path.getPath().get(path.getPath().size()-1).getCell(), turnsExtinguish+turnsDist);
@@ -201,7 +200,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                 }else if(getTargetCell().size()==1){
                     //take into account two possible tasks
                     int distanceToFire = studyDistance(getCurrentTargetCell(), 18, Boolean.FALSE);
-                    int turnsExtinguish = ((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/5;
+                    int turnsExtinguish = ((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/getGame().getFireSpeed();
                     log("Distance to my assigned fire: "+distanceToFire);
                     if(distanceToFire==0){
                         //take into account the number of turns needed to extniguish
@@ -250,7 +249,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                 int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
                 AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
 
-                if (burned > 5 && burned < 100) {
+                if (burned > getGame().getFireSpeed() && burned < 100) {
                     //action+stay
                     nextAction.setAction(getCurrentTargetCell(), 1);
                 } else {
