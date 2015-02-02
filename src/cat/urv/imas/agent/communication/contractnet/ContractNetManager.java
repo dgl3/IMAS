@@ -37,12 +37,12 @@ public class ContractNetManager {
         if( !contractNetInProgress ){
             startNextContractNet();
         }else{
-            System.out.println("Another ContractNet is already in progress!!!!");
+            System.out.println("Another " + kindMessage + "is already in progress!!!!");
         }
     }
 
     private void startNextContractNet(){
-        System.out.println("STARTING NEW FIREMEN_CONTRACT_NET");
+        System.out.println("STARTING NEW " + kindMessage);
         currentContractNet = pendingContractNets.poll();
         contractNetInProgress = true;
         startContractNet(currentContractNet);
@@ -72,7 +72,7 @@ public class ContractNetManager {
                 notifyWinnerLossers(list);
             }
         }else{
-            throw new IllegalStateException("Received Bid for non-existing, or pending ContractNet.");
+            throw new IllegalStateException("Received Bid for non-existing, or pending "+kindMessage+".");
         }
 
     }
@@ -103,7 +103,7 @@ public class ContractNetManager {
         {
             closeContractNet();
         }else{
-            throw new IllegalStateException("Received illegal contractNet confirmation from agent aid " + sender.getLocalName() + " for contractNet id " + offer.getContractNetID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner().get(ContractNet.WINNER).get(0).getLocalName() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
+            throw new IllegalStateException("Received illegal "+kindMessage+" confirmation from agent aid " + sender.getLocalName() + " for contractNet id " + offer.getContractNetID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner().get(ContractNet.WINNER).get(0).getLocalName() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
         }
     }
     
