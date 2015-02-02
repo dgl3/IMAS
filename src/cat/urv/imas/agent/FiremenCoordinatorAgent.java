@@ -83,7 +83,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         // searchAgent is a blocking method, so we will obtain always a correct AID
         firemenAgents = new LinkedList<>();
         finishedFiremanAgents = new ArrayList<>();
-        contractor = new ContractNetManager(this);
+        contractor = new ContractNetManager(this, MessageContent.FIREMEN_CONTRACT_NET);
         addBehaviour(newListenerBehaviour());
 
         pendingGameUpdateConfirmations = new HashSet<>();

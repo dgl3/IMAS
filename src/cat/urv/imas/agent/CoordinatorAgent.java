@@ -167,7 +167,7 @@ public class CoordinatorAgent extends ImasAgent {
                 if(pendingGameUpdateConfirmations.isEmpty()){
                     log("Proxy method!!");
                     if ( game.getNewFire() != null ) {
-                        sendProxy(firemenCoordinator);
+                        sendProxy(firemenCoordinator, MessageContent.FIREMEN_CONTRACT_NET);
                     }
                 }
                 break;
@@ -209,7 +209,7 @@ public class CoordinatorAgent extends ImasAgent {
             case MessageContent.FIREMEN_CONTRACT_NET:
                 if(content.getValue()==null){
                     //TODO: Say HospitalCoordinator to start ContractNet
-                    sendProxy(hospitalCoordinator);
+                    sendProxy(hospitalCoordinator, MessageContent.AMBULANCE_CONTRACT_NET);
                 }else{
                     log("Firemen ContractNet successful!!!");
                 }
@@ -267,11 +267,11 @@ public class CoordinatorAgent extends ImasAgent {
         finishedAmbulanceAgents.clear();
     }
     
-    public void sendProxy(AID reciever) {
+    public void sendProxy(AID reciever, String kindMessage) {
         //TODO: Send PROXY to firemen Coordinator but it crashes somehow...
         //TODO: Sometimes it not crashes, but this codeline executes too fast, so some agents doesn't update its game yet...
         //TODO: Maybe we should make all lower level agents say back again the got gameinfo in order to start the whole process of ContractNets and Auctions with this codeline.
-        ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIREMEN_CONTRACT_NET, null);
+        ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, kindMessage, null);
         errorLog("------< STARTING CONTRACT NET >------");
         send(contractNetProposal);
     }
