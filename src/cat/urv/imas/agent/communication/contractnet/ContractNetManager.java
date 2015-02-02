@@ -31,16 +31,16 @@ public class ContractNetManager {
 
     public void setupNewContractNet(AID seller, Cell item, Collection<AID> participants){
         contractNetIds++;
-        ContractNet contractNet = new ContractNet(contractNetIds, item, new LinkedList(participants));
+        ContractNet contractNet = new ContractNet(contractNetIds, seller, item, new LinkedList(participants));
         pendingContractNets.add(contractNet);
         if( !contractNetInProgress ){
-            startNextAuction();
+            startNextContractNet();
         }else{
             System.out.println("Another ContractNet is already in progress!!!!");
         }
     }
 
-    private void startNextAuction(){
+    private void startNextContractNet(){
         System.out.println("STARTING NEW CONTRACTNET");
         currentContractNet = pendingContractNets.poll();
         contractNetInProgress = true;
@@ -49,7 +49,7 @@ public class ContractNetManager {
 
     private void startContractNet(ContractNet currentContractNet) {
         Collection<AID> participants = currentContractNet.getOutstandingBidders();
-        String messageType = MessageContent.FIRMEN_CONTRACTNET;
+        String messageType = MessageContent.CONTRACTNET;
         ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
         ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CFP, participants, messageType, offer);
         contractor.send(bidRequestMsg);
@@ -77,13 +77,13 @@ public class ContractNetManager {
     }
 
     private void notifySeller(AID winner) {
-        ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), MessageContent.FIRMEN_CONTRACTNET, winner);
+        ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), MessageContent.CONTRACTNET, winner);
         contractor.send(msg);
     }
 
     private void notifyWinnerLossers(Map<Integer,List<AID>> list){
 
-        String messageType = MessageContent.FIRMEN_CONTRACTNET;
+        String messageType = MessageContent.CONTRACTNET;
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list.get(ContractNet.LOOSER), messageType, null);
         contractor.send(lostNotification);
         if(!list.get(ContractNet.WINNER).isEmpty()){
@@ -110,7 +110,7 @@ public class ContractNetManager {
         currentContractNet = null;
         contractNetInProgress = false;
         if( !pendingContractNets.isEmpty() ) {
-            startNextAuction();
+            startNextContractNet();
         }
     }
 }

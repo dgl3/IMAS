@@ -89,7 +89,7 @@ public class FiremanAgent extends IMASVehicleAgent{
     private void handleAcceptProposal(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.CONTRACTNET:
                 ContractOffer offer = (ContractOffer) content.getValue();
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
@@ -109,7 +109,7 @@ public class FiremanAgent extends IMASVehicleAgent{
         //nextAction <-- movement related to distribution
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.CONTRACTNET:
                 if(getTargetCell().isEmpty()){
                     //distributionTask(null);
                     dummyTask();
@@ -192,7 +192,7 @@ public class FiremanAgent extends IMASVehicleAgent{
     private void handleCFP(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.FIRMEN_CONTRACTNET:
+            case MessageContent.CONTRACTNET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
                 if(getTargetCell().isEmpty()){
