@@ -92,7 +92,7 @@ public class GameStatistics {
         this.peopleBroghtToHospitals += people;
     }
     
-    public String getCurrentStatistics() {
+    public String getCurrentStatistics(int turn) {
         int totalFires = this.fires.size();
         float avarageMaxBurnRatio = 0;
         int numberActiveFires = 0;
@@ -137,7 +137,8 @@ public class GameStatistics {
             avarageMaxBurnRatio = 0;
         }
         
-        String currentStatistics = "Total Fires: " + totalFires + "\n"
+        String currentStatistics = "Statistics for turn: " + turn + "\n"
+                + "Total Fires: " + totalFires + "\n"
                 + "Fires Put Down: " + 100*(float)putDownFires/(float)totalFires + " %\n"
                 + "Burned Buildings: " + 100*(float)burntBuildings/(float)totalFires + " %\n"
                 + "Active Fires: " + 100*(float)numberActiveFires/(float)totalFires + " %\n"

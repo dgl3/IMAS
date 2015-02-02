@@ -474,7 +474,7 @@ public class CentralAgent extends ImasAgent {
         this.statistics.updatePeopleInRisk(this.game.getPeopleInRiskPercentage());
 
         this.gui.updateGame();
-        this.gui.printNewStatistics(this.statistics.getCurrentStatistics());
+        this.gui.printNewStatistics(this.statistics.getCurrentStatistics(this.turn));
 
         readyForNextTurn();
     }
