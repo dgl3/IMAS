@@ -78,5 +78,10 @@ public class MessageContent {
      */
     public static final String AMBULANCES_CONTRACTNET = "Ambulance Contract Net";
     
+    /**
+     * Message related to Ambulances ContractNet
+     */
+    public static final String ACTION_AREAS = "Graph Action Area";
+    
 
 }

@@ -63,8 +63,12 @@ public class GraphUtils {
     
     public static Graph joinGraphs(List<Graph> graphList){
         //I'm not removing the first graph because the clone method generate a new graph from the settings
-        Graph firstGraph = graphList.remove(0);
+        Graph firstGraph = graphList.get(0);
+        if(firstGraph==null){
+            System.out.println("firstGraph is null!!!!");
+        }
         Graph joinGraph = (Graph)firstGraph.clone();
+        graphList.remove(0);
         
         for(Graph graph: graphList){
             for(Node node: graph.getNodes().values()){

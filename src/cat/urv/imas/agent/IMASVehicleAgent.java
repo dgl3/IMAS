@@ -21,6 +21,7 @@ import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.constants.Direction;
 import cat.urv.imas.graph.Path;
+import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -48,6 +49,16 @@ public class IMASVehicleAgent extends ImasAgent {
     private Cell currentPosition;
 
     /**
+     * List of other ActionAreas
+     */
+    List<Graph> foreignActionAreas;
+    
+    /**
+     * Agent Action Area
+     */
+    Graph actionArea;
+    
+    /**
      * Game settings in use.
      */
     private GameSettings game;
@@ -72,6 +83,7 @@ public class IMASVehicleAgent extends ImasAgent {
     public IMASVehicleAgent(AgentType type) {
         super(type);
         targetCell = new ArrayList<>();
+        foreignActionAreas = new ArrayList<>();
     }
 
     public void endTurn(AgentAction nextAction) {
@@ -177,34 +189,6 @@ public class IMASVehicleAgent extends ImasAgent {
         }
     }
 
-//    private Cell getEscapePosition(Direction direction, List<String> collisions){
-//
-//        // Collided with idle agent or car
-//        if ( collisions.isEmpty() ){
-//            errorLog("Collided with idle agent or car");
-//            return getNewAllowedRandomCell();
-//        }
-//
-//        // Collided with other moving agent
-//        String otherName = collisions.get(0);
-//        AgentType myType = getType();
-//        AgentType otherType = AIDUtil.getType(otherName);
-//
-//        int myRank = rank(myType);
-//        int otherRank = rank(otherType);
-//
-//        if(  myRank < otherRank ){
-//            return getNewAllowedRandomCell();
-//        }else if( myRank == otherRank ){
-//            if ( direction == direction.NORTH || direction == direction.WEST ){
-//                return getNewAllowedRandomCell();
-//            }
-//        }
-
-        // The other agent has to move
-//        return new StreetCell( lastAction.nextPosition[0], lastAction.nextPosition[1]);
-//    }
-
     private boolean mustAvoid(List<String> collisions){
         if ( collisions.isEmpty() ){
             errorLog("Collided with idle agent or car");
@@ -276,4 +260,21 @@ public class IMASVehicleAgent extends ImasAgent {
         }
         return getGame().getGraph().computeOptimumPathWithRestrictions(from, to, cellToAvoid, maxDist);
     }
+
+    public List<Graph> getForeignActionAreas() {
+        return foreignActionAreas;
+    }
+
+    public void addForeignActionAreas(Graph actionArea) {
+        this.foreignActionAreas.add(actionArea);
+    }
+
+    public void setActionArea(Graph actionArea) {
+        this.actionArea = actionArea;
+    }
+
+    public Graph getActionArea() {
+        return actionArea;
+    }
+
 }
