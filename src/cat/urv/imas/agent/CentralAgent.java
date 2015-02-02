@@ -441,7 +441,7 @@ public class CentralAgent extends ImasAgent {
 
         if( autoPlay ){
             try {
-                Thread.sleep(300);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
