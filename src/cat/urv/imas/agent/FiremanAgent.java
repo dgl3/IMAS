@@ -231,6 +231,7 @@ public class FiremanAgent extends IMASVehicleAgent{
             Path auxPath = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
             path = computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size() - 1).getCell(), buildingFire, maxDist);
         }else{
+            if ( buildingFire == null ) System.err.println("#################### NULL FIRE");
             path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
         }
 
@@ -243,35 +244,40 @@ public class FiremanAgent extends IMASVehicleAgent{
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
-        if(path.getDistance()==0){//ACTION+POSSIBLE MOVEMENT
-            int burned = ((BuildingCell)getCurrentTargetCell()).getBurnedRatio();
-            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
+        if(path != null) {
+            if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
+                int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
+                AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
 
-            if(burned>5 && burned<100){
-                //action+stay
-                nextAction.setAction(getCurrentTargetCell(), 1);
-            }else{
-                Cell actualCell = getCurrentTargetCell();
-                pollCurrentTargetCell();
-                nextAction.setAction(actualCell, 1);
-                //POSSIBLE MOVEMENT
-                if(getTargetCell().isEmpty()){
-                    //position should be based on distribution...
-                    //TODO: It never finish doing something!!!!
-                    //distributionTask(nextAction);
-                }else{
-                    // movement based on path...
-                    //if path.distance == 0 then dont move
-                    computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
-                    if(path.getDistance()!=0){
-                        nextAction.setPosition(path.getNextCellInPath());
+                if (burned > 5 && burned < 100) {
+                    //action+stay
+                    nextAction.setAction(getCurrentTargetCell(), 1);
+                } else {
+                    Cell actualCell = getCurrentTargetCell();
+                    pollCurrentTargetCell();
+                    nextAction.setAction(actualCell, 1);
+                    //POSSIBLE MOVEMENT
+                    if (getTargetCell().isEmpty()) {
+                        //position should be based on distribution...
+                        //TODO: It never finish doing something!!!!
+                        //distributionTask(nextAction);
+                    } else {
+                        // movement based on path...
+                        //if path.distance == 0 then dont move
+                        computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+                        if (path.getDistance() != 0) {
+                            nextAction.setPosition(path.getNextCellInPath());
+                        }
                     }
                 }
-            }
-            endTurn(nextAction);
+                endTurn(nextAction);
 
-        }else{//MOVING
-            AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+            } else {//MOVING
+                AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+                endTurn(nextAction);
+            }
+        }else{
+            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             endTurn(nextAction);
         }
     }

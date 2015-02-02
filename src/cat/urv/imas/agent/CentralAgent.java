@@ -167,7 +167,7 @@ public class CentralAgent extends ImasAgent {
         Graph graph = new Graph(this.game);
         this.game.updateGraph(graph);
         log("Initial configuration settings loaded");
-        
+
         this.RNG = new Random((int)this.game.getSeed());
         
         
@@ -265,7 +265,9 @@ public class CentralAgent extends ImasAgent {
 
                 this.game.setNewFire(fire);
 
-                this.statistics.newFire(fire, this.turn);
+                if (fire != null) {
+                    this.statistics.newFire(fire, this.turn);
+                }
             } else {
                 this.game.setNewFire(null);
             }
@@ -533,11 +535,17 @@ public class CentralAgent extends ImasAgent {
     }
     
     private Cell generateFire() {
-        List<Cell> buildings = this.game.getClearBuildings();
-        if (buildings.size() > 0) {
-            int fireIndex = this.RNG.nextInt(buildings.size());
-            return buildings.get(fireIndex);
-        } else {
+
+        if( this.RNG.nextInt(5) == 0 ) {
+
+            List<Cell> buildings = this.game.getClearBuildings();
+            if (buildings.size() > 0) {
+                int fireIndex = this.RNG.nextInt(buildings.size());
+                return buildings.get(fireIndex);
+            } else {
+                return null;
+            }
+        }else{
             return null;
         }
     }
@@ -567,8 +575,8 @@ public class CentralAgent extends ImasAgent {
                             if (!BC.isDestroyed()) {
                                 int numAgent = AIDUtil.getLocalId(action.agentAID);
                                 
-                                int taken = BC.take(Math.min(this.game.getPeoplePerAmbulance()-
-                                        this.game.getAmbulanceCurrentLoad(numAgent),this.game.getAmbulanceLoadingSpeed()));
+                                int taken = BC.take(Math.min(this.game.getPeoplePerAmbulance() -
+                                        this.game.getAmbulanceCurrentLoad(numAgent), this.game.getAmbulanceLoadingSpeed()));
                                 
                                 this.game.updateAmbulanceCurrentLoad(numAgent, taken);
                             }
@@ -593,7 +601,11 @@ public class CentralAgent extends ImasAgent {
         Cell[][] currentMap = this.game.getMap();
         
         List<Cell> currentFires = this.game.getBuildingsOnFire();
-        currentFires.add(this.game.getNewFire());
+
+        Cell newFireLocation = this.game.getNewFire();
+        if (newFireLocation != null ) {
+            currentFires.add( newFireLocation );
+        }
         
         for (Cell bof : currentFires) {
             Boolean modified = false;

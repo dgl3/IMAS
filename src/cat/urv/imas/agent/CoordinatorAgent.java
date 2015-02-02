@@ -178,7 +178,9 @@ public class CoordinatorAgent extends ImasAgent {
                 // Propagate confirm message
                 if(pendingGameUpdateConfirmations.isEmpty()){
                     log("Proxy method!!");
-                    sendProxy(firemenCoordinator);
+                    if ( game.getNewFire() != null ) {
+                        sendProxy(firemenCoordinator);
+                    }
                 }
                 break;
             default:
@@ -191,6 +193,9 @@ public class CoordinatorAgent extends ImasAgent {
      * Handle new incoming INFORM message
      */
     private void handleInform(ACLMessage msg) {
+
+        errorLog("Got message from Central " + msg.getPerformative());
+
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
