@@ -545,7 +545,9 @@ public class CentralAgent extends ImasAgent {
                         bc = (BuildingCell)currentMap[action.actionPosition[0]][action.actionPosition[1]];
                         bc.updateBurnedRatio(this.game.getFireSpeed());
                         FireStatistics fs = this.statistics.getActiveFireStatistics(bc);
-                        fs.updateBurnedRatio(bc.getBurnedRatio(), this.turn, bc.getNumberOfCitizens());
+                        if (fs != null) {
+                            fs.updateBurnedRatio(bc.getBurnedRatio(), this.turn, bc.getNumberOfCitizens());
+                        }
                         modifiedCells.add(bc);
                         break;
                     case AMBULANCE:

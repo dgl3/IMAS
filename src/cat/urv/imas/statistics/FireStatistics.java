@@ -57,7 +57,7 @@ public class FireStatistics {
     }
     
     public void updateBurnedRatio(int burnedRatio, int turn, int peopleInBuilding) {
-        if (this.burnPercentage > burnedRatio) {
+        if (this.burnPercentage < burnedRatio) {
             this.burnPercentage = burnedRatio;
         }
         if (burnedRatio >= 100) {

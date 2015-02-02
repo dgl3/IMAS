@@ -106,8 +106,11 @@ public class GameStatistics {
             }
         }
         
-        
-        avarageMaxBurnRatio = avarageMaxBurnRatio / totalFires;
+        if (putDownFires != 0) {
+            avarageMaxBurnRatio = avarageMaxBurnRatio / putDownFires;
+        } else {
+            avarageMaxBurnRatio = 0;
+        }
         
         String currentStatistics = "Total Fires: " + totalFires + "\n"
                 + "Fires Put Down: " + putDownFires + "\n"
