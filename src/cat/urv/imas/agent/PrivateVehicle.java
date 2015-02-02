@@ -149,4 +149,9 @@ public class PrivateVehicle {
             }
         }
     }
+    
+    public String getLocalName() {
+        return this.localName;
+        
+    }
 }

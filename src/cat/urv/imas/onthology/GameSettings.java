@@ -25,6 +25,8 @@ import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.map.StreetCell;
 import java.util.ArrayList;
 import static java.util.Collections.list;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.xml.bind.annotation.XmlElement;
@@ -113,6 +115,10 @@ public class GameSettings implements java.io.Serializable {
      */
     private Cell newFire;
     
+    /**
+     * List of collisions of the current turn
+     */
+    private Map<String,Cell> collisionsList;
 
     public float getSeed() {
         return seed;
@@ -401,5 +407,42 @@ public class GameSettings implements java.io.Serializable {
         }
         }*/ 
         return (street instanceof StreetCell);
+    }
+    
+    public void emptyColisions() {
+        this.collisionsList = new HashMap<>();
+    }
+    
+    public List<String> getColisionsByCell(Cell c) {
+        List<String> colidedAgents = new ArrayList<>();
+        
+        for (Map.Entry<String,Cell> entry : this.collisionsList.entrySet()) {
+            if (entry.getValue().getRow() == c.getRow() && entry.getValue().getCol() == c.getCol()) {
+                colidedAgents.add(entry.getKey());
+            }
+        }
+        return colidedAgents;
+    }
+    
+    public List<String> getColisionsByName(String agentName) {
+        List<String> collisions = new ArrayList<>();
+        
+        if (this.collisionsList.containsKey(agentName)) {
+            Cell c = this.collisionsList.get(agentName);
+            collisions = this.getColisionsByCell(c);
+            
+            for (Iterator<String> iterator = collisions.iterator(); iterator.hasNext();) {
+                String string = iterator.next();
+                if (string.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
+        
+        return collisions;
+    }
+    
+    public void addColisions(Map<String,Cell> colisions) {
+        this.collisionsList.putAll(colisions);
     }
 }

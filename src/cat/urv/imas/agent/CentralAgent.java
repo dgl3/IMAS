@@ -289,6 +289,8 @@ public class CentralAgent extends ImasAgent {
         for (Cell c : pva) {
             privateCanPerformMovement.add(true);
         }*/
+        this.game.emptyColisions();
+        Map<String,Cell> colisions = new HashMap<>();
         
         Boolean thereAreChanges = true;
         
@@ -302,6 +304,8 @@ public class CentralAgent extends ImasAgent {
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
                         pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
                         thereAreChanges = true;
+                        colisions.put(this.privateVehicles.get(i).getLocalName(), this.privateVehicles.get(i).getCurrentPosition());
+                        colisions.put(this.privateVehicles.get(j).getLocalName(), this.privateVehicles.get(j).getCurrentPosition());
                     }
                 }
                 for (AgentAction agent: agentActions) {
@@ -316,6 +320,8 @@ public class CentralAgent extends ImasAgent {
                                     get(AIDUtil.getLocalId(agent.agentAID)));
                         }
                         thereAreChanges = true;
+                        colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
+                        colisions.put(this.privateVehicles.get(i).getLocalName(), this.privateVehicles.get(i).getCurrentPosition());
                     }
                 }
             }
@@ -344,6 +350,8 @@ public class CentralAgent extends ImasAgent {
                             a.changeNextPosition(cPos);
                             agent.changeNextPosition(cPos2);
                             thereAreChanges = true;
+                            colisions.put(agent.agentAID.getLocalName(), cPos2);
+                            colisions.put(a.agentAID.getLocalName(), cPos);
                         }
                     }
                 }
@@ -358,6 +366,8 @@ public class CentralAgent extends ImasAgent {
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
                         pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
                         thereAreChanges = true;
+                        colisions.put(this.privateVehicles.get(i).getLocalName(), this.privateVehicles.get(i).getCurrentPosition());
+                        colisions.put(this.privateVehicles.get(j).getLocalName(), this.privateVehicles.get(j).getCurrentPosition());
                     }
                 }
             }
@@ -380,6 +390,8 @@ public class CentralAgent extends ImasAgent {
                         pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
                         a.changeNextPosition(cPos);
                         thereAreChanges = true;
+                        colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
+                        colisions.put(this.privateVehicles.get(j).getLocalName(), this.privateVehicles.get(j).getCurrentPosition());
                     }
                 }
                 for (AgentAction agent: agentActions) {
@@ -400,6 +412,8 @@ public class CentralAgent extends ImasAgent {
                             a.changeNextPosition(cPos);
                             agent.changeNextPosition(cPos2);
                             thereAreChanges = true;
+                            colisions.put(agent.agentAID.getLocalName(), cPos2);
+                            colisions.put(a.agentAID.getLocalName(), cPos);
                         }
                     }
                 }
@@ -408,6 +422,8 @@ public class CentralAgent extends ImasAgent {
                 log("THERE HAS BEEN A COLISION BITCH");
             }
         }
+        
+        this.game.addColisions(colisions);
     }
 
     private void readyForNextTurn() {
