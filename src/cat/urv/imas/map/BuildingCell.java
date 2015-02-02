@@ -19,6 +19,8 @@ package cat.urv.imas.map;
 
 import cat.urv.imas.gui.CellVisualizer;
 
+import java.lang.UnsupportedOperationException;
+
 /**
  * Building cell.
  */
@@ -146,5 +148,10 @@ public class BuildingCell extends Cell {
             message = String.valueOf(getBurnedRatio()) + "/" + message;
         }
         return message;
+    }
+
+    @Override
+    public Cell copy() {
+        throw new UnsupportedOperationException("Please implement copy for this cell type");
     }
 }

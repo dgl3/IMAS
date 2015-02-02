@@ -125,5 +125,9 @@ public class HospitalCell extends Cell {
     public String getMapMessage() {
         return String.valueOf(useRatio());
     }
-    
+
+    @Override
+    public Cell copy() {
+        throw new UnsupportedOperationException("Please implement copy for this cell type");
+    }
 }

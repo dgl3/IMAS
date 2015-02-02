@@ -401,12 +401,12 @@ public class Graph implements Serializable, Cloneable{
      * @param restriction Cell unavailable
      * @return 
      */
-    public Path computeOptimumPathWithRestrictions(Cell init, Cell target, Cell restriction){
+    public Path computeOptimumPathWithRestrictions(Cell init, Cell target, Cell restriction, int maxDist){
         List<Cell> adjacentCells = getAdjacentCells(target);
         Path optimumPath = null;
         for(Cell cell: adjacentCells){
             if(!init.equals(cell)){
-                Path path = bfs(init, cell, 18, restriction);
+                Path path = bfs(init, cell, maxDist, restriction);
                 if (path != null){//No path with distance < 18
                     if(optimumPath == null){
                         optimumPath = path;

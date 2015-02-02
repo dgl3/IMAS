@@ -8,7 +8,6 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.graph.Graph;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
@@ -162,8 +161,7 @@ public class FiremanAgent extends IMASVehicleAgent{
     
     private int studyDistance(Cell buildingFire, int maxDist) {
         //study distance through graph
-        Graph graph = getGame().getGraph();
-        Path path = graph.computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
+        Path path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
         if(path==null){
             return -1;
         }else{
@@ -171,11 +169,12 @@ public class FiremanAgent extends IMASVehicleAgent{
         }
     }
 
-    private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
+    private void actionTask() {
+        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
         if(path.getDistance()==0){//ACTION
             int burned = ((BuildingCell)getCurrentTargetCell()).getBurnedRatio();
             AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
+
             if(burned>5){
                 //action+stay
                 nextAction.setAction(getCurrentTargetCell(), 1);
@@ -188,14 +187,14 @@ public class FiremanAgent extends IMASVehicleAgent{
                 }else{
                     // movement based on path...
                     //if path.distance == 0 then dont move
-                    Graph graph = getGame().getGraph();
-                    path = graph.computeOptimumPathUnconstrained(getCurrentPosition(), getCurrentTargetCell());
+                    computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
                     if(path.getDistance()!=0){
                         nextAction.setPosition(path.getNextCellInPath());
                     }
                 }
             }
             endTurn(nextAction);
+
         }else{//MOVING
             AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
             endTurn(nextAction);

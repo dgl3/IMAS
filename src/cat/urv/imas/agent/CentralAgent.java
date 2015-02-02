@@ -86,7 +86,7 @@ public class CentralAgent extends ImasAgent {
     /**
      * Random Number Generator
      */
-    private Random RNG;
+    private static Random RNG;
 
     /**
      * Indicates wether the central agent is ready for the next turn
@@ -197,7 +197,7 @@ public class CentralAgent extends ImasAgent {
                     break;
                 case "PRIVATE_VEHICLE":  
                     for (int i=0;i<entry.getValue().size();i++) {
-                        this.privateVehicles.add(new PrivateVehicle("private" + i, entry.getValue().get(i), this.RNG, this.game));
+                        this.privateVehicles.add(new PrivateVehicle(AgentNames.car + i, entry.getValue().get(i), this.RNG, this.game));
                     }
                     break;
                 case "FIREMAN":
@@ -440,7 +440,7 @@ public class CentralAgent extends ImasAgent {
 
         if( autoPlay ){
             try {
-                Thread.sleep(1000);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -720,5 +720,9 @@ public class CentralAgent extends ImasAgent {
 
     public boolean isReadyForNextTurn() {
         return readyForNextTurn;
+    }
+
+    public static Random getRNG() {
+        return RNG;
     }
 }
