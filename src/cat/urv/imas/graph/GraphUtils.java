@@ -61,4 +61,31 @@ public class GraphUtils {
         return graphCloned;
     }
     
+    public Graph joinGraphs(List<Graph> graphList){
+        //I'm not removing the first graph because the clone method generate a new graph from the settings
+        Graph firstGraph = graphList.remove(0);
+        Graph joinGraph = (Graph)firstGraph.clone();
+        
+        for(Graph graph: graphList){
+            for(Node node: graph.getNodes().values()){
+                if(node.getNumActionArea() != 0){
+                    if(joinGraph.getNodes().get(node.getCell()).getNumActionArea() > node.getNumActionArea()){
+                        joinGraph.getNodes().get(node.getCell()).setNumActionArea(node.getNumActionArea());
+                    }
+                }
+            }
+        }
+        
+        return joinGraph;
+    }
+    
+    public int distributionValue(Graph graph){
+        int value = 0;
+        for(Node node: graph.getNodes().values()){
+            value += node.getNumActionArea();
+        }
+        return value;
+           
+    }
+    
 }

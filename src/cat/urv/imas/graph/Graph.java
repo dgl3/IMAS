@@ -52,6 +52,24 @@ public class Graph implements Serializable, Cloneable{
     public Map<Node,List<Edge>> getEdges(){
         return edgesMap;
     }
+
+    public void setSettings(GameSettings settings) {
+        this.settings = settings;
+    }
+
+    public void setNodes(Map<Cell, Node> nodes) {
+        this.nodes = nodes;
+    }
+
+    public void setEdgesMap(Map<Node, List<Edge>> edgesMap) {
+        this.edgesMap = edgesMap;
+    }
+
+    public static void setMAX_STEPS(int MAX_STEPS) {
+        Graph.MAX_STEPS = MAX_STEPS;
+    }
+    
+    
     
     /**
      * Creates a Graph from the map of the city, where each node represents a 
@@ -454,7 +472,11 @@ public class Graph implements Serializable, Cloneable{
     
     //Deep copy - Hope it will work
     public Object clone() {
-        Graph graph = new Graph(this.settings);      
+        Graph graph = new Graph(this.settings);  
+        graph.setNodes((HashMap)((HashMap)graph.getNodes()).clone());
+        graph.setEdgesMap((HashMap)((HashMap)graph.getEdges()).clone());
+        graph.setSettings(graph.settings);
+
 	return graph;
   }
 
