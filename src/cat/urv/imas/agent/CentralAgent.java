@@ -556,14 +556,19 @@ public class CentralAgent extends ImasAgent {
                         if (c instanceof BuildingCell) {
                             BuildingCell BC = (BuildingCell)c;
                             if (!BC.isDestroyed()) {
-                                int taken = BC.take(action.actionParameter);
                                 int numAgent = AIDUtil.getLocalId(action.agentAID);
+                                
+                                int taken = BC.take(Math.min(this.game.getPeoplePerAmbulance()-
+                                        this.game.getAmbulanceCurrentLoad(numAgent),this.game.getAmbulanceLoadingSpeed()));
+                                
                                 this.game.updateAmbulanceCurrentLoad(numAgent, taken);
                             }
                         } else if (c instanceof HospitalCell) {
                             HospitalCell hc = (HospitalCell)c;
-                            int signedIn = hc.signInPatients(action.actionParameter, this.game.getStepsToHealth());
                             int numAgent = AIDUtil.getLocalId(action.agentAID);
+                            int signedIn = hc.signInPatients(Math.min(this.game.getAmbulanceCurrentLoad(numAgent), this.game.getAmbulanceLoadingSpeed()),
+                                    this.game.getStepsToHealth());
+                            
                             
                             this.game.updateAmbulanceCurrentLoad(numAgent, -signedIn);
                         }
