@@ -179,6 +179,7 @@ public class CentralAgent extends ImasAgent {
             e.printStackTrace();
         }
         
+        
         // 4. Create other agents
         jade.wrapper.AgentContainer cc = getContainerController();
         

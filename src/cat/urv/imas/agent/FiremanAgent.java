@@ -232,6 +232,9 @@ public class FiremanAgent extends IMASVehicleAgent{
             path = computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size() - 1).getCell(), buildingFire, maxDist);
         }else{
             if ( buildingFire == null ) System.err.println("#################### NULL FIRE");
+            if (this.getLocalName().equals("fireman2")) {
+                log("This is the fireman 2");
+            }
             path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
         }
 

@@ -35,6 +35,7 @@ public class Graph implements Serializable, Cloneable{
         this.edgesMap = new HashMap<>();
         
         this.settings = settings;
+        
         initGraph(settings.getMap());
     }
     /**
@@ -78,7 +79,7 @@ public class Graph implements Serializable, Cloneable{
      */
     private void initGraph(Cell[][] map){
         int rows = map.length;
-        int cols = map.length;
+        int cols = map[0].length;
         Cell cell;
         //Initialize nodes
         for (int row = 0; row < rows; row++) {
