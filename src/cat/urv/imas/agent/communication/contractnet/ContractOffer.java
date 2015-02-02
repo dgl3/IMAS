@@ -14,11 +14,13 @@ public class ContractOffer implements java.io.Serializable {
     private AID contractor;
     private int contractNetID;
     private Cell cell;
+    private String kindMessage;
 
-    public ContractOffer(AID contractor, int contractNetID, Cell cell) {
+    public ContractOffer(AID contractor, int contractNetID, Cell cell, String kindMessage) {
         this.contractNetID = contractNetID;
         this.contractor = contractor;
         this.cell = cell;
+        this.kindMessage = kindMessage;
     }
 
     public Cell getCell() {
@@ -31,7 +33,7 @@ public class ContractOffer implements java.io.Serializable {
 
     public void reply(Agent sender, int bidValue){
         ContractBid bid = new ContractBid(contractNetID, bidValue);
-        ACLMessage bidMsg = MessageCreator.createPropose(contractor, MessageContent.FIREMEN_CONTRACT_NET, bid);
+        ACLMessage bidMsg = MessageCreator.createPropose(contractor, kindMessage, bid);
         sender.send(bidMsg);
     }
 

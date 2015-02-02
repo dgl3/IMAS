@@ -80,6 +80,8 @@ public class ContractNet {
         List<AID> looserList = new ArrayList<>();
         if(winner!=null){
             winnerList.add(winner);
+        }else{
+            System.out.println("NO WINNER!!!");
         }
         list.put(WINNER, winnerList);
         list.put(LOOSER, looserList);

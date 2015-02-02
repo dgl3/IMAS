@@ -51,7 +51,7 @@ public class ContractNetManager {
     private void startContractNet(ContractNet currentContractNet) {
         Collection<AID> participants = currentContractNet.getOutstandingBidders();
         String messageType = kindMessage;
-        ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
+        ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem(), kindMessage);
         ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CFP, participants, messageType, offer);
         contractor.send(bidRequestMsg);
     }
@@ -59,7 +59,6 @@ public class ContractNetManager {
     public void takeBid(AID sender, ContractBid bid) {
         if( bid.getAuctionID() == currentContractNet.getID() ) {
             currentContractNet.takeBid(sender, bid.getValue());
-
             if( currentContractNet.readyForEvaluation() ){
                 Map<Integer,List<AID>> list = currentContractNet.getWinner();
                 //TODO: Maybe the case there is no winner because none bid for the ContractNet!!!
@@ -88,7 +87,8 @@ public class ContractNetManager {
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list.get(ContractNet.LOOSER), messageType, null);
         contractor.send(lostNotification);
         if(!list.get(ContractNet.WINNER).isEmpty()){
-            ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem());
+            System.out.println("WINNER SENDING!!!"+kindMessage);
+            ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem(), kindMessage);
             ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(ContractNet.WINNER).get(0), messageType, offer);
             contractor.send(winNotification);
         }else{

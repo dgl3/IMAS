@@ -136,6 +136,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_CONTRACT_NET:
+                System.out.println("CONFIRMATION FROM AMBULANCE!!!");
                 contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
                 break;
             case MessageContent.AMBULANCE_AUCTION:
@@ -154,7 +155,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
                 break;
             default:
-                log("Message Content not understood");
+                log("CONFIRM Message Content not understood"+ content.getKey());
                 break;
         }
     }
@@ -170,7 +171,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(ambulanceAgents));
                 break;
             default:
-                log("Message Content not understood");
+                log("PROXY Message Content not understood" + content.getKey());
                 break;
         }
     }
@@ -186,7 +187,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 contractor.takeBid(msg.getSender(), (ContractBid) content.getValue());
                 break;
             default:
-                log("Message Content not understood");
+                log("PROPOSAL Message Content not understood"+ content.getKey());
                 break;
         }
     }
