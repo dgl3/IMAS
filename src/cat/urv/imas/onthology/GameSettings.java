@@ -445,4 +445,28 @@ public class GameSettings implements java.io.Serializable {
     public void addColisions(Map<String,Cell> colisions) {
         this.collisionsList.putAll(colisions);
     }
+    
+    public float getPeopleInRiskPercentage() {
+        int peopleInRisk = 0;
+        int totalPeople = 0;
+        
+        for (Cell[] cl : this.getMap()) {
+            for (Cell c : cl) {
+                if (c instanceof BuildingCell) {
+                    BuildingCell bc = (BuildingCell)c;
+                    if (bc.isOnFire() && !bc.isDestroyed()) {
+                        peopleInRisk += bc.getNumberOfCitizens();
+                    }
+                    if (!bc.isDestroyed()) {
+                        totalPeople += bc.getNumberOfCitizens();
+                    }
+                }
+            }
+        }
+        if (totalPeople != 0) {
+            return (float)peopleInRisk / (float)totalPeople;
+        } else {
+            return 0;
+        }
+    }
 }

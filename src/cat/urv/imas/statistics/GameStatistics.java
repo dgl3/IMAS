@@ -22,6 +22,11 @@ public class GameStatistics {
      */
     private List<List<Integer>> occupancy;
     
+    /**
+     * 
+     */
+    private float peopleInRisk;
+    
     public GameStatistics() {
         this.fires = new ArrayList<>();
         this.occupancy = new ArrayList<>();
@@ -65,6 +70,10 @@ public class GameStatistics {
             }
         }
         return null;
+    }
+    
+    public void updatePeopleInRisk(float pir) {
+        this.peopleInRisk = pir;
     }
     
     public String getCurrentStatistics() {
@@ -118,6 +127,7 @@ public class GameStatistics {
                 + "Avarage Burned Ration when Fireman arrived: " + avarageMaxBurnRatio + "\n"
                 + "Active Fires: " + numberActiveFires + "\n"
                 + "Number of Casualties: " + casualties + "\n"
+                + "People in risk: " + this.peopleInRisk + "\n"
                 + hospitalOccupancy;
         
         return currentStatistics;
