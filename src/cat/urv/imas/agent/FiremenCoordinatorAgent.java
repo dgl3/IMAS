@@ -211,6 +211,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     private void handleSubscribe(ACLMessage msg) {
         if (msg.getSender().getLocalName().startsWith("fireman")) {
+            log("added " + msg.getSender().getLocalName());
             AID subscriber = msg.getSender();
             firemenAgents.add(subscriber);
         }

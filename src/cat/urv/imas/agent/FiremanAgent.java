@@ -54,6 +54,7 @@ public class FiremanAgent extends IMASVehicleAgent{
         creationNotificationMsg.addReceiver(getParent());
         send(creationNotificationMsg);
         pollCurrentTargetCell();
+        log("sent subscription request.");
     }
     
     private CyclicBehaviour newListenerBehaviour(){
