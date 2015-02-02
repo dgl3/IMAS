@@ -20,6 +20,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
+import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -55,6 +56,16 @@ public class IMASVehicleAgent extends ImasAgent {
     private Cell currentPosition;
 
     /**
+     * List of other ActionAreas
+     */
+    List<Graph> foreignActionAreas;
+    
+    /**
+     * Agent Action Area
+     */
+    Graph actionArea;
+    
+    /**
      * Game settings in use.
      */
     private GameSettings game;
@@ -77,6 +88,7 @@ public class IMASVehicleAgent extends ImasAgent {
     public IMASVehicleAgent(AgentType type) {
         super(type);
         targetCell = new ArrayList<>();
+        foreignActionAreas = new ArrayList<>();
     }
 
     public void endTurn(AgentAction nextAction) {
@@ -160,4 +172,21 @@ public class IMASVehicleAgent extends ImasAgent {
             return true;
         }
     }
+    
+    public List<Graph> getForeignActionAreas() {
+        return foreignActionAreas;
+    }
+
+    public void addForeignActionAreas(Graph actionArea) {
+        this.foreignActionAreas.add(actionArea);
+    }
+
+    public void setActionArea(Graph actionArea) {
+        this.actionArea = actionArea;
+    }
+
+    public Graph getActionArea() {
+        return actionArea;
+    }
+    
 }

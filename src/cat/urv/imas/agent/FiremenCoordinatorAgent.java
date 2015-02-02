@@ -10,6 +10,7 @@ import cat.urv.imas.agent.communication.contractnet.ContractNetManager;
 import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
+import cat.urv.imas.graph.Graph;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
@@ -34,6 +35,11 @@ public class FiremenCoordinatorAgent extends ImasAgent {
      * Class responsible of ContractNet management
      */
     private ContractNetManager contractor;
+    
+    /**
+     * Class responsible of ContractNet management
+     */
+    private Map<AID,Graph> mapActionAreas;
 
     /**
      * Coordinator agent id.
@@ -81,6 +87,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         addBehaviour(newListenerBehaviour());
 
         pendingGameUpdateConfirmations = new HashSet<>();
+        mapActionAreas = new HashMap<>();
     }
 
     /**
@@ -137,6 +144,15 @@ public class FiremenCoordinatorAgent extends ImasAgent {
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
                 contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
+                break;
+            case MessageContent.ACTION_AREAS:
+                //Store action areas and send list back
+                mapActionAreas.put(msg.getSender(), (Graph) content.getValue());
+                if(mapActionAreas.size()==firemenAgents.size()){
+                    ACLMessage mapGraphs = MessageCreator.createInform(firemenAgents, MessageContent.ACTION_AREAS, mapActionAreas);
+                    send(mapGraphs);
+                    mapActionAreas.clear();
+                }
                 break;
             case MessageContent.SEND_GAME:
                 boolean wasRemoved = pendingGameUpdateConfirmations.remove(msg.getSender());
