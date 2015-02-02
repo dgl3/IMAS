@@ -301,8 +301,8 @@ public class CentralAgent extends ImasAgent {
                 for (int j=0; j<pva.size(); j++) {
                     if (i != j && pva.get(i).getRow() == pva.get(j).getRow() &&
                             pva.get(i).getCol() == pva.get(j).getCol()) {
-                        colisions.put(this.privateVehicles.get(i).getLocalName(), pva.get(i));
-                        colisions.put(this.privateVehicles.get(j).getLocalName(), pva.get(j));
+                        //colisions.put(this.privateVehicles.get(i).getLocalName(), pva.get(i));
+                        //colisions.put(this.privateVehicles.get(j).getLocalName(), pva.get(j));
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
                         pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
                         thereAreChanges = true;
@@ -311,8 +311,8 @@ public class CentralAgent extends ImasAgent {
                 for (AgentAction agent: agentActions) {
                     if (pva.get(i).getRow() == agent.nextPosition[0] &&
                             pva.get(i).getCol() == agent.nextPosition[1]) {
-                        colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
-                        colisions.put(this.privateVehicles.get(i).getLocalName(), pva.get(i));
+                        //colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
+                        //colisions.put(this.privateVehicles.get(i).getLocalName(), pva.get(i));
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
                         if (agent.agentAID.getLocalName().startsWith("fire")) {
                             agent.changeNextPosition(this.game.getAgentList().get(AgentType.FIREMAN).
@@ -347,8 +347,12 @@ public class CentralAgent extends ImasAgent {
                         
                         if (a.nextPosition[0] == agent.nextPosition[0] &&
                                 a.nextPosition[1] == agent.nextPosition[1]) {
-                            colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
-                            colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
+                            if (a.nextPosition[0] == cPos.getRow() && a.nextPosition[1] == cPos.getCol()) {
+                                colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
+                            }
+                            if (agent.nextPosition[0] == cPos2.getRow() && agent.nextPosition[1] == cPos2.getCol()) {
+                                colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
+                            }
                             a.changeNextPosition(cPos);
                             agent.changeNextPosition(cPos2);
                             thereAreChanges = true;
@@ -363,8 +367,8 @@ public class CentralAgent extends ImasAgent {
                             this.privateVehicles.get(i).getCurrentPosition().getCol() == pva.get(j).getCol() &&
                             pva.get(i).getRow() == this.privateVehicles.get(j).getCurrentPosition().getRow() &&
                             pva.get(i).getCol() == this.privateVehicles.get(j).getCurrentPosition().getRow()) {
-                        colisions.put(this.privateVehicles.get(i).getLocalName(), pva.get(i));
-                        colisions.put(this.privateVehicles.get(j).getLocalName(), pva.get(j));
+                        //colisions.put(this.privateVehicles.get(i).getLocalName(), pva.get(i));
+                        //colisions.put(this.privateVehicles.get(j).getLocalName(), pva.get(j));
                         pva.set(i, this.privateVehicles.get(i).getCurrentPosition());
                         pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
                         thereAreChanges = true;
@@ -387,8 +391,8 @@ public class CentralAgent extends ImasAgent {
                             a.nextPosition[1] == this.privateVehicles.get(j).getCurrentPosition().getCol() &&
                             cPos.getRow() == pva.get(j).getRow() &&
                             cPos.getRow() == pva.get(j).getCol()) {
-                        colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
-                        colisions.put(this.privateVehicles.get(j).getLocalName(), pva.get(j));
+                        //colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
+                        //colisions.put(this.privateVehicles.get(j).getLocalName(), pva.get(j));
                         pva.set(j, this.privateVehicles.get(j).getCurrentPosition());
                         a.changeNextPosition(cPos);
                         thereAreChanges = true;
@@ -409,8 +413,12 @@ public class CentralAgent extends ImasAgent {
                                 a.nextPosition[1] == cPos2.getCol() &&
                                 cPos.getRow() == agent.nextPosition[0] &&
                                 cPos.getCol() == agent.nextPosition[1]) {
-                            colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
-                            colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
+                            if (agent.nextPosition[0] == cPos2.getRow() && agent.nextPosition[1] == cPos2.getCol()) {
+                                colisions.put(agent.agentAID.getLocalName(), this.game.getMap()[agent.nextPosition[0]][agent.nextPosition[1]]);
+                            }
+                            if (a.nextPosition[0] == cPos.getRow() && a.nextPosition[1] == cPos.getCol()) {
+                                colisions.put(a.agentAID.getLocalName(), this.game.getMap()[a.nextPosition[0]][a.nextPosition[1]]);
+                            }
                             a.changeNextPosition(cPos);
                             agent.changeNextPosition(cPos2);
                             thereAreChanges = true;
