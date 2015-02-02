@@ -93,7 +93,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
         auctionManager = new AuctionManager(this);
         
-        contractor = new ContractNetManager(this);
+        contractor = new ContractNetManager(this, MessageContent.AMBULANCE_CONTRACT_NET);
 
         pendingGameUpdateConfirmations = new HashSet<>();
 
