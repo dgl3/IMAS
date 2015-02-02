@@ -35,4 +35,8 @@ public class GasStationCell extends Cell {
         visual.drawGasStation(this);
     }
 
+    @Override
+    public Cell copy() {
+        throw new UnsupportedOperationException("Please implement copy for this cell type");
+    }
 }

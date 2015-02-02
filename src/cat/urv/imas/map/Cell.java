@@ -137,4 +137,14 @@ public abstract class Cell implements java.io.Serializable {
             return this.hashCode() == cell.hashCode();
         }      
     }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
+    }
+
+    public abstract Cell copy();
 }

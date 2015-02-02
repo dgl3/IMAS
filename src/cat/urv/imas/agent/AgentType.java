@@ -28,5 +28,6 @@ public enum AgentType {
     FIREMEN_COORDINATOR,
     HOSPITAL_COORDINATOR,
     COORDINATOR,
+    CAR,
     CENTRAL
 }

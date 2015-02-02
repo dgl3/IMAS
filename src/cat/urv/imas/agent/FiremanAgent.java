@@ -110,7 +110,8 @@ public class FiremanAgent extends IMASVehicleAgent{
         switch(content.getKey()){
             case MessageContent.FIRMEN_CONTRACTNET:
                 if(getTargetCell().isEmpty()){
-                    distributionTask(null);
+                    //distributionTask(null);
+                    dummyTask();
                 }else{
                     actionTask();
                 }
@@ -127,6 +128,21 @@ public class FiremanAgent extends IMASVehicleAgent{
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
                 updatePosition();
+
+                //setListOtherGraphs((Map<AID,Graph>)content.getValue());
+                // confirm
+                sendGameUpdateConfirmation(getParent());
+                if(getGame().getNewFire()==null){
+                    if(!getTargetCell().isEmpty()){
+                        actionTask();
+                    }else{
+                        //distributionTask(null);
+                        dummyTask();
+                    }
+                }
+                break;
+
+                /*
                 //dani's method that return the graph gicen the position and the number
                 int numActions = getTargetCell().size();
                 Graph graph = getGame().getGraph();
@@ -148,7 +164,10 @@ public class FiremanAgent extends IMASVehicleAgent{
                 }
                 ACLMessage graphmsg = MessageCreator.createConfirm(getParent(), MessageContent.ACTION_AREAS, clonedGraph);
                 send(graphmsg);
+
                 break;
+                */
+            /*
             case MessageContent.ACTION_AREAS:
                 //TODO: 
                 setListOtherGraphs((Map<AID,Graph>)content.getValue());
@@ -158,10 +177,12 @@ public class FiremanAgent extends IMASVehicleAgent{
                     if(!getTargetCell().isEmpty()){
                         actionTask();
                     }else{
-                        distributionTask(null);
+                        //distributionTask(null);
+                        dummyTask();
                     }
                 }
                 break;
+                */
             default:
                 log("Inform Message Content not understood: " + content.getKey());
                 break;
@@ -204,14 +225,16 @@ public class FiremanAgent extends IMASVehicleAgent{
     
     private int studyDistance(Cell buildingFire, int maxDist, Boolean future) {
         //study distance through graph
-        Graph graph = getGame().getGraph();
+
         Path path = null;
         if(future){
-            Path auxPath = graph.computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
-            path = graph.computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size()-1).getCell(), buildingFire, maxDist);
+            Path auxPath = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+            path = computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size() - 1).getCell(), buildingFire, maxDist);
         }else{
-            path = graph.computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
+            if ( buildingFire == null ) System.err.println("#################### NULL FIRE");
+            path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
         }
+
         if(path==null){
             return -1;
         }else{
@@ -220,63 +243,74 @@ public class FiremanAgent extends IMASVehicleAgent{
     }
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
-        if(path.getDistance()==0){//ACTION+POSSIBLE MOVEMENT
-            int burned = ((BuildingCell)getCurrentTargetCell()).getBurnedRatio();
-            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
-            if(burned>5){
-                //action+stay
-                nextAction.setAction(getCurrentTargetCell(), 1);
-            }else{
-                Cell actualCell = getCurrentTargetCell();
-                pollCurrentTargetCell();
-                nextAction.setAction(actualCell, 1);
-                //POSSIBLE MOVEMENT
-                if(getTargetCell().isEmpty()){
-                    //position should be based on distribution...
-                    //TODO: It never finish doing something!!!!
-                    //distributionTask(nextAction);
-                }else{
-                    // movement based on path...
-                    //if path.distance == 0 then dont move
-                    Graph graph = getGame().getGraph();
-                    path = graph.computeOptimumPathUnconstrained(getCurrentPosition(), getCurrentTargetCell());
-                    if(path.getDistance()!=0){
-                        nextAction.setPosition(path.getNextCellInPath());
+        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(),18);
+        if(path != null) {
+            if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
+                int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
+                AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
+
+                if (burned > 5 && burned < 100) {
+                    //action+stay
+                    nextAction.setAction(getCurrentTargetCell(), 1);
+                } else {
+                    Cell actualCell = getCurrentTargetCell();
+                    pollCurrentTargetCell();
+                    nextAction.setAction(actualCell, 1);
+                    //POSSIBLE MOVEMENT
+                    if (getTargetCell().isEmpty()) {
+                        //position should be based on distribution...
+                        //TODO: It never finish doing something!!!!
+                        //distributionTask(nextAction);
+                    } else {
+                        // movement based on path...
+                        //if path.distance == 0 then dont move
+                        computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+                        if (path.getDistance() != 0) {
+                            nextAction.setPosition(path.getNextCellInPath());
+                        }
                     }
                 }
+                endTurn(nextAction);
+
+            } else {//MOVING
+                AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+                endTurn(nextAction);
             }
-            endTurn(nextAction);
-        }else{//MOVING
-            AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+        }else{
+            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             endTurn(nextAction);
         }
     }
 
-    private void distributionTask(AgentAction nextAction) {
-        //Movement based on distribution
-        Graph graph = getGame().getGraph();
-        List<Cell> adjacent = graph.getAdjacentCells(getCurrentPosition());
-        int distribution = GraphUtils.distributionValue(getActionArea(), getForeignActionAreas());
-        Cell nextCell = getCurrentPosition();
-        for(Cell cell: adjacent){
-            try{
-                Graph graphadjacent = GraphUtils.actionArea(graph, cell, 18);
-                int distributionadja = GraphUtils.distributionValue(graphadjacent, getForeignActionAreas());
-                if(distributionadja>distribution){
-                    distribution = distributionadja;
-                    nextCell = cell;
-                }
-            }catch(Exception e){
-                log("Action area adjacent exception!");
-            }
-        }
-        if (nextAction==null){
-            nextAction = new AgentAction(getAID(), nextCell);
-        }else{
-            nextAction.setPosition(nextCell);
-        }
-        endTurn(nextAction);
+//    private void distributionTask(AgentAction nextAction) {
+//        //Movement based on distribution
+//        Graph graph = getGame().getGraph();
+//        List<Cell> adjacent = graph.getAdjacentCells(getCurrentPosition());
+//        int distribution = GraphUtils.distributionValue(getActionArea(), getForeignActionAreas());
+//        Cell nextCell = getCurrentPosition();
+//        for(Cell cell: adjacent){
+//            try{
+//                Graph graphadjacent = GraphUtils.actionArea(graph, cell, 18);
+//                int distributionadja = GraphUtils.distributionValue(graphadjacent, getForeignActionAreas());
+//                if(distributionadja>distribution){
+//                    distribution = distributionadja;
+//                    nextCell = cell;
+//                }
+//            }catch(Exception e){
+//                log("Action area adjacent exception!");
+//            }
+//        }
+//        if (nextAction==null){
+//            nextAction = new AgentAction(getAID(), nextCell);
+//        }else{
+//            nextAction.setPosition(nextCell);
+//        }
+//        endTurn(nextAction);
+//    }
+
+    private void dummyTask(){
+        AgentAction action = new AgentAction(getAID(), getCurrentPosition());
+        endTurn(action);
     }
 
     private void setListOtherGraphs(Map<AID, Graph> map) {

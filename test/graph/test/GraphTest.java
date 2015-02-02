@@ -146,7 +146,7 @@ public class GraphTest {
         Cell initialPoint = new StreetCell(1,1);
         Cell targetCell = new BuildingCell(0,5,3);
         Cell restrictedCell = new StreetCell(1,2);
-        Path path = graph.computeOptimumPathWithRestrictions(initialPoint, targetCell, restrictedCell);
+        Path path = graph.computeOptimumPathWithRestrictions(initialPoint, targetCell, restrictedCell, 18);
         assertNotNull(path);
         assertTrue(!path.getPath().contains(new Node(restrictedCell)));   
     }

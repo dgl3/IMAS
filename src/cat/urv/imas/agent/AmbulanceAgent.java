@@ -230,6 +230,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
     private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         Path path = getGame().getGraph().computeOptimumPath(getCurrentPosition(), rescueCell, 18);
+
         if(path.getDistance()==0){//ACTION
             AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
             nextAction.setAction(rescueCell, 1);

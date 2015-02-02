@@ -138,4 +138,9 @@ public class StreetCell extends Cell {
         }
     }
 
+    @Override
+    public Cell copy() {
+        return new StreetCell(getRow(), getCol());
+    }
+
 }

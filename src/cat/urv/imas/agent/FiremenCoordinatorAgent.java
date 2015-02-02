@@ -119,7 +119,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                             handleConfirm(msg);
                             break;
                         default:
-                            log("Unsupported message received.");
+                            log("Unsupported message received." + msg.getPerformative());
                     }
                 }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'

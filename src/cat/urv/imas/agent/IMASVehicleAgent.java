@@ -18,26 +18,19 @@
 package cat.urv.imas.agent;
 
 import cat.urv.imas.agent.communication.util.AIDUtil;
-import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
+import cat.urv.imas.constants.Direction;
+import cat.urv.imas.graph.Path;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
-import jade.core.Agent;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Agent abstraction used in this practical work.
@@ -80,6 +73,8 @@ public class IMASVehicleAgent extends ImasAgent {
      */
     private AID parent;
 
+    private Cell cellToAvoid;
+
     /**
      * Creates the agent.
      *
@@ -92,24 +87,45 @@ public class IMASVehicleAgent extends ImasAgent {
     }
 
     public void endTurn(AgentAction nextAction) {
-        if( inCollision() ){
-            AgentType agentType = getVehicleTypeOfCollision();
-            errorLog("GET OUT OF MY WAY!");
-            errorLog("Colliding with: " + agentType);
 
-
-            ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, nextAction);
-            send(msg);
-        }else {
+//        if( inCollision() ){
+//            lastMoveWasAvoid = true;
+//            Direction direction = getIntendedDirection(lastAction, currentPosition);
+//
+//            List<String> collisions = getGame().getColisionsByName(getLocalName());
+//
+//            System.err.println("In Collision");
+//
+//            Cell escapePos = getEscapePosition(direction, collisions);
+//
+//            ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, new AgentAction(getAID(), escapePos));
+//            send(msg);
+//        }else {
+            //lastMoveWasAvoid = false;
             lastAction = nextAction;
             ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, nextAction);
             send(msg);
-        }
+        //}
     }
 
-    private AgentType getVehicleTypeOfCollision() {
-        return AgentType.PRIVATE_VEHICLE;
-    }
+//    private Direction getIntendedDirection(AgentAction lastAction, Cell currentPosition) {
+//        int horizontal = lastAction.nextPosition[0]-currentPosition.getRow();
+//        int vertical = lastAction.nextPosition[1]-currentPosition.getCol();
+//
+//        if( horizontal != 0 ){
+//            if( horizontal > 0 ){ // This agent want to move up
+//                return Direction.SOUTH;
+//            }else{ // This agent want to move down
+//                return Direction.NORTH;
+//            }
+//        }else{
+//            if( vertical > 0 ){ // This agent want to move right
+//                return Direction.EAST;
+//            }else{ // This agent want to move left
+//                return Direction.WEST;
+//            }
+//        }
+//    }
 
     /**
      * Updates the new current position from the game settings
@@ -163,16 +179,88 @@ public class IMASVehicleAgent extends ImasAgent {
     }
 
     private boolean inCollision(){
-        if(lastAction == null || lastAction.actionPosition == null || currentPosition == null) return false;
+        if( lastAction == null || lastAction.nextPosition == null || currentPosition == null) return false;
 
-        if( lastAction.actionPosition[0] == currentPosition.getRow()
-            && lastAction.actionPosition[1] == currentPosition.getCol() ){
+        if( lastAction.nextPosition[0] == currentPosition.getRow()
+            && lastAction.nextPosition[1] == currentPosition.getCol() ){
             return false;
         }else {
             return true;
         }
     }
-    
+
+    private boolean mustAvoid(List<String> collisions){
+        if ( collisions.isEmpty() ){
+            errorLog("Collided with idle agent or car");
+            return true;
+        }
+
+        // Collided with other moving agent
+        String otherName = collisions.get(0);
+        AgentType myType = getType();
+        AgentType otherType = AIDUtil.getType(otherName);
+
+        int myRank = rank(myType);
+        int otherRank = rank(otherType);
+
+        if(  myRank < otherRank ){
+            return true;
+        }else if( myRank == otherRank ){
+            if( AIDUtil.getLocalId(getLocalName()) < AIDUtil.getLocalId(otherName)){
+                return true;
+            }
+        }
+
+        // The other agent has to move
+        return false;
+    }
+
+    private int rank(AgentType type) {
+        switch ( type ){
+            case FIREMAN:
+                return 2;
+            case AMBULANCE:
+                return 1;
+            case CAR:
+                return 0;
+            default:
+                throw new IllegalArgumentException("No rank defined for this agent type.");
+        }
+    }
+
+//    public Cell getNewAllowedRandomCell() {
+//
+//        Cell newCell;
+//        do {
+//            int row = currentPosition.getRow()+CentralAgent.getRNG().nextInt(2);
+//            int col = currentPosition.getCol()+CentralAgent.getRNG().nextInt(2);
+//            newCell = getGame().getMap()[row][col];
+//        }while ( !(newCell instanceof StreetCell) || hasSameLocation(lastAction,  newCell) );
+//
+//        return newCell;
+//    }
+
+    private boolean hasSameLocation(AgentAction action, Cell cell){
+        if( action.nextPosition[0] == cell.getRow() && action.nextPosition[1] == cell.getCol() ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    protected Path computeOptimumPath(Cell from, Cell to, int maxDist){
+        List<String> collisions = getGame().getColisionsByName(getLocalName());
+        if ( inCollision() && mustAvoid(collisions) ){
+            System.err.println("In collision");
+            cellToAvoid = new StreetCell(lastAction.nextPosition[0], lastAction.nextPosition[1]);
+        }
+
+        if(cellToAvoid == null){
+            return getGame().getGraph().computeOptimumPath(from, to, maxDist);
+        }
+        return getGame().getGraph().computeOptimumPathWithRestrictions(from, to, cellToAvoid, maxDist);
+    }
+
     public List<Graph> getForeignActionAreas() {
         return foreignActionAreas;
     }
@@ -188,5 +276,5 @@ public class IMASVehicleAgent extends ImasAgent {
     public Graph getActionArea() {
         return actionArea;
     }
-    
+
 }
