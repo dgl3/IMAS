@@ -42,7 +42,7 @@ public class ContractNetManager {
     }
 
     private void startNextContractNet(){
-        System.out.println("STARTING NEW CONTRACTNET");
+        System.out.println("STARTING NEW FIREMEN_CONTRACT_NET");
         currentContractNet = pendingContractNets.poll();
         contractNetInProgress = true;
         startContractNet(currentContractNet);

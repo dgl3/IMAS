@@ -61,7 +61,8 @@ public class MessageContent {
     /**
      * Message related to Firemen or Ambulances ContractNet
      */
-    public static final String CONTRACTNET = "Contract Net";
+    public static final String FIREMEN_CONTRACT_NET = "Contract Net";
+    public static final String AMBULANCE_CONTRACT_NET = "Amb Contract Net";
     
     /**
      * Message sent to mobile agents in order to study if bid for the ContractNet

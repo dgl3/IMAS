@@ -17,28 +17,16 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.agent.communication.contractnet.ContractOffer;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.behaviour.coordinator.InformBehaviour;
-import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
-import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
-import jade.wrapper.AgentController;
-import jade.wrapper.ContainerController;
-import jade.wrapper.ControllerException;
-import jade.wrapper.StaleProxyException;
-import java.io.Serializable;
+
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * The main Coordinator agent. 
@@ -218,7 +206,7 @@ public class CoordinatorAgent extends ImasAgent {
                     endTurn();
                 }
                 break;
-            case MessageContent.CONTRACTNET:
+            case MessageContent.FIREMEN_CONTRACT_NET:
                 if(content.getValue()==null){
                     //TODO: Say HospitalCoordinator to start ContractNet
                     sendProxy(hospitalCoordinator);
@@ -283,7 +271,7 @@ public class CoordinatorAgent extends ImasAgent {
         //TODO: Send PROXY to firemen Coordinator but it crashes somehow...
         //TODO: Sometimes it not crashes, but this codeline executes too fast, so some agents doesn't update its game yet...
         //TODO: Maybe we should make all lower level agents say back again the got gameinfo in order to start the whole process of ContractNets and Auctions with this codeline.
-        ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.CONTRACTNET, null);
+        ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, MessageContent.FIREMEN_CONTRACT_NET, null);
         errorLog("------< STARTING CONTRACT NET >------");
         send(contractNetProposal);
     }

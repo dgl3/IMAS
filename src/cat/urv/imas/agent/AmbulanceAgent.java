@@ -101,7 +101,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private void handleAcceptProposal(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.CONTRACTNET:
+            case MessageContent.AMBULANCE_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer) content.getValue();
                 ACLMessage confirmation = MessageCreator.createConfirm(msg.getSender(), content.getKey(), offer);
                 send(confirmation);
@@ -121,7 +121,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         //nextAction <-- movement related to distribution
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.CONTRACTNET:
+            case MessageContent.AMBULANCE_CONTRACT_NET:
                 if(rescueCell==null){
                     dummyTask();
                 }else{
@@ -138,7 +138,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         // TODO: For testing call this to let ambulance initiate auction.
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
-            case MessageContent.CONTRACTNET:
+            case MessageContent.AMBULANCE_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
                 if(rescueCell==null){

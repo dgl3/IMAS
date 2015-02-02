@@ -19,9 +19,7 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.ACLMessage;
 import java.util.*;
 
@@ -137,7 +135,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     private void handleConfirm(ACLMessage msg) {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
-            case MessageContent.CONTRACTNET:
+            case MessageContent.AMBULANCE_CONTRACT_NET:
                 contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
                 break;
             case MessageContent.AMBULANCE_AUCTION:
@@ -167,7 +165,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
             case MessageContent.AMBULANCE_AUCTION:
                 handleStartHospitalAuction(msg.getSender());
                 break;
-            case MessageContent.CONTRACTNET:
+            case MessageContent.AMBULANCE_CONTRACT_NET:
                 log("New Fire(ambulances): "+game.getNewFire().toString());
                 contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(ambulanceAgents));
                 break;
@@ -184,7 +182,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 Bid bid = (Bid) content.getValue();
                 auctionManager.takeBid(msg.getSender(), bid);
                 break;
-            case MessageContent.CONTRACTNET:
+            case MessageContent.AMBULANCE_CONTRACT_NET:
                 contractor.takeBid(msg.getSender(), (ContractBid) content.getValue());
                 break;
             default:
