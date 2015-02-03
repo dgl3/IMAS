@@ -143,6 +143,7 @@ public class StreetCell extends Cell {
         return new StreetCell(getRow(), getCol());
     }
 
+   
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -154,4 +155,5 @@ public class StreetCell extends Cell {
 
         return true;
     }
+  
 }

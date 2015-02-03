@@ -325,7 +325,7 @@ public class Graph implements Serializable, Cloneable{
             path.remove(0);
             
             
-            Path optimumPath = new Path(path);
+            Path optimumPath = new Path(path);            
             return optimumPath;
         }else{
             return null;
@@ -458,7 +458,7 @@ public class Graph implements Serializable, Cloneable{
      * @return 
      */
     public List<Cell> getAdjacentCells(Cell cellTarget){
-        List<Cell> adjacentCells = new ArrayList<Cell>();
+        List<Cell> adjacentCells = new ArrayList<>();
         for(int i=cellTarget.getRow()-1;i<=cellTarget.getRow()+1;i++){
             for(int j=cellTarget.getCol()-1;j<=cellTarget.getCol()+1;j++){
                 Cell currentCell = new StreetCell(i,j);

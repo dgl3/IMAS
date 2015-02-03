@@ -155,6 +155,10 @@ public class GraphTest {
     public void initGameSettings2(){
         assertTrue(this.gameEval != null);
         assertTrue(this.graphEval != null);
+        
+        //What's going on with ambulances
+        Path path = this.graphEval.bfs(new StreetCell(13,5), new StreetCell(15,21), Integer.MAX_VALUE);
+        assertTrue(path != null);
     }
     
     
