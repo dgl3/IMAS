@@ -190,7 +190,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private void performNextMove() {
         if( !getTargetCells().isEmpty() ) {
 
-            Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), Integer.MAX_VALUE);
+            Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 100);
             if (path != null && path.getDistance() > 0){
                 // Move towards the hospital
                 AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath());
@@ -305,7 +305,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     @Override
     public void addTargetCell(Cell cell){
         if ( !getTargetCells().isEmpty() ) throw new IllegalArgumentException("Ambulances only support one target cell.");
-        getTargetCells().add(cell);
+        super.addTargetCell(cell);
     }
 
 

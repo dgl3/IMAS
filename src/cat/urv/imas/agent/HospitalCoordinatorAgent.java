@@ -196,9 +196,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
      * @param seller
      */
     private void handleStartHospitalAuction(AID seller, Item item) {
-        HashSet<AID> participants = new HashSet<AID>(hospitalAgents);
-
-        auctionManager.setupNewAuction(seller, item, Collections.unmodifiableCollection(participants) );
+        auctionManager.setupNewAuction(seller, item, Collections.unmodifiableCollection(hospitalAgents) );
     }
     
     private void handleSubscribe(ACLMessage msg) {
