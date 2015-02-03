@@ -20,7 +20,7 @@ import java.util.Queue;
 public class Graph implements Serializable, Cloneable{
     private GameSettings settings;
     
-    private Map<StreetCell,Node> nodes; // Map of nodes
+    private Map<Cell,Node> nodes; // Map of nodes
     private Map<Node,List<Edge>> edgesMap; // Map of edges
     
     /**
@@ -42,7 +42,7 @@ public class Graph implements Serializable, Cloneable{
      * Get graph's nodes
      * @return Map<Cell,Node>
      */
-    public Map<StreetCell,Node> getNodes(){
+    public Map<Cell,Node> getNodes(){
         return nodes;
     }
     
@@ -58,7 +58,7 @@ public class Graph implements Serializable, Cloneable{
         this.settings = settings;
     }
 
-    public void setNodes(Map<StreetCell, Node> nodes) {
+    public void setNodes(Map<Cell, Node> nodes) {
         this.nodes = nodes;
     }
 
@@ -88,7 +88,7 @@ public class Graph implements Serializable, Cloneable{
                 if(cell.getCellType() == CellType.STREET){
                     if(!nodes.containsKey(cell)){
                         Node node = new Node(cell);
-                        nodes.put((StreetCell)cell, node);
+                        nodes.put(cell, node);
                     }
                     Node node = nodes.get(cell);
                     
@@ -100,7 +100,7 @@ public class Graph implements Serializable, Cloneable{
                     if(topCell.getCellType() == CellType.STREET){
                        if(!nodes.containsKey(topCell)){
                            Node topNode = new Node(topCell);
-                           nodes.put((StreetCell)topCell, topNode);
+                           nodes.put(topCell, topNode);                            
                        }
                        Edge topEdge = new Edge(node, nodes.get(topCell));
                        edgesMap.get(node).add(topEdge);                           
@@ -111,7 +111,7 @@ public class Graph implements Serializable, Cloneable{
                     if(leftCell.getCellType() == CellType.STREET){
                          if(!nodes.containsKey(leftCell)){
                               Node leftNode = new Node(leftCell);
-                              nodes.put((StreetCell)leftCell, leftNode);
+                              nodes.put(leftCell, leftNode);                            
                          } 
                          Edge leftEdge = new Edge(node, nodes.get(leftCell));
                          edgesMap.get(node).add(leftEdge);                           
@@ -122,7 +122,7 @@ public class Graph implements Serializable, Cloneable{
                     if(rightCell.getCellType() == CellType.STREET){
                         if(!nodes.containsKey(rightCell)){
                              Node rightNode = new Node(rightCell);
-                             nodes.put((StreetCell)rightCell, rightNode);
+                             nodes.put(rightCell, rightNode);                            
                         } 
                         Edge rightEdge = new Edge(node, nodes.get(rightCell));
                         edgesMap.get(node).add(rightEdge);                             
@@ -133,7 +133,7 @@ public class Graph implements Serializable, Cloneable{
                     if(bottomCell.getCellType() == CellType.STREET){
                          if(!nodes.containsKey(bottomCell)){
                               Node bottomNode = new Node(bottomCell);
-                              nodes.put((StreetCell)bottomCell, bottomNode);
+                              nodes.put(bottomCell, bottomNode);                            
                          } 
                          Edge bottomEdge = new Edge(node, nodes.get(bottomCell));
                          edgesMap.get(node).add(bottomEdge);                               
@@ -195,10 +195,7 @@ public class Graph implements Serializable, Cloneable{
        }
        Node neighbour = FIFOqueue.poll();
 
-
-        int ctr = 0;
-       while(found == null && neighbour.getDistance() < maxPath && ctr < 1000){
-           ctr++;
+       while(found == null && neighbour.getDistance() < maxPath){
            visited.add(neighbour);
            List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
@@ -216,11 +213,7 @@ public class Graph implements Serializable, Cloneable{
             neighbour = FIFOqueue.poll();
 
         }
-
-        if(ctr >= 1000){
-            System.err.println("Path Find Error");
-            return null;
-        }
+        
         
         //Get the optimum path
         if(found != null){
@@ -289,8 +282,7 @@ public class Graph implements Serializable, Cloneable{
        }
        Node neighbour = FIFOqueue.poll();
 
-       while(found == null && neighbour.getDistance() < maxPath ){
-           counter++;
+       while(found == null && neighbour.getDistance() < maxPath){
            visited.add(neighbour);
            List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
@@ -471,7 +463,7 @@ public class Graph implements Serializable, Cloneable{
             for(int j=cellTarget.getCol()-1;j<=cellTarget.getCol()+1;j++){
                 Cell currentCell = new StreetCell(i,j);
                 Node current = nodes.get(currentCell);
-                if(current != null && current.getCell() instanceof StreetCell){
+                if(current != null){
                     adjacentCells.add(currentCell);
                 }
             }
