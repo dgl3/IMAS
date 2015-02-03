@@ -109,7 +109,7 @@ public class FiremanAgent extends IMASVehicleAgent{
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.FIREMEN_CONTRACT_NET:
-                if(getTargetCell().isEmpty()){
+                if(getTargetCells().isEmpty()){
                     //distributionTask(null);
                     dummyTask();
                 }else{
@@ -127,12 +127,13 @@ public class FiremanAgent extends IMASVehicleAgent{
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
+
+                newTurn();
+
                 updatePosition();
-                //setListOtherGraphs((Map<AID,Graph>)content.getValue());
-                // confirm
                 sendGameUpdateConfirmation(getParent());
                 if(getGame().getNewFire()==null){
-                    if(!getTargetCell().isEmpty()){
+                    if(!getTargetCells().isEmpty()){
                         actionTask();
                     }else{
                         //distributionTask(null);
@@ -143,7 +144,7 @@ public class FiremanAgent extends IMASVehicleAgent{
 
                 /*
                 //dani's method that return the graph gicen the position and the number
-                int numActions = getTargetCell().size();
+                int numActions = getTargetCells().size();
                 Graph graph = getGame().getGraph();
                 Graph clonedGraph = null;
                 try{
@@ -154,7 +155,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                         clonedGraph = GraphUtils.actionArea(graph, getCurrentPosition(), turnsExtinguish);
                     }else{
                         int turnsExtinguish = (((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/getGame().getFireSpeed())-1;
-                        Path path = graph.computeOptimumPath(getCurrentPosition(), getTargetCell().get(1), turnsExtinguish);
+                        Path path = graph.computeOptimumPath(getCurrentPosition(), getTargetCells().get(1), turnsExtinguish);
                         int turnsDist = path.getDistance();
                         clonedGraph = GraphUtils.actionArea(graph, path.getPath().get(path.getPath().size()-1).getCell(), turnsExtinguish+turnsDist);
                     }
@@ -173,7 +174,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                 // confirm
                 sendGameUpdateConfirmation(getParent());
                 if(getGame().getNewFire()==null){
-                    if(!getTargetCell().isEmpty()){
+                    if(!getTargetCells().isEmpty()){
                         actionTask();
                     }else{
                         //distributionTask(null);
@@ -194,13 +195,12 @@ public class FiremanAgent extends IMASVehicleAgent{
             case MessageContent.FIREMEN_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
-                if(getTargetCell().isEmpty()){
+                if(getTargetCells().isEmpty()){
                     distanceBid = studyDistance(offer.getCell(), 18, Boolean.FALSE);
-                }else if(getTargetCell().size()==1){
+                }else if(getTargetCells().size()==1){
                     //take into account two possible tasks
                     int distanceToFire = studyDistance(getCurrentTargetCell(), 18, Boolean.FALSE);
                     int turnsExtinguish = ((BuildingCell)getCurrentTargetCell()).getBurnedRatio()/getGame().getFireSpeed();
-                    log("Distance to my assigned fire: "+distanceToFire);
                     if(distanceToFire==0){
                         //take into account the number of turns needed to extniguish
                         distanceBid = studyDistance(offer.getCell(), 18-(turnsExtinguish-1), Boolean.FALSE);
@@ -230,10 +230,6 @@ public class FiremanAgent extends IMASVehicleAgent{
             Path auxPath = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
             path = computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size() - 1).getCell(), buildingFire, maxDist);
         }else{
-            if ( buildingFire == null ) System.err.println("#################### NULL FIRE");
-            if (this.getLocalName().equals("fireman2")) {
-                log("This is the fireman 2");
-            }
             path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
         }
 
@@ -259,7 +255,7 @@ public class FiremanAgent extends IMASVehicleAgent{
                     pollCurrentTargetCell();
                     nextAction.setAction(actualCell, 1);
                     //POSSIBLE MOVEMENT
-                    if (getTargetCell().isEmpty()) {
+                    if (getTargetCells().isEmpty()) {
                         //position should be based on distribution...
                         //TODO: It never finish doing something!!!!
                         //distributionTask(nextAction);

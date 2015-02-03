@@ -136,7 +136,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_CONTRACT_NET:
-                System.out.println("CONFIRMATION FROM AMBULANCE!!!");
                 contractor.confirmAction(msg.getSender(), (ContractOffer) content.getValue());
                 break;
             case MessageContent.AMBULANCE_AUCTION:
@@ -207,11 +206,11 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
         if (sender.getLocalName().startsWith("ambu")){
             ambulanceAgents.add(msg.getSender());
-            System.out.println(getLocalName() + ": added " + sender.getLocalName());
+            log(getLocalName() + ": added " + sender.getLocalName());
         }
         if (sender.getLocalName().startsWith("hosp")){
             hospitalAgents.add(msg.getSender());
-            System.out.println(getLocalName() + ": added " + sender.getLocalName());
+            log(getLocalName() + ": added " + sender.getLocalName());
         }
 
         // If game information is set, send it to the subscriber
@@ -234,6 +233,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 // This will need to change to handle a new fire petition
                 break;
             case MessageContent.END_TURN:
+                log("Remainaing: " + (ambulanceAgents.size()-finishedAmbulanceAgents.size()) + "; last: " + msg.getSender().getLocalName());
                 finishedAmbulanceAgents.add((AgentAction) content.getValue());
                 // TODO: This is not reliable enough, look for another way
                 if (finishedAmbulanceAgents.size() == ambulanceAgents.size()) {

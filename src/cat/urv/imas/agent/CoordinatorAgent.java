@@ -149,7 +149,7 @@ public class CoordinatorAgent extends ImasAgent {
                             handleConfirm(msg);
                             break;
                         default:
-                            log("Unsupported message received.");
+                            log("Unsupported message received." + msg.getPerformative());
                     }
                 }
                 block(); // Confirm. Apparently 'just' schedults next execution. 'Generally all action methods should end with a call to block() or invoke it before doing return.'
@@ -181,9 +181,6 @@ public class CoordinatorAgent extends ImasAgent {
      * Handle new incoming INFORM message
      */
     private void handleInform(ACLMessage msg) {
-
-        errorLog("Got message from Central " + msg.getPerformative());
-
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
@@ -195,15 +192,28 @@ public class CoordinatorAgent extends ImasAgent {
                 break;
             case MessageContent.END_TURN:
                 if (msg.getSender().getLocalName().equals("firemenCoord")) {
+                    log("FiremenCoord want to end turn.");
                     finishedFiremanAgents.clear();
                     finishedFiremanAgents.addAll((List<AgentAction>) content.getValue());
-                } else {
+
+                    if ( finishedFiremanAgents.isEmpty() ) throw new IllegalArgumentException("Can not finish with no fire agents.");
+
+                } else if (msg.getSender().getLocalName().equals("hospCoord")){
+                    log("HospitalCoord want to end turn.");
                     finishedAmbulanceAgents.clear();
                     finishedAmbulanceAgents.addAll((List<AgentAction>) content.getValue());
+
+                    if ( finishedAmbulanceAgents.isEmpty() ) throw new IllegalArgumentException("Can not finish with no amb agents.");
+                }else{
+                    throw new IllegalArgumentException("Some unknown Agent wants to end the turn: " + msg.getSender().getLocalName());
                 }
 
                 if (!finishedFiremanAgents.isEmpty() && !finishedAmbulanceAgents.isEmpty()) {
+                    log("ENDING TURN");
                     endTurn();
+                }else {
+                    if (finishedAmbulanceAgents.isEmpty()) log("HospitalCoord yet to respond.");
+                    if (finishedFiremanAgents.isEmpty()) log("FiremenCoord yet to respond.");
                 }
                 break;
             case MessageContent.FIREMEN_CONTRACT_NET:
@@ -211,11 +221,21 @@ public class CoordinatorAgent extends ImasAgent {
                     //TODO: Say HospitalCoordinator to start ContractNet
                     sendProxy(hospitalCoordinator, MessageContent.AMBULANCE_CONTRACT_NET);
                 }else{
-                    log("Firemen ContractNet successful!!!");
+                    // Firemen contract net successful
+                    //log("Firemen ContractNet successful!!!");
+                }
+                break;
+            case MessageContent.AMBULANCE_CONTRACT_NET:
+                if(content.getValue()==null){
+                    //throw new IllegalStateException("Ambulance contract net without solution.");
+                    log("Ambulance contract net without solution.");
+                }else{
+                    // Firemen contract net successful
+                    //log("Firemen ContractNet successful!!!");
                 }
                 break;
             default:
-                log("Unsupported message");
+                log("Unsupported Inform message: " + content.getKey() + ". From: " + msg.getSender().getLocalName());
                 break;
         }
     }
@@ -261,7 +281,6 @@ public class CoordinatorAgent extends ImasAgent {
         actions.addAll(this.finishedFiremanAgents);
         actions.addAll(this.finishedAmbulanceAgents);
         ACLMessage gameinformRequest = MessageCreator.createInform(centralAgent, MessageContent.END_TURN, actions);
-        errorLog("All actions collected and sent to CentralAgent...");
         send(gameinformRequest);
         finishedFiremanAgents.clear();
         finishedAmbulanceAgents.clear();
@@ -272,7 +291,6 @@ public class CoordinatorAgent extends ImasAgent {
         //TODO: Sometimes it not crashes, but this codeline executes too fast, so some agents doesn't update its game yet...
         //TODO: Maybe we should make all lower level agents say back again the got gameinfo in order to start the whole process of ContractNets and Auctions with this codeline.
         ACLMessage contractNetProposal = MessageCreator.createProxy(reciever, kindMessage, null);
-        errorLog("------< STARTING CONTRACT NET >------");
         send(contractNetProposal);
     }
 }

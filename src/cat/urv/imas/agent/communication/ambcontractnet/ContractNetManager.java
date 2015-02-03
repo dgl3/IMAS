@@ -37,12 +37,11 @@ public class ContractNetManager {
         if( !contractNetInProgress ){
             startNextContractNet();
         }else{
-            System.out.println("Another " + kindMessage + "is already in progress!!!!");
+            throw new IllegalStateException("Another " + kindMessage + "is already in progress!!!!");
         }
     }
 
     private void startNextContractNet(){
-        System.out.println("STARTING NEW " + kindMessage);
         currentContractNet = pendingContractNets.poll();
         contractNetInProgress = true;
         startContractNet(currentContractNet);
@@ -87,7 +86,6 @@ public class ContractNetManager {
         ACLMessage lostNotification = MessageCreator.createMessage(ACLMessage.REJECT_PROPOSAL, list.get(ContractNet.LOOSER), messageType, null);
         contractor.send(lostNotification);
         if(!list.get(ContractNet.WINNER).isEmpty()){
-            System.out.println("WINNER SENDING!!!"+kindMessage);
             ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem(), kindMessage);
             ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(ContractNet.WINNER).get(0), messageType, offer);
             contractor.send(winNotification);

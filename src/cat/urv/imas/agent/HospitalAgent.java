@@ -10,6 +10,7 @@ import cat.urv.imas.agent.communication.auction.Offer;
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.KeyValue;
 import cat.urv.imas.agent.communication.util.MessageCreator;
+import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -74,9 +75,6 @@ public class HospitalAgent extends ImasAgent{
         ACLMessage creationNotificationMsg = new ACLMessage( ACLMessage.SUBSCRIBE );
         creationNotificationMsg.addReceiver(this.hospitalCoordinatorAgent);
         send(creationNotificationMsg);
-
-        System.out.println(getLocalName() + " sent subscription request.");
-
     }
     
     private CyclicBehaviour newListenerBehaviour(){
@@ -110,7 +108,6 @@ public class HospitalAgent extends ImasAgent{
         switch( content.getKey() ) {
             case MessageContent.AMBULANCE_AUCTION:
                 // TODO: Update Status!
-                System.out.println("TODO: Update Status");
                 Offer offer = content.getValue();
 
                 ACLMessage bidRequestMsg = MessageCreator.createMessage(ACLMessage.CONFIRM, offer.getAuctioneer(), MessageContent.AMBULANCE_AUCTION, offer);
@@ -137,13 +134,18 @@ public class HospitalAgent extends ImasAgent{
     }
 
     private void handleBidRequest(Offer offer) {
-
+        errorLog("--> Processing bid.");
         Item item = offer.getItem();
         Cell myPos = getGame().getAgentList().get(getType()).get(AIDUtil.getLocalId(getAID()));
-        float bid = getGame().getGraph().computeOptimumPathUnconstrained( item.getPosition(), myPos ).getDistance();
 
-        System.err.println("------ BID: " + bid + ", From: " + getLocalName());
+        errorLog("MyPos: " + myPos);
+        errorLog("ToPos: " + item.getPosition());
 
+        Path p = getGame().getGraph().computeOptimumPath(item.getPosition(), myPos, 100);
+        float bid = p==null?Integer.MAX_VALUE:p.getDistance();
+
+
+        errorLog("--> Sending bid.");
         offer.reply(this, bid);
     }
 

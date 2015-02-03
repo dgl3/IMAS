@@ -89,8 +89,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 send(confirmation);
 
                 addTargetCell(offer.getCell());
-                performNextMove();
-                //actionTask();
+//                performNextMove();
                 break;
             default:
                 log("Accept Proposal Message Content not understood");
@@ -99,22 +98,15 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     }
     
     private void handleRejectProposal(ACLMessage msg) {
-        //This agent was no selected for the contract net --> actions possible
-        //nextAction <-- movement related to distribution
-        KeyValue<String, Object> content = getMessageContent(msg);
-        switch(content.getKey()){
-            case MessageContent.AMBULANCE_CONTRACT_NET:
-                if(getTargetCell().isEmpty()){
-                    //distributionTask(null);
-                    dummyTask();
-                }else{
-                    actionTask();
-                }
-                break;
-        }
-        //TODO: If there is a new fire I wait for the CFP and there agent will not bid if
-        //it can arrive or if he has an action, so here (when it is reject by the contractor)
-        //is dicriminating about which case was the reason to not bid.
+
+          KeyValue<String, Object> content = getMessageContent(msg);
+          switch(content.getKey()) {
+              case MessageContent.AMBULANCE_CONTRACT_NET:
+//                  performNextMove();
+                  break;
+              default:
+                  throw new IllegalArgumentException("Message not unterstood. Proposal from " + content.getKey());
+          }
     }
 
     private void handleCFP(ACLMessage msg) {
@@ -124,7 +116,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
             case MessageContent.AMBULANCE_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer)content.getValue();
                 int distanceBid = -1;
-                if(getTargetCell().isEmpty()){
+                if(getTargetCells().isEmpty()){
                     distanceBid = studyDistance(offer.getCell(), 18, Boolean.FALSE);
                 }
                 
@@ -142,7 +134,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 int maxBasedOnLoad = max-currentLoad;
                 int peopleICanRescue = Math.min(people, maxBasedOnLoad);
                 
-                if ( peopleICanRescue > 0 ){
+                if ( peopleICanRescue > 0 && getCurrentTargetCell() == null ){
                     offer.reply(this, peopleICanRescue ); // Because the smaller number will be winner
                 }else{
                     offer.reply(this, -1);
@@ -162,10 +154,6 @@ public class AmbulanceAgent extends IMASVehicleAgent {
             Path auxPath = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
             path = computeOptimumPath(auxPath.getPath().get(auxPath.getPath().size() - 1).getCell(), buildingFire, maxDist);
         }else{
-            if ( buildingFire == null ) System.err.println("#################### NULL FIRE");
-            if (this.getLocalName().equals("fireman2")) {
-                log("This is the fireman 2");
-            }
             path = computeOptimumPath(getCurrentPosition(), buildingFire, maxDist);
         }
 
@@ -181,15 +169,15 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
+                logg("-- < Ended Auction > --");
                 AID targetHospital = (AID)content.getValue();
                 addTargetCell( getGame().getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital)) );
                 performNextMove();
                 break;
             case MessageContent.SEND_GAME:
                 manageSendGame((GameSettings) content.getValue());
-                if( AIDUtil.getLocalId(getLocalName()) == 1) System.err.println(getCurrentLoad());
-
                 sendGameUpdateConfirmation(getParent());
+                newTurn();
                 performNextMove();
                 break;
             default:
@@ -200,10 +188,10 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     }
 
     private void performNextMove() {
-        if( !getTargetCell().isEmpty() ) {
+        if( !getTargetCells().isEmpty() ) {
 
-            Path path = getGame().getGraph().computeOptimumPathUnconstrained(getCurrentPosition(), getCurrentTargetCell());
-            if (path.getDistance() > 0){
+            Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), Integer.MAX_VALUE);
+            if (path != null && path.getDistance() > 0){
                 // Move towards the hospital
                 AgentAction agentAction = new AgentAction(this.getAID(), path.getNextCellInPath());
                 endTurn(agentAction);
@@ -230,6 +218,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         if( getCurrentLoad() == getMaxLoad() ){
             pollCurrentTargetCell();
 
+            logg("-- < Started Auction > --");
             ACLMessage msg = MessageCreator.createProxy(getParent(), MessageContent.AMBULANCE_AUCTION, new Item(getCurrentPosition(), getCurrentLoad()));
             send(msg);
             // Don't perform action. Once auction ends, it will perform the corresponding action.
@@ -258,47 +247,47 @@ public class AmbulanceAgent extends IMASVehicleAgent {
         updatePosition();
     }
 
-    private void actionTask() {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
-        if(path != null) {
-            if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
-                int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
-                AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
-
-                if (burned > getGame().getFireSpeed() && burned < 100) {
-                    //action+stay
-                    nextAction.setAction(getCurrentTargetCell(), 1);
-                } else {
-                    Cell actualCell = getCurrentTargetCell();
-                    pollCurrentTargetCell();
-                    nextAction.setAction(actualCell, 1);
-                    //POSSIBLE MOVEMENT
-                    if (getTargetCell().isEmpty()) {
-                        //position should be based on distribution...
-                        //TODO: It never finish doing something!!!!
-                        //distributionTask(nextAction);
-                    } else {
-                        // movement based on path...
-                        //if path.distance == 0 then dont move
-                        computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
-                        if (path.getDistance() != 0) {
-                            nextAction.setPosition(path.getNextCellInPath());
-                        }
-                    }
-                }
-                endTurn(nextAction);
-
-            } else {//MOVING
-                AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
-                endTurn(nextAction);
-            }
-        }else{
-            pollCurrentTargetCell();
-
-            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
-            endTurn(nextAction);
-        }
-    }
+//    private void actionTask() {
+//        Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+//        if(path != null) {
+//            if (path.getDistance() == 0) {//ACTION+POSSIBLE MOVEMENT
+//                int burned = ((BuildingCell) getCurrentTargetCell()).getBurnedRatio();
+//                AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
+//
+//                if (burned > getGame().getFireSpeed() && burned < 100) {
+//                    //action+stay
+//                    nextAction.setAction(getCurrentTargetCell(), 1);
+//                } else {
+//                    Cell actualCell = getCurrentTargetCell();
+//                    pollCurrentTargetCell();
+//                    nextAction.setAction(actualCell, 1);
+//                    //POSSIBLE MOVEMENT
+//                    if (getTargetCells().isEmpty()) {
+//                        //position should be based on distribution...
+//                        //TODO: It never finish doing something!!!!
+//                        //distributionTask(nextAction);
+//                    } else {
+//                        // movement based on path...
+//                        //if path.distance == 0 then dont move
+//                        computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), 18);
+//                        if (path.getDistance() != 0) {
+//                            nextAction.setPosition(path.getNextCellInPath());
+//                        }
+//                    }
+//                }
+//                endTurn(nextAction);
+//
+//            } else {//MOVING
+//                AgentAction nextAction = new AgentAction(getAID(), path.getNextCellInPath());
+//                endTurn(nextAction);
+//            }
+//        }else{
+//            pollCurrentTargetCell();
+//
+//            AgentAction nextAction = new AgentAction(getAID(), getCurrentPosition());
+//            endTurn(nextAction);
+//        }
+//    }
 
     private void dummyTask() {
         AgentAction action = new AgentAction(getAID(), getCurrentPosition());
@@ -312,5 +301,12 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private int getMaxLoad(){
         return getGame().getPeoplePerAmbulance();
     }
-    
+
+    @Override
+    public void addTargetCell(Cell cell){
+        if ( !getTargetCells().isEmpty() ) throw new IllegalArgumentException("Ambulances only support one target cell.");
+        getTargetCells().add(cell);
+    }
+
+
 }

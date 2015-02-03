@@ -244,7 +244,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
     
     public void endTurn() {
         ACLMessage msg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, finishedFiremanAgents);
-        errorLog("Sending actions...");
         send(msg);
         finishedFiremanAgents.clear();
     }

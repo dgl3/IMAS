@@ -143,4 +143,15 @@ public class StreetCell extends Cell {
         return new StreetCell(getRow(), getCol());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+
+        if (((StreetCell) o).getCol() != getCol() || ((StreetCell) o).getRow() != getRow()) return false;
+
+        return true;
+    }
 }

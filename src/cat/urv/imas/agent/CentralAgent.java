@@ -251,6 +251,7 @@ public class CentralAgent extends ImasAgent {
      */
     public void newTurn() {
         if( readyForNextTurn == true ){
+            log("++ NEW TURN !!");
             turn += 1;
             readyForNextTurn = false;
             if( controllerWindow != null ){
@@ -435,6 +436,7 @@ public class CentralAgent extends ImasAgent {
     }
 
     private void readyForNextTurn() {
+        log("## TURN ENDED !!");
         this.readyForNextTurn = true;
 
         if( controllerWindow != null ){
@@ -443,7 +445,7 @@ public class CentralAgent extends ImasAgent {
 
         if( autoPlay ){
             try {
-                Thread.sleep(0);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -456,6 +458,9 @@ public class CentralAgent extends ImasAgent {
      * the map with the turns movement and starts a new turn
      */
     private void endTurn(Collection<AgentAction> agentActions, List<Cell> pva) {
+
+        log("--- Cleaning up to end turn.");
+
         this.game.advanceTurn();
         
         Cell[][] map = this.game.getMap();
@@ -510,10 +515,14 @@ public class CentralAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.END_TURN:
-
+                log("--- MASTER Got Go To End Turn.");
                 Collection<AgentAction> finishedAgents = Collections.unmodifiableCollection((List<AgentAction>)content.getValue());
+                log("--- Moving PVA.");
                 List<Cell> pva = movePrivateVehicles();
+                log("--- Checking Collisions");
                 checkMovementCollisions(finishedAgents, pva);
+
+                log("--- Done checking movement collisionss!!");
                 endTurn(finishedAgents, pva);
                 break;
             default:

@@ -19,7 +19,6 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.MessageCreator;
-import cat.urv.imas.constants.Direction;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.graph.Graph;
 import cat.urv.imas.map.Cell;
@@ -51,12 +50,12 @@ public class IMASVehicleAgent extends ImasAgent {
     /**
      * List of other ActionAreas
      */
-    List<Graph> foreignActionAreas;
+    private List<Graph> foreignActionAreas;
     
     /**
      * Agent Action Area
      */
-    Graph actionArea;
+    private Graph actionArea;
     
     /**
      * Game settings in use.
@@ -66,7 +65,7 @@ public class IMASVehicleAgent extends ImasAgent {
     /**
      * The cell the agent wants to move to.
      */
-    private List<Cell> targetCell;
+    private List<Cell> targetCells;
 
     /**
      * Agent this one reports to
@@ -75,6 +74,9 @@ public class IMASVehicleAgent extends ImasAgent {
 
     private Cell cellToAvoid;
 
+    private boolean turnEnded;
+    private Path currentPath;
+
     /**
      * Creates the agent.
      *
@@ -82,30 +84,21 @@ public class IMASVehicleAgent extends ImasAgent {
      */
     public IMASVehicleAgent(AgentType type) {
         super(type);
-        targetCell = new ArrayList<>();
+        targetCells = new ArrayList<>();
         foreignActionAreas = new ArrayList<>();
     }
 
+    public void newTurn(){
+        turnEnded = false;
+    }
     public void endTurn(AgentAction nextAction) {
 
-//        if( inCollision() ){
-//            lastMoveWasAvoid = true;
-//            Direction direction = getIntendedDirection(lastAction, currentPosition);
-//
-//            List<String> collisions = getGame().getColisionsByName(getLocalName());
-//
-//            System.err.println("In Collision");
-//
-//            Cell escapePos = getEscapePosition(direction, collisions);
-//
-//            ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, new AgentAction(getAID(), escapePos));
-//            send(msg);
-//        }else {
-            //lastMoveWasAvoid = false;
-            lastAction = nextAction;
-            ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, nextAction);
-            send(msg);
-        //}
+        if( turnEnded == true ) throw new IllegalStateException("Trying to end twice: " + getLocalName());
+        turnEnded = true;
+
+        lastAction = nextAction;
+        ACLMessage msg = MessageCreator.createInform(parent, MessageContent.END_TURN, nextAction);
+        send(msg);
     }
 
 //    private Direction getIntendedDirection(AgentAction lastAction, Cell currentPosition) {
@@ -151,22 +144,30 @@ public class IMASVehicleAgent extends ImasAgent {
         this.game = game;
     }
 
-    public List<Cell> getTargetCell() {
-        return targetCell;
+    public List<Cell> getTargetCells() {
+        return targetCells;
     }
     
     public void addTargetCell(Cell cell){
-        targetCell.add(cell);
+        targetCells.add(cell);
     }
     
     public void pollCurrentTargetCell(){
-        if(!targetCell.isEmpty()){
-            targetCell.remove(0);
+        if(!targetCells.isEmpty()){
+            targetCells.remove(0);
+
+            if( !targetCells.isEmpty() ){
+                currentPath = computeOptimumPath(currentPosition, getCurrentTargetCell(), 200);
+            }else{
+                currentPath = null;
+            }
         }
     }
     
     public Cell getCurrentTargetCell(){
-        Cell cell = targetCell.get(0);
+        if ( targetCells.isEmpty() ) return null;
+
+        Cell cell = targetCells.get(0);
         return game.get(cell.getRow(), cell.getCol());
     }
 
@@ -192,6 +193,7 @@ public class IMASVehicleAgent extends ImasAgent {
     private boolean mustAvoid(List<String> collisions){
         if ( collisions.isEmpty() ){
             errorLog("Collided with idle agent or car");
+            if( CentralAgent.getRNG().nextInt(2) == 0 ) return false;
             return true;
         }
 
@@ -251,7 +253,6 @@ public class IMASVehicleAgent extends ImasAgent {
     protected Path computeOptimumPath(Cell from, Cell to, int maxDist){
         List<String> collisions = getGame().getColisionsByName(getLocalName());
         if ( inCollision() && mustAvoid(collisions) ){
-            System.err.println("In collision");
             cellToAvoid = new StreetCell(lastAction.nextPosition[0], lastAction.nextPosition[1]);
         }
 
@@ -260,6 +261,8 @@ public class IMASVehicleAgent extends ImasAgent {
         }
         return getGame().getGraph().computeOptimumPathWithRestrictions(from, to, cellToAvoid, maxDist);
     }
+
+
 
     public List<Graph> getForeignActionAreas() {
         return foreignActionAreas;
@@ -277,4 +280,15 @@ public class IMASVehicleAgent extends ImasAgent {
         return actionArea;
     }
 
+    public void logg(String msg){
+        if(AIDUtil.getType(getLocalName()) == AgentType.AMBULANCE && AIDUtil.getLocalId(getLocalName()) == 3) System.err.println(msg);
+    }
+
+    public Path getCurrentPath() {
+        return currentPath;
+    }
+
+    public void setCurrentPath(Path currentPath) {
+        this.currentPath = currentPath;
+    }
 }

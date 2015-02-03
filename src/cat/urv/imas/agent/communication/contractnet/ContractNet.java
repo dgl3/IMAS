@@ -81,7 +81,7 @@ public class ContractNet {
         if(winner!=null){
             winnerList.add(winner);
         }else{
-            System.out.println("NO WINNER!!!");
+            // No winner
         }
         list.put(WINNER, winnerList);
         list.put(LOOSER, looserList);
