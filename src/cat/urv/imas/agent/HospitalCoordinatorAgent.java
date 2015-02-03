@@ -290,7 +290,7 @@ public class HospitalCoordinatorAgent extends ImasAgent {
         if (this.finishedAmbulanceAgents.size() > 4) {
             log("lksjh");
         }
-        ACLMessage endTurnMsg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, finishedAmbulanceAgents);
+        ACLMessage endTurnMsg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, new ArrayList<>(finishedAmbulanceAgents));
         finishedAmbulanceAgents.clear();
         send(endTurnMsg);
     }

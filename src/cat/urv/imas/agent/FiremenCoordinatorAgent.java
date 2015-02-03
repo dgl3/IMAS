@@ -243,7 +243,7 @@ public class FiremenCoordinatorAgent extends ImasAgent {
 
     
     public void endTurn() {
-        ACLMessage msg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, finishedFiremanAgents);
+        ACLMessage msg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, new ArrayList<>(finishedFiremanAgents));
         send(msg);
         finishedFiremanAgents.clear();
     }
