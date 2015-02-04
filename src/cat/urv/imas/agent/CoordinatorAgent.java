@@ -165,7 +165,6 @@ public class CoordinatorAgent extends ImasAgent {
                 if ( !wasRemoved ) throw new IllegalStateException("Got game update confirmation from unknown AID");
                 // Propagate confirm message
                 if(pendingGameUpdateConfirmations.isEmpty()){
-                    log("Proxy method!!");
                     if ( game.getNewFire() != null ) {
                         sendProxy(firemenCoordinator, MessageContent.FIREMEN_CONTRACT_NET);
                     }
@@ -184,7 +183,6 @@ public class CoordinatorAgent extends ImasAgent {
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.SEND_GAME:
-                log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
                 GameSettings gameSettings = (GameSettings) content.getValue();
                 setGame(gameSettings);
                 //log(gameSettings.getShortString());
@@ -192,14 +190,12 @@ public class CoordinatorAgent extends ImasAgent {
                 break;
             case MessageContent.END_TURN:
                 if (msg.getSender().getLocalName().equals("firemenCoord")) {
-                    log("FiremenCoord want to end turn.");
                     finishedFiremanAgents.clear();
                     finishedFiremanAgents.addAll((List<AgentAction>) content.getValue());
 
                     if ( finishedFiremanAgents.isEmpty() ) throw new IllegalArgumentException("Can not finish with no fire agents.");
 
                 } else if (msg.getSender().getLocalName().equals("hospCoord")){
-                    log("HospitalCoord want to end turn.");
                     finishedAmbulanceAgents.clear();
                     finishedAmbulanceAgents.addAll((List<AgentAction>) content.getValue());
 
@@ -209,7 +205,6 @@ public class CoordinatorAgent extends ImasAgent {
                 }
 
                 if (!finishedFiremanAgents.isEmpty() && !finishedAmbulanceAgents.isEmpty()) {
-                    log("ENDING TURN");
                     endTurn();
                 }else {
                     if (finishedAmbulanceAgents.isEmpty()) log("HospitalCoord yet to respond.");

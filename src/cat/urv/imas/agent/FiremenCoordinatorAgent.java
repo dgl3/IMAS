@@ -198,8 +198,6 @@ public class FiremenCoordinatorAgent extends ImasAgent {
                 break;
             case MessageContent.END_TURN:
                 finishedFiremanAgents.add((AgentAction) content.getValue());
-                log("Remainaing: " + (firemenAgents.size()-finishedFiremanAgents.size()) + "; last: " + msg.getSender().getLocalName());
-                // TODO: This is not reliable enough, look for another way
                 if (finishedFiremanAgents.size() == firemenAgents.size()){
                     endTurn();
                 }

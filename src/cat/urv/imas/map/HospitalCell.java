@@ -123,7 +123,7 @@ public class HospitalCell extends Cell {
     
     @Override
     public String getMapMessage() {
-        return String.valueOf(useRatio());
+        return String.valueOf(useRatio()) + "%";
     }
 
     @Override

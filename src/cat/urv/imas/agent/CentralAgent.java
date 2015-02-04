@@ -165,7 +165,7 @@ public class CentralAgent extends ImasAgent {
         
         //Ferran
         this.game.setStepsToHealth(3);
-        
+
         this.game.initializeAmbulanceCapacities();
         Graph graph = new Graph(this.game);
         this.game.updateGraph(graph);
@@ -255,8 +255,13 @@ public class CentralAgent extends ImasAgent {
      */
     public void newTurn() {
         if( readyForNextTurn == true ){
-            log("++ NEW TURN !!");
             turn += 1;
+
+            if ( turn > game.getSimulationSteps() ){
+                log("Simulation ended with " + (turn-1) + " steps");
+                System.exit(0);
+            }
+
             readyForNextTurn = false;
             if( controllerWindow != null ){
                 controllerWindow.setReadyForNewTurn(false);
@@ -440,7 +445,6 @@ public class CentralAgent extends ImasAgent {
     }
 
     private void readyForNextTurn() {
-        log("## TURN ENDED !!");
         this.readyForNextTurn = true;
 
         if( controllerWindow != null ){

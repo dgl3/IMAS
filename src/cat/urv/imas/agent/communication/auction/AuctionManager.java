@@ -29,13 +29,11 @@ public class AuctionManager {
     }
 
     public void setupNewAuction(AID seller, Item item, Collection<AID> participants){
-        System.err.println("- Added Auction: " + seller.getLocalName());
         auctionIds++;
         Auction auction = new Auction(auctionIds, seller, item, new HashSet<>(participants) );
         pendingAuctions.add(auction);
 
         if( !auctionInProgress ){
-            System.err.println("- Started Auction: " + seller.getLocalName());
             startNextAuction();
         }
     }
@@ -58,7 +56,6 @@ public class AuctionManager {
 
     public void takeBid(AID sender, Bid bid) {
         if( bid.getAuctionID() == currentAuction.getID() ) {
-            System.err.println("- Got bid from: " + sender.getLocalName());
             currentAuction.takeBid(sender, bid.getValue());
 
             if( currentAuction.readyForEvaluation() ){
@@ -73,7 +70,6 @@ public class AuctionManager {
     }
 
     private void notifySeller(AID winner) {
-        System.err.println("- NotifySeller: " + currentAuction.getSeller().getLocalName());
         ACLMessage msg = MessageCreator.createInform(currentAuction.getSeller(), MessageContent.AMBULANCE_AUCTION, winner);
         auctioneer.send(msg);
     }

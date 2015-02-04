@@ -166,7 +166,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 handleStartHospitalAuction(msg.getSender(), (Item)content.getValue());
                 break;
             case MessageContent.AMBULANCE_CONTRACT_NET:
-                log("New Fire(ambulances): "+game.getNewFire().toString());
                 contractor.setupNewContractNet(coordinatorAgent, game.getNewFire(), Collections.unmodifiableCollection(ambulanceAgents));
                 break;
             default:
@@ -229,8 +228,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 break;
             case MessageContent.END_TURN:
                 finishedAmbulanceAgents.add((AgentAction) content.getValue());
-                log("Remainaing: " + (ambulanceAgents.size()-finishedAmbulanceAgents.size()) + "; last: " + msg.getSender().getLocalName());
-                // TODO: This is not reliable enough, look for another way
                 if (finishedAmbulanceAgents.size() == ambulanceAgents.size()) {
                     this.endTurn();
                 }
@@ -242,7 +239,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     }
 
     private void manageSendGame(ACLMessage msg, KeyValue<String, Object> content) {
-        log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
         setGame((GameSettings) content.getValue());
 
         ACLMessage sendGameMsgHospitals = MessageCreator.createInform(hospitalAgents, MessageContent.SEND_GAME, this.game);
@@ -282,9 +278,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
 
     
     public void endTurn() {
-        if (this.finishedAmbulanceAgents.size() > 4) {
-            log("lksjh");
-        }
         ACLMessage endTurnMsg = MessageCreator.createInform(coordinatorAgent, MessageContent.END_TURN, new ArrayList<>(finishedAmbulanceAgents));
         finishedAmbulanceAgents.clear();
         send(endTurnMsg);

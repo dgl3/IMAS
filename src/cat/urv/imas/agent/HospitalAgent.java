@@ -134,18 +134,10 @@ public class HospitalAgent extends ImasAgent{
     }
 
     private void handleBidRequest(Offer offer) {
-        errorLog("--> Processing bid.");
         Item item = offer.getItem();
         Cell myPos = getGame().getAgentList().get(getType()).get(AIDUtil.getLocalId(getAID()));
-
-        errorLog("MyPos: " + myPos);
-        errorLog("ToPos: " + item.getPosition());
-
         Path p = getGame().getGraph().computeOptimumPath(item.getPosition(), myPos, 100);
         float bid = p==null?Integer.MAX_VALUE:p.getDistance();
-
-
-        errorLog("--> Sending bid.");
         offer.reply(this, bid);
     }
 

@@ -193,7 +193,6 @@ public class IMASVehicleAgent extends ImasAgent {
 
     private boolean mustAvoid(List<String> collisions){
         if ( collisions.isEmpty() ){
-            errorLog("Collided with idle agent or car");
             if( CentralAgent.getRNG().nextInt(2) == 0 ) return false;
             return true;
         }

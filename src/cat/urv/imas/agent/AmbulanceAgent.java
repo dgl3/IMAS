@@ -167,7 +167,6 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
-                log("-- < Ended Auction > --");
                 AID targetHospital = (AID)content.getValue();
 
                 addTargetCell( getGame().getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital)) );
@@ -228,13 +227,9 @@ public class AmbulanceAgent extends IMASVehicleAgent {
             pollCurrentTargetCell();
 
             if( getCurrentLoad() > 0 ) {
-                log("-- < Started Auction > --");
                 ACLMessage msg = MessageCreator.createProxy(getParent(), MessageContent.AMBULANCE_AUCTION, new Item(getCurrentPosition(), getCurrentLoad()));
                 send(msg);
                 return; // Don't perform action. Once auction ends, it will perform the corresponding action.
-            }
-            if( AIDUtil.getLocalId(getLocalName()) == 4 ){
-                System.err.println("------------------I STAY");
             }
         }
 
