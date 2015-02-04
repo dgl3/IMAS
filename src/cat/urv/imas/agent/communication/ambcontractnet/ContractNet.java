@@ -20,7 +20,7 @@ public class ContractNet {
     private Cell item;
     private AID seller;
     private Collection<AID> outstandingBidders;
-    private HashMap<AID, Integer> bids;
+    private HashMap<AID, List<Integer>> bids;
     private AID winner;
     public static final int WINNER = 0;
     public static final int LOOSER = 1;
@@ -34,10 +34,13 @@ public class ContractNet {
         this.bids = new HashMap<>();
     }
 
-    public void takeBid(AID aid, int bid){
+    public void takeBid(AID aid, int bidPeople, int bidDist){
         if( outstandingBidders.contains(aid) ){
             outstandingBidders.remove(aid);
-            bids.put(aid, bid);
+            List<Integer> bidValues = new ArrayList<>();
+            bidValues.add(bidPeople);
+            bidValues.add(bidDist);
+            bids.put(aid, bidValues);
         }else{
             throw new IllegalStateException("Received response from non-participant. Or, participant already replied earlier.");
         }
@@ -63,38 +66,54 @@ public class ContractNet {
         if ( !readyForEvaluation() ){
             throw new IllegalStateException("Winner can not be queried. Not all bidders have replied.");
         }
-
-        if( winner == null ) {
-            int highestBid = Integer.MIN_VALUE;
-            for (AID bidder : bids.keySet()){
-                int bid = bids.get(bidder);
-                if ((bid > -1)&&(bid > highestBid)){
-                    highestBid = bid;
-                    winner = bidder;
-                }
-            }
-        }
+        
+        
         
         Map<Integer,List<AID>> list = new HashMap<>();
         List<AID> winnerList = new ArrayList<>();
         List<AID> looserList = new ArrayList<>();
-        if(winner!=null){
-            winnerList.add(winner);
-        }else{
-            // No WINNER
-        }
+        winnerList = getClosestBidders(new HashMap<>(bids));
         list.put(WINNER, winnerList);
-        list.put(LOOSER, looserList);
         for (AID bidder : bids.keySet()){
-            if(bidder!=winner){
+            if(!winnerList.contains(bidder)){
                 looserList.add(bidder);
             }
         }
+        list.put(LOOSER, looserList);
        
         return list;
     }
 
     public AID getSeller() {
         return seller;
+    }
+    
+    private List<AID> getClosestBidders(HashMap<AID, List<Integer>> auxBids){
+        List<AID> winnersList = new ArrayList<>();
+        int amountPeopleRescue = 0;
+        Boolean notFound = false;
+        
+        while((!notFound)&&(amountPeopleRescue<10)){
+            int maxBidDist = Integer.MAX_VALUE;
+            AID winner = null;
+            if(!auxBids.isEmpty()){
+                for(AID amb: auxBids.keySet()){
+                    int actualBidDist = auxBids.get(amb).get(1);
+                    if((actualBidDist!=-1)&&(actualBidDist<maxBidDist)){
+                        winner = amb;
+                        maxBidDist = actualBidDist;
+                    }
+                }
+            }
+            if(winner!=null){
+                amountPeopleRescue += auxBids.get(winner).get(0);
+                winnersList.add(winner);
+                auxBids.remove(winner);
+            }else{
+                notFound = true;
+            }
+        }
+        
+        return winnersList;
     }
 }

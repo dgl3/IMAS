@@ -21,6 +21,7 @@ public class ContractNetManager {
     private Queue<ContractNet> pendingContractNets;
     private ContractNet currentContractNet;
     private boolean contractNetInProgress;
+    private List<AID> winnerList;
 
     public ContractNetManager(Agent contractor, String kindMessage){
         contractNetIds = 0;
@@ -57,15 +58,16 @@ public class ContractNetManager {
 
     public void takeBid(AID sender, ContractBid bid) {
         if( bid.getAuctionID() == currentContractNet.getID() ) {
-            currentContractNet.takeBid(sender, bid.getValue());
+            currentContractNet.takeBid(sender, bid.getPeopleValue(), bid.getDistValue());
             if( currentContractNet.readyForEvaluation() ){
                 Map<Integer,List<AID>> list = currentContractNet.getWinner();
+                winnerList = list.get(ContractNet.WINNER);
                 //TODO: Maybe the case there is no winner because none bid for the ContractNet!!!
                 
                 if(list.get(ContractNet.WINNER).isEmpty()){
                     notifySeller(null);
                 }else{
-                    notifySeller(list.get(ContractNet.WINNER).get(0));
+                    notifySeller(list.get(ContractNet.WINNER));
                 }
                 notifyWinnerLossers(list);
             }
@@ -75,7 +77,7 @@ public class ContractNetManager {
 
     }
 
-    private void notifySeller(AID winner) {
+    private void notifySeller(List<AID> winner) {
         ACLMessage msg = MessageCreator.createInform(currentContractNet.getSeller(), this.kindMessage, winner);
         contractor.send(msg);
     }
@@ -87,7 +89,7 @@ public class ContractNetManager {
         contractor.send(lostNotification);
         if(!list.get(ContractNet.WINNER).isEmpty()){
             ContractOffer offer = new ContractOffer(contractor.getAID(), currentContractNet.getID(), currentContractNet.getItem(), kindMessage);
-            ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(ContractNet.WINNER).get(0), messageType, offer);
+            ACLMessage winNotification = MessageCreator.createMessage(ACLMessage.ACCEPT_PROPOSAL, list.get(ContractNet.WINNER), messageType, offer);
             contractor.send(winNotification);
         }else{
             closeContractNet();
@@ -96,10 +98,13 @@ public class ContractNetManager {
 
     public void confirmAction(AID sender, ContractOffer offer){
         if( currentContractNet.readyForEvaluation()
-            && currentContractNet.getWinner().get(ContractNet.WINNER).get(0).equals(sender)
+            && winnerList.contains(sender)
             && offer.getContractNetID() == currentContractNet.getID() )
         {
-            closeContractNet();
+            winnerList.remove(sender);
+            if(winnerList.isEmpty()){
+                closeContractNet();
+            }
         }else{
             throw new IllegalStateException("Received illegal "+kindMessage+" confirmation from agent aid " + sender.getLocalName() + " for contractNet id " + offer.getContractNetID() + ", current auction id is " + currentContractNet.getID() + ", winner is "+currentContractNet.getWinner().get(ContractNet.WINNER).get(0).getLocalName() + " and auction is ready for evaluation: " + currentContractNet.readyForEvaluation());
         }

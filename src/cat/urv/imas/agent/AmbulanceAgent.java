@@ -135,12 +135,12 @@ public class AmbulanceAgent extends IMASVehicleAgent {
                 int maxBasedOnLoad = max-currentLoad;
                 
                 //Ferran
-                int peopleICanRescue = Math.min(people, maxBasedOnLoad+1);
+                int peopleICanRescue = Math.min(people, maxBasedOnLoad);
                 
                 if ( peopleICanRescue > 0 && getCurrentTargetCell() == null ){
-                    offer.reply(this, peopleICanRescue ); // Because the smaller number will be winner
+                    offer.reply(this, peopleICanRescue, distanceBid ); // Because the smaller number will be winner
                 }else{
-                    offer.reply(this, -1);
+                    offer.reply(this, -1, -1);
                 }
                 break;
             default:
@@ -225,6 +225,8 @@ public class AmbulanceAgent extends IMASVehicleAgent {
             //send(msg);
             AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
             endTurn(agentAction);
+            //Ferran temp
+            setCurrendLoadTo0();
             
             // Don't perform action. Once auction ends, it will perform the corresponding action.
         }else {
@@ -259,6 +261,11 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
     private int getCurrentLoad(){
         return getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getLocalName()));
+    }
+    
+    //Ferran temp
+    private void setCurrendLoadTo0(){
+        getGame().setAmbulanceCurrentLoadTo0(AIDUtil.getLocalId(getLocalName()));
     }
 
     private int getMaxLoad(){

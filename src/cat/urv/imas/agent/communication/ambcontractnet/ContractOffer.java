@@ -31,8 +31,8 @@ public class ContractOffer implements java.io.Serializable {
         return contractor;
     }
 
-    public void reply(Agent sender, int bidValue){
-        ContractBid bid = new ContractBid(contractNetID, bidValue);
+    public void reply(Agent sender, int bidPeople, int bidDist){
+        ContractBid bid = new ContractBid(contractNetID, bidPeople, bidDist);
         ACLMessage bidMsg = MessageCreator.createPropose(contractor, kindMessage, bid);
         sender.send(bidMsg);
     }

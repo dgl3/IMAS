@@ -366,6 +366,11 @@ public class GameSettings implements java.io.Serializable {
         return this.ambulanceCurrentLoad[ambulance];
     }
     
+    //Ferran temp
+    public void setAmbulanceCurrentLoadTo0(int ambulance) {
+        this.ambulanceCurrentLoad[ambulance]=0;
+    }
+    
     public void updateAmbulanceCurrentLoad(int ambulance, int load) {
         this.ambulanceCurrentLoad[ambulance] += load;
         if (this.ambulanceCurrentLoad[ambulance] > this.peoplePerAmbulance) {

@@ -8,18 +8,24 @@ import jade.core.AID;
  */
 public class ContractBid implements java.io.Serializable {
     private int auctionID;
-    private int value;
+    private int people;
+    private int distance;
 
-    public ContractBid(int auctionID, int value) {
+    public ContractBid(int auctionID, int value, int distance) {
         this.auctionID = auctionID;
-        this.value = value;
+        this.people = value;
+        this.distance = distance;
     }
 
     public int getAuctionID() {
         return auctionID;
     }
 
-    public int getValue() {
-        return value;
+    public int getPeopleValue() {
+        return people;
+    }
+    
+    public int getDistValue(){
+        return distance;
     }
 }

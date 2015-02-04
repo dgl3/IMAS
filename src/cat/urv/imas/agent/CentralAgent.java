@@ -542,7 +542,7 @@ public class CentralAgent extends ImasAgent {
     
     private Cell generateFire() {
 
-        if( this.RNG.nextInt(2) == 0 ) {
+        if( this.RNG.nextInt(5) == 0 ) {
 
             List<Cell> buildings = this.game.getClearBuildings();
             if (buildings.size() > 0) {

@@ -227,9 +227,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
             case MessageContent.SEND_GAME:
                 manageSendGame(msg, content);
                 break;
-            case MessageContent.NEW_FIRE_PETITION:
-                // This will need to change to handle a new fire petition
-                break;
             case MessageContent.END_TURN:
                 finishedAmbulanceAgents.add((AgentAction) content.getValue());
                 log("Remainaing: " + (ambulanceAgents.size()-finishedAmbulanceAgents.size()) + "; last: " + msg.getSender().getLocalName());
@@ -237,7 +234,6 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 if (finishedAmbulanceAgents.size() == ambulanceAgents.size()) {
                     this.endTurn();
                 }
-
                 break;
         default:
             log("Message Content not understood");
