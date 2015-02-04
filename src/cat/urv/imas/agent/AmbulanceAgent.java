@@ -110,38 +110,39 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     }
 
     private void handleCFP(ACLMessage msg) {
-        // TODO: For testing call this to let ambulance initiate auction.
         KeyValue<String, Object> content = getMessageContent(msg);
         switch(content.getKey()){
             case MessageContent.AMBULANCE_CONTRACT_NET:
                 ContractOffer offer = (ContractOffer)content.getValue();
-                int distanceBid = -1;
+
                 if(getTargetCells().isEmpty()){
+
+                    int distanceBid = -1;
+                    int people = 0;
+
                     distanceBid = studyDistance(offer.getCell(), getMaxDistToRescue());
-                }
-                
-                int people = 0;
-                if(distanceBid!=-1){
+
                     int distNotGetMaxPeople = getMaxDistToRescue()+2-getGame().getPeoplePerAmbulance();
                     if (distanceBid<distNotGetMaxPeople){
                         people = getGame().getPeoplePerAmbulance();
                     }else{
                         people = getMaxDistToRescue()-(distanceBid-1);
                     }
+
+                    int currentLoad = getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getLocalName()));
+                    int max = getGame().getPeoplePerAmbulance();
+                    int maxBasedOnLoad = max-currentLoad;
+
+                    //Ferran
+                    int peopleICanRescue = Math.min(people, maxBasedOnLoad);
+
+                    if ( peopleICanRescue > 0 ) {
+                        offer.reply(this, peopleICanRescue, distanceBid); // Because the smaller number will be winner
+                        break;
+                    }
                 }
-                
-                int currentLoad = getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getLocalName()));
-                int max = getGame().getPeoplePerAmbulance();
-                int maxBasedOnLoad = max-currentLoad;
-                
-                //Ferran
-                int peopleICanRescue = Math.min(people, maxBasedOnLoad);
-                
-                if ( peopleICanRescue > 0 && getCurrentTargetCell() == null ){
-                    offer.reply(this, peopleICanRescue, distanceBid ); // Because the smaller number will be winner
-                }else{
-                    offer.reply(this, -1, -1);
-                }
+
+                offer.reply(this, -1, -1);
                 break;
             default:
                 log("CFP Message Content not understood");
@@ -166,8 +167,9 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
         switch(content.getKey()) {
             case MessageContent.AMBULANCE_AUCTION:
-                logg("-- < Ended Auction > --");
+                log("-- < Ended Auction > --");
                 AID targetHospital = (AID)content.getValue();
+
                 addTargetCell( getGame().getAgentList().get(AgentType.HOSPITAL).get(AIDUtil.getLocalId(targetHospital)) );
                 performNextMove();
                 break;
@@ -186,7 +188,14 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
     private void performNextMove() {
         if( !getTargetCells().isEmpty() ) {
-            Path path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), getActualMaxDist());
+
+            Path path;
+            if ( getCurrentTargetCell() instanceof BuildingCell ) {
+                path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), getActualMaxDist());
+            }else{
+                path = computeOptimumPath(getCurrentPosition(), getCurrentTargetCell(), Integer.MAX_VALUE);
+            }
+
             if(path!=null){
                 if (path.getDistance() > 0){
                     // Move towards the hospital
@@ -215,25 +224,23 @@ public class AmbulanceAgent extends IMASVehicleAgent {
 
     private void pickUpPeople() {
 
-        if( getCurrentLoad() == getMaxLoad() ){
+        if( getCurrentLoad() == getMaxLoad() || ((BuildingCell)getCurrentTargetCell()).getBurnedRatio() == 100 ){
             pollCurrentTargetCell();
 
-            logg("-- < Started Auction > --");
-            
-            //Ferran
-            //ACLMessage msg = MessageCreator.createProxy(getParent(), MessageContent.AMBULANCE_AUCTION, new Item(getCurrentPosition(), getCurrentLoad()));
-            //send(msg);
-            AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
-            endTurn(agentAction);
-            //Ferran temp
-            setCurrendLoadTo0();
-            
-            // Don't perform action. Once auction ends, it will perform the corresponding action.
-        }else {
-            AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
-            agentAction.setAction(getCurrentTargetCell(), 1);
-            endTurn(agentAction);
+            if( getCurrentLoad() > 0 ) {
+                log("-- < Started Auction > --");
+                ACLMessage msg = MessageCreator.createProxy(getParent(), MessageContent.AMBULANCE_AUCTION, new Item(getCurrentPosition(), getCurrentLoad()));
+                send(msg);
+                return; // Don't perform action. Once auction ends, it will perform the corresponding action.
+            }
+            if( AIDUtil.getLocalId(getLocalName()) == 4 ){
+                System.err.println("------------------I STAY");
+            }
         }
+
+        AgentAction agentAction = new AgentAction(this.getAID(), getCurrentPosition());
+        agentAction.setAction(getCurrentTargetCell(), 1);
+        endTurn(agentAction);
     }
 
     private void dropInjuredPeople() {
@@ -262,11 +269,7 @@ public class AmbulanceAgent extends IMASVehicleAgent {
     private int getCurrentLoad(){
         return getGame().getAmbulanceCurrentLoad(AIDUtil.getLocalId(getLocalName()));
     }
-    
-    //Ferran temp
-    private void setCurrendLoadTo0(){
-        getGame().setAmbulanceCurrentLoadTo0(AIDUtil.getLocalId(getLocalName()));
-    }
+
 
     private int getMaxLoad(){
         return getGame().getPeoplePerAmbulance();

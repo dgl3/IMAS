@@ -281,10 +281,6 @@ public class IMASVehicleAgent extends ImasAgent {
         return actionArea;
     }
 
-    public void logg(String msg){
-        if(AIDUtil.getType(getLocalName()) == AgentType.AMBULANCE && AIDUtil.getLocalId(getLocalName()) == 3) System.err.println(msg);
-    }
-
     public Path getCurrentPath() {
         return currentPath;
     }
@@ -292,7 +288,7 @@ public class IMASVehicleAgent extends ImasAgent {
     public void setCurrentPath(Path currentPath) {
         this.currentPath = currentPath;
     }
-    
+
     public int getMaxDistToRescue(){
         return ((int)100/getGame().getFireSpeed())-2;
     }
