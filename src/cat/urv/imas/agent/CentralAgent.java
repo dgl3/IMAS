@@ -162,7 +162,7 @@ public class CentralAgent extends ImasAgent {
         registerToDF();
 
         // 2. Load game settings.
-        this.game = InitialGameSettings.load("game2.settings");
+        this.game = InitialGameSettings.load("game.settings");
         
         //Ferran
         this.game.setStepsToHealth(3);
