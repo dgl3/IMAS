@@ -39,6 +39,7 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPAAgentManagement.*;
 import jade.lang.acl.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -259,6 +260,15 @@ public class CentralAgent extends ImasAgent {
 
             if ( turn > game.getSimulationSteps() ){
                 log("Simulation ended with " + (turn-1) + " steps");
+
+
+                try {
+                    log("Press any key to quit.");
+                    System.in.read();
+                    log("Bye!");
+                } catch (IOException e) {
+                    System.exit(0);
+                }
                 System.exit(0);
             }
 
