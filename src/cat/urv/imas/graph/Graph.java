@@ -182,6 +182,7 @@ public class Graph implements Serializable, Cloneable{
             Node childNode = edge.getNode2();
             childNode.setPreviousNode(initialNode);
             childNode.setDistance(1);
+            visited.add(childNode);
             FIFOqueue.add(childNode);  
         }
         visited.add(initialNode);
@@ -194,9 +195,8 @@ public class Graph implements Serializable, Cloneable{
             return null;
        }
        Node neighbour = FIFOqueue.poll();
-
        while(found == null && neighbour.getDistance() < maxPath){
-           visited.add(neighbour);
+           //visited.add(neighbour);
            List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
            for(Node child: unvisitedChilds){
                 child.setPreviousNode(neighbour);
@@ -205,6 +205,7 @@ public class Graph implements Serializable, Cloneable{
                     path.add(child);
                     found = child;
                 }
+                visited.add(child);
                 FIFOqueue.add(child);
            }
             if(FIFOqueue.isEmpty()){
@@ -268,8 +269,9 @@ public class Graph implements Serializable, Cloneable{
                 Node childNode = edge.getNode2();
                 childNode.setPreviousNode(initialNode);
                 childNode.setDistance(1);
+                visited.add(childNode);
                 FIFOqueue.add(childNode);                
-                }
+            }
         }
         visited.add(initialNode);
         
@@ -281,10 +283,9 @@ public class Graph implements Serializable, Cloneable{
             return null;
        }
        Node neighbour = FIFOqueue.poll();
-
        while(found == null && neighbour.getDistance() < maxPath){
-           visited.add(neighbour);
-           List<Node> unvisitedChilds = getUnvisitedChildNodes(neighbour,visited);
+           //visited.add(neighbour);
+           List<Node> unvisitedChilds = getUnvisitedChildNodesConstrints(neighbour,visited,restrictedNode);
            for(Node child: unvisitedChilds){
                if(!child.equals(restrictedNode)){
                     child.setPreviousNode(neighbour);
@@ -293,6 +294,7 @@ public class Graph implements Serializable, Cloneable{
                         path.add(child);
                         found = child;
                     }
+                    visited.add(child);
                     FIFOqueue.add(child);                   
                }
            }
@@ -365,35 +367,6 @@ public class Graph implements Serializable, Cloneable{
         }
         return optimumPath;
     }
-
-    /**
-     * It is the method to be called by the firemen and the ambulances to get
-     * the optimum path between them and the building in fire or the hospital.
-     *
-     * @param init Cell of the fireman or ambulance
-     * @param target Cell of the building in fire or hospital
-     * @return Agent's optimum path from the init position to the desired target.
-     */
-    public Path computeOptimumPathUnconstrained(Cell init, Cell target){
-        List<Cell> adjacentCells = getAdjacentCells(target);
-        Path optimumPath = null;
-        for(Cell cell: adjacentCells){
-            if(!init.equals(cell)){
-                Path path = bfs(init, cell, Integer.MAX_VALUE);
-                if(optimumPath == null){
-                    optimumPath = path;
-                }else{
-                    if(path.getDistance() < optimumPath.getDistance()){
-                        optimumPath = path;
-                    }
-                }                            
-            }else{
-                optimumPath = new Path(null,0);                
-            }
-        }
-        return optimumPath;
-    }
-  
     
    /**
      * Same as the method computeOptimumPath() but with restriction
@@ -437,6 +410,26 @@ public class Graph implements Serializable, Cloneable{
         for(Edge edge: childs){
             if(!visited.contains(edge.getNode2())){
                 unvisitedChilds.add(edge.getNode2());
+            }
+        }
+        return unvisitedChilds;
+    }
+    
+    /**
+     * Checks and return the list of unvisited neighbours corresponding current
+     * node.
+     * @param node current node
+     * @param visited list of visited nodes
+     * @return  list of the unvisited neighbours of "node"
+     */
+    public List<Node> getUnvisitedChildNodesConstrints(Node node, List<Node> visited, Node restrictedNode){
+        List<Edge> childs = edgesMap.get(node);
+        List<Node> unvisitedChilds = new ArrayList<>();
+        for(Edge edge: childs){
+            if(!edge.getNode2().equals(restrictedNode)){
+                if(!visited.contains(edge.getNode2())){
+                    unvisitedChilds.add(edge.getNode2());
+                }
             }
         }
         return unvisitedChilds;

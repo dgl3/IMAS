@@ -21,6 +21,7 @@ import cat.urv.imas.agent.communication.util.AIDUtil;
 import cat.urv.imas.agent.communication.util.MessageCreator;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.graph.Graph;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
@@ -157,7 +158,7 @@ public class IMASVehicleAgent extends ImasAgent {
             targetCells.remove(0);
 
             if( !targetCells.isEmpty() ){
-                currentPath = computeOptimumPath(currentPosition, getCurrentTargetCell(), 200);
+                currentPath = computeOptimumPath(currentPosition, getCurrentTargetCell(), Integer.MAX_VALUE);
             }else{
                 currentPath = null;
             }
@@ -290,5 +291,14 @@ public class IMASVehicleAgent extends ImasAgent {
 
     public void setCurrentPath(Path currentPath) {
         this.currentPath = currentPath;
+    }
+    
+    public int getMaxDistToRescue(){
+        return ((int)100/getGame().getFireSpeed())-2;
+    }
+    
+    public int getActualMaxDist(){
+        int burnedSteps = (int)((BuildingCell) getCurrentTargetCell()).getBurnedRatio()/getGame().getFireSpeed();
+        return getMaxDistToRescue()-(burnedSteps-1);
     }
 }

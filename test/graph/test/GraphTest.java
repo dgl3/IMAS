@@ -6,6 +6,7 @@ import cat.urv.imas.graph.Node;
 import cat.urv.imas.graph.Path;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.CellType;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.InitialGameSettings;
@@ -157,7 +158,73 @@ public class GraphTest {
         assertTrue(this.graphEval != null);
         
         //What's going on with ambulances
-        Path path = this.graphEval.bfs(new StreetCell(13,5), new StreetCell(15,21), Integer.MAX_VALUE);
+        Cell[][] map = gameEval.getMap();
+        int rows = map.length;
+        int cols = map[0].length;
+        Path path = null;
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<cols;j++){
+                if(map[i][j].getCellType().equals(CellType.STREET)){
+                    System.out.println("Computing from: ["+i+","+j+"]");
+                    for(int i2=0;i2<rows;i2++){
+                        for(int j2=0;j2<cols;j2++){
+                            if(map[i2][j2].getCellType().equals(CellType.STREET)){
+                                if(!map[i][j].equals(map[i2][j2])){
+                                    System.out.println("to ["+i2+","+j2+"]");
+                                    path = this.graphEval.bfs(new StreetCell(i,j), new StreetCell(i2,j2), Integer.MAX_VALUE);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+        //Path path = this.graphEval.bfs(new StreetCell(13,5), new StreetCell(15,21), Integer.MAX_VALUE);
+        assertTrue(path != null);
+    }
+    @Test
+    public void initGameSettings1(){
+        assertTrue(this.game != null);
+        assertTrue(this.graph != null);
+        
+        //What's going on with ambulances
+        Cell[][] map = game.getMap();
+        int rows = map.length;
+        int cols = map[0].length;
+        Path path = null;
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<cols;j++){
+                if(map[i][j].getCellType().equals(CellType.STREET)){
+                    System.out.println("Computing from: ["+i+","+j+"]");
+                    for(int i2=0;i2<rows;i2++){
+                        for(int j2=0;j2<cols;j2++){
+                            if(map[i2][j2].getCellType().equals(CellType.STREET)){
+                                if(!map[i][j].equals(map[i2][j2])){
+                                    System.out.println("to ["+i2+","+j2+"]");
+                                    path = this.graph.bfs(new StreetCell(i,j), new StreetCell(i2,j2), Integer.MAX_VALUE);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+        //Path path = this.graphEval.bfs(new StreetCell(13,5), new StreetCell(15,21), Integer.MAX_VALUE);
+        assertTrue(path != null);
+    }
+    
+    
+    @Test
+    public void initGameSettingsSpecific(){
+        assertTrue(this.gameEval != null);
+        assertTrue(this.graphEval != null);
+        
+        //What's going on with ambulances
+        Path path = this.graph.bfs(new StreetCell(1,2), new StreetCell(1,6), Integer.MAX_VALUE);
         assertTrue(path != null);
     }
     

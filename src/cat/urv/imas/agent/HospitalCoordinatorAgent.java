@@ -231,8 +231,8 @@ public class HospitalCoordinatorAgent extends ImasAgent {
                 // This will need to change to handle a new fire petition
                 break;
             case MessageContent.END_TURN:
-                log("Remainaing: " + (ambulanceAgents.size()-finishedAmbulanceAgents.size()) + "; last: " + msg.getSender().getLocalName());
                 finishedAmbulanceAgents.add((AgentAction) content.getValue());
+                log("Remainaing: " + (ambulanceAgents.size()-finishedAmbulanceAgents.size()) + "; last: " + msg.getSender().getLocalName());
                 // TODO: This is not reliable enough, look for another way
                 if (finishedAmbulanceAgents.size() == ambulanceAgents.size()) {
                     this.endTurn();
@@ -259,9 +259,10 @@ public class HospitalCoordinatorAgent extends ImasAgent {
     }
 
     private void updatePendingGameUpdateConfirmations() {
+        if(!pendingGameUpdateConfirmations.isEmpty()){throw new IllegalArgumentException("Previous turn had some confirmation of game info left"); }
         pendingGameUpdateConfirmations.clear();
-        pendingGameUpdateConfirmations.addAll(hospitalAgents);
-        pendingGameUpdateConfirmations.addAll(ambulanceAgents);
+        pendingGameUpdateConfirmations.addAll(new ArrayList<>(hospitalAgents));
+        pendingGameUpdateConfirmations.addAll(new ArrayList<>(ambulanceAgents));
     }
 
 

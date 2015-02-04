@@ -155,7 +155,7 @@ public class HospitalAgent extends ImasAgent{
         switch( content.getKey() ) {
             case MessageContent.SEND_GAME:
                 setGame((GameSettings) content.getValue());
-                updatePosition();
+                //updatePosition();
                 updateRecoveryTime();
                 updateMaxCapacity();
 
@@ -189,10 +189,12 @@ public class HospitalAgent extends ImasAgent{
     /**
      * Updates the new current position from the game settings
      */
+    /*
     public void updatePosition() {
         int hospitalNumber = AIDUtil.getLocalId( getAID() );
         this.currentPosition = this.game.getAgentList().get(AgentType.HOSPITAL).get(hospitalNumber);
     }
+    */
     
     /**
      * Updates the maximum capacity of the hospital from the game settings
